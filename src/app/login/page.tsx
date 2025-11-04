@@ -1,11 +1,24 @@
 "use client";
 
+import { useEffect } from "react";
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/lib/supabase";
 
 export default function LoginPage() {
-	const sb = supabase();
+	const sb = supabase;
+
+	useEffect(() => {
+		const {
+			data: { subscription },
+		} = sb.auth.onAuthStateChange((evt, session) => {
+			if (session && (evt === "SIGNED_IN" || evt === "TOKEN_REFRESHED")) {
+				// Hard redirect so the new session is visible everywhere immediately
+				window.location.replace("/");
+			}
+		});
+		return () => subscription.unsubscribe();
+	}, [sb]);
 
 	return (
 		<main className="min-h-dvh grid place-items-center p-6">
@@ -13,8 +26,6 @@ export default function LoginPage() {
 				<h1 className="mb-4 text-2xl font-semibold text-center">
 					Sign in to NorthLink
 				</h1>
-
-				{/* Drop-in auth form from Supabase */}
 				<Auth
 					supabaseClient={sb}
 					appearance={{
@@ -22,25 +33,22 @@ export default function LoginPage() {
 						variables: {
 							default: {
 								colors: {
-									inputText: "#ffffff",
-									inputLabelText: "#cccccc",
-									inputPlaceholderText: "#999999",
+									inputText: "#fff",
+									inputLabelText: "#ccc",
+									inputPlaceholderText: "#999",
 								},
 							},
 						},
 					}}
-					providers={[]} // no OAuth for MVP
+					providers={[]}
 					view="sign_in"
-					localization={{
-						variables: {
-							sign_in: { email_label: "Email", password_label: "Password" },
-						},
-					}}
+					// optional: let GoTrue do a redirect itself
+					redirectTo={
+						typeof window !== "undefined"
+							? `${window.location.origin}/`
+							: undefined
+					}
 				/>
-
-				<p className="mt-4 text-center text-sm text-gray-500">
-					Don’t have an account? Use the “Sign up” tab in the form.
-				</p>
 			</div>
 		</main>
 	);

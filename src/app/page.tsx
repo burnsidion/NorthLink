@@ -1,54 +1,39 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
-export default function Home() {
-	const sb = supabase();
-	const [email, setEmail] = useState<string | null>(null);
+export default function HomeGate() {
+	const router = useRouter();
 
 	useEffect(() => {
-		// read current session
-		sb.auth
-			.getSession()
-			.then(({ data }) => setEmail(data.session?.user.email ?? null));
+		(async () => {
+			const {
+				data: { session },
+			} = await supabase.auth.getSession();
 
-		// respond to future auth changes
-		const { data: sub } = sb.auth.onAuthStateChange(async (_evt, session) => {
-			if (session?.user) {
-				setEmail(session.user.email);
-				// ensure the user's profile and family membership exist
-				const { ensureProfileAndMembership } = await import("@/lib/user-setup");
-				await ensureProfileAndMembership();
-			} else {
-				setEmail(null);
+			// Not signed in -> /login
+			if (!session) {
+				router.replace("/login");
+				return;
 			}
-		});
 
-		return () => sub.subscription.unsubscribe();
-	}, [sb]);
+			// Fetch profile to see if onboarding is complete
+			const { data: profile, error } = await supabase
+				.from("profiles")
+				.select("display_name, avatar_url")
+				.eq("id", session.user.id)
+				.maybeSingle();
 
-	if (!email) {
-		return (
-			<main className="p-8">
-				<a className="underline" href="/login">
-					Sign in
-				</a>
-			</main>
-		);
-	}
+			// If no profile or missing fields -> /onboarding, else /lists
+			if (error || !profile || !profile.display_name || !profile.avatar_url) {
+				router.replace("/onboarding");
+			} else {
+				router.replace("/lists");
+			}
+		})();
+	}, [router]);
 
-	return (
-		<main className="p-8 space-y-4">
-			<p>
-				Signed in as <strong>{email}</strong>
-			</p>
-			<button
-				className="rounded bg-black text-white px-3 py-2"
-				onClick={() => sb.auth.signOut()}
-			>
-				Sign out
-			</button>
-		</main>
-	);
+	return null; // blank while deciding
 }
