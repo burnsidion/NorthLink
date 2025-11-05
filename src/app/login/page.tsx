@@ -4,6 +4,9 @@ import { useEffect } from "react";
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/lib/supabase";
+import { ShootingStars } from "@/components/ui/shooting-stars";
+import { StarsBackground } from "@/components/ui/stars-background";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 export default function LoginPage() {
 	const sb = supabase;
@@ -21,10 +24,21 @@ export default function LoginPage() {
 	}, [sb]);
 
 	return (
-		<main className="min-h-dvh grid place-items-center p-6">
+		<main className="relative min-h-dvh grid place-items-center p-6">
+			{/* backgrounds behind everything */}
+			<div className="pointer-events-none fixed inset-0 -z-10">
+				<StarsBackground starColor="var(--stars-dim)" />
+				<ShootingStars
+					starColor="var(--stars-fg)"
+					trailColor="var(--stars-trail)"
+				/>
+			</div>
+
+			<ThemeToggle />
+
 			<div className="w-full max-w-md rounded-lg border p-6 shadow-sm">
 				<h1 className="mb-4 text-2xl font-semibold text-center">
-					Sign in to NorthLink
+				  🎁 🎄 Sign in to NorthLink 🎄 🎁
 				</h1>
 				<Auth
 					supabaseClient={sb}
@@ -33,16 +47,16 @@ export default function LoginPage() {
 						variables: {
 							default: {
 								colors: {
-									inputText: "#fff",
-									inputLabelText: "#ccc",
-									inputPlaceholderText: "#999",
+									brand: "oklch(0.60 0.118 184.704)",
+									inputText: "var(--foreground)",
+									inputLabelText: "var(--muted-foreground)",
+									inputPlaceholderText: "var(--muted-foreground)",
 								},
 							},
 						},
 					}}
 					providers={[]}
 					view="sign_in"
-					// optional: let GoTrue do a redirect itself
 					redirectTo={
 						typeof window !== "undefined"
 							? `${window.location.origin}/`
