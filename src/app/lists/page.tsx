@@ -1,13 +1,23 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { use, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+
+import { CardSpotlight } from "@/components/ui/card-spotlight";
+import { LightRays } from "@/components/ui/light-rays";
+import { HeroHighlight, Highlight } from "@/components/ui/hero-highlight";
+import { FestiveGlow } from "@/components/ui/festive-glow";
+
+import { motion } from "motion/react";
+import Link from "next/link";
+import { ListTodo, UsersRound } from "lucide-react";
 
 export default function ListsPage() {
 	const sb = supabase;
 	const router = useRouter();
 	const [email, setEmail] = useState<string | null>(null);
+	const [displayName, setDisplayName] = useState<string | null>(null);
 
 	useEffect(() => {
 		(async () => {
@@ -19,16 +29,108 @@ export default function ListsPage() {
 				return;
 			}
 			setEmail(session.user.email ?? null);
+			const { data: prof, error } = await sb
+				.from("profiles")
+				.select("display_name")
+				.eq("id", session.user.id)
+				.maybeSingle();
+
+			if (!error) {
+				setDisplayName(prof?.display_name ?? null);
+			} else {
+				console.error("fetch profile failed:", error);
+			}
 		})();
 	}, [router, sb]);
 
 	return (
-		<main className="p-8 space-y-4">
-			<h1 className="text-2xl font-semibold">My Lists</h1>
-			<p className="text-sm text-gray-500">Signed in as {email}</p>
-			<div className="rounded border p-4">
-				Lists UI goes here (owner view + create list)
+		<main className="relative mx-auto max-w-6xl min-h-dvh px-4 pb-24 pt-24 lg:pt-20">
+			{/* Hero Section */}
+			<HeroHighlight className="bg-none">
+				<motion.h1
+					initial={{
+						opacity: 0,
+						y: 20,
+					}}
+					animate={{
+						opacity: 1,
+						y: [20, -5, 0],
+					}}
+					transition={{
+						duration: 0.5,
+						ease: [0.4, 0.0, 0.2, 1],
+					}}
+					className="text-2xl px-4 md:text-4xl lg:text-5xl font-bold text-neutral-700 dark:text-white max-w-4xl leading-relaxed lg:leading-snug text-center mx-auto "
+				>
+					Welcome {displayName !== null ? displayName : "shopper"}!{" "}
+					<Highlight className="text-black dark:text-white">Create</Highlight>
+					your own lists.{" "}
+					<Highlight className="text-black dark:text-white"> Browse</Highlight>
+					Family Lists.
+					<br />
+					Keep
+					<Highlight className="text-black dark:text-white">
+						{" "}
+						suprises
+					</Highlight>
+					secret!
+				</motion.h1>
+			</HeroHighlight>
+			{/* Card Container */}
+			<div className="h-24 sm:h-32 lg:h-40" />
+			<div className="grid grid-cols-1 md:grid-cols-2 gap-8 justify-items-center">
+				{/* User Card */}
+				<FestiveGlow>
+					<CardSpotlight
+						color="#3b0f0f"
+						className="relative w-full max-w-md h-96 text-center"
+					>
+						<div className="relative z-20 flex flex-col items-center justify-center h-full">
+							<ListTodo
+								className="h-6 w-6 text-red-200"
+								strokeWidth={1.75}
+								aria-hidden
+							/>
+							<span className="sr-only">My Lists</span>
+							<h1 className="text-xl font-bold text-white">My Lists</h1>
+							<p className="text-neutral-300 mt-4 text-sm">
+								Once it’s ready, your lists will appear here for easy access.
+							</p>
+							<Link href="/lists" className="mt-6">
+								<button className="rounded-md border border-white/10 px-5 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 bg-red-700/80 hover:bg-red-600 text-white">
+									View My Lists
+								</button>
+							</Link>
+						</div>
+					</CardSpotlight>
+				</FestiveGlow>
+				{/* Family Card */}
+				<FestiveGlow>
+					<CardSpotlight
+						color="#0f3b17"
+						className="relative w-full max-w-md h-96 text-center"
+					>
+						<div className="relative z-20 flex flex-col items-center justify-center h-full">
+							<UsersRound
+								className="h-6 w-6 text-emerald-200"
+								strokeWidth={1.75}
+								aria-hidden
+							/>
+							<span className="sr-only">Family Lists</span>
+							<h1 className="text-xl font-bold text-white">Family Lists</h1>
+							<p className="text-neutral-300 mt-4 text-sm">
+								Here is where you can view lists others have created
+							</p>
+							<Link href="/lists" className="mt-6">
+								<button className="rounded-md border border-white/10 px-5 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 bg-emerald-700/80 hover:bg-emerald-600 text-white">
+									View User Lists
+								</button>
+							</Link>
+						</div>
+					</CardSpotlight>
+				</FestiveGlow>
 			</div>
+			<LightRays className="fixed inset-0 -z-10 opacity-60" />
 		</main>
 	);
 }

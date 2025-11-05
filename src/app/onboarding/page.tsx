@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { AVATARS } from "@/lib/avatars";
+import { StarsBackground } from "@/components/ui/stars-background";
+import { ShootingStars } from "@/components/ui/shooting-stars";
 
 export default function OnboardingPage() {
 	const sb = supabase;
@@ -40,11 +42,22 @@ export default function OnboardingPage() {
 			data: { session },
 		} = await sb.auth.getSession();
 		if (!session) return;
-		await sb.from("profiles").upsert({
-			id: session.user.id,
-			display_name: displayName.trim(),
-			avatar_url: avatar,
-		});
+
+		const { error } = await sb.from("profiles").upsert(
+			{
+				id: session.user.id,
+				display_name: displayName.trim(),
+				avatar_url: avatar,
+			},
+			{ onConflict: "id" } // be explicit, avoids surprises
+		);
+
+		if (error) {
+			console.error(error);
+			// show a toast or inline error; stop the redirect
+			return;
+		}
+
 		router.replace("/lists");
 	};
 
@@ -55,10 +68,20 @@ export default function OnboardingPage() {
 
 	return (
 		<main className="min-h-dvh grid place-items-center p-6">
+			<div className="pointer-events-none fixed inset-0 -z-10">
+				<StarsBackground starColor="var(--stars-dim)" />
+				<ShootingStars
+					starColor="var(--stars-fg)"
+					trailColor="var(--stars-trail)"
+				/>
+			</div>
 			<div className="w-full max-w-md space-y-4 rounded-lg border p-6 shadow-sm">
 				<h1 className="text-2xl font-semibold text-center">
 					Welcome to NorthLink
 				</h1>
+				<h4 className="text-center text-sm text-muted-foreground">
+					Please enter your details to get started.
+				</h4>
 
 				<label className="block text-sm font-medium">Your name</label>
 				<input
