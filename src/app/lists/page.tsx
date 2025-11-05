@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
@@ -8,16 +8,33 @@ import { CardSpotlight } from "@/components/ui/card-spotlight";
 import { LightRays } from "@/components/ui/light-rays";
 import { HeroHighlight, Highlight } from "@/components/ui/hero-highlight";
 import { FestiveGlow } from "@/components/ui/festive-glow";
+import { SkeletonCard } from "@/components/ui/skeleton-card";
 
 import { motion } from "motion/react";
 import Link from "next/link";
 import { ListTodo, UsersRound } from "lucide-react";
+
+const gridVariants = {
+	hidden: {},
+	show: { transition: { staggerChildren: 0.12 } },
+};
+
+const cardVariants = {
+	hidden: { opacity: 0, y: 12, filter: "blur(2px)" },
+	show: {
+		opacity: 1,
+		y: 0,
+		filter: "blur(0px)",
+		transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] },
+	},
+};
 
 export default function ListsPage() {
 	const sb = supabase;
 	const router = useRouter();
 	const [email, setEmail] = useState<string | null>(null);
 	const [displayName, setDisplayName] = useState<string | null>(null);
+	const [loading, setLoading] = useState(true);
 
 	useEffect(() => {
 		(async () => {
@@ -40,6 +57,7 @@ export default function ListsPage() {
 			} else {
 				console.error("fetch profile failed:", error);
 			}
+			setTimeout(() => setLoading(false), 700);
 		})();
 	}, [router, sb]);
 
@@ -71,65 +89,91 @@ export default function ListsPage() {
 					Keep
 					<Highlight className="text-black dark:text-white">
 						{" "}
-						suprises
+						surprises
 					</Highlight>
 					secret!
 				</motion.h1>
 			</HeroHighlight>
 			{/* Card Container */}
 			<div className="h-24 sm:h-32 lg:h-40" />
-			<div className="grid grid-cols-1 md:grid-cols-2 gap-8 justify-items-center">
-				{/* User Card */}
-				<FestiveGlow>
-					<CardSpotlight
-						color="#3b0f0f"
-						className="relative w-full max-w-md h-96 text-center"
-					>
-						<div className="relative z-20 flex flex-col items-center justify-center h-full">
-							<ListTodo
-								className="h-6 w-6 text-red-200"
-								strokeWidth={1.75}
-								aria-hidden
-							/>
-							<span className="sr-only">My Lists</span>
-							<h1 className="text-xl font-bold text-white">My Lists</h1>
-							<p className="text-neutral-300 mt-4 text-sm">
-								Once it’s ready, your lists will appear here for easy access.
-							</p>
-							<Link href="/lists" className="mt-6">
-								<button className="rounded-md border border-white/10 px-5 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 bg-red-700/80 hover:bg-red-600 text-white">
-									View My Lists
-								</button>
-							</Link>
-						</div>
-					</CardSpotlight>
-				</FestiveGlow>
-				{/* Family Card */}
-				<FestiveGlow>
-					<CardSpotlight
-						color="#0f3b17"
-						className="relative w-full max-w-md h-96 text-center"
-					>
-						<div className="relative z-20 flex flex-col items-center justify-center h-full">
-							<UsersRound
-								className="h-6 w-6 text-emerald-200"
-								strokeWidth={1.75}
-								aria-hidden
-							/>
-							<span className="sr-only">Family Lists</span>
-							<h1 className="text-xl font-bold text-white">Family Lists</h1>
-							<p className="text-neutral-300 mt-4 text-sm">
-								Here is where you can view lists others have created
-							</p>
-							<Link href="/lists" className="mt-6">
-								<button className="rounded-md border border-white/10 px-5 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 bg-emerald-700/80 hover:bg-emerald-600 text-white">
-									View User Lists
-								</button>
-							</Link>
-						</div>
-					</CardSpotlight>
-				</FestiveGlow>
-			</div>
+			<motion.div
+				className="grid grid-cols-1 md:grid-cols-2 gap-8 justify-items-center"
+				variants={gridVariants}
+				initial="hidden"
+				animate="show"
+			>
+				{loading ? (
+					<>
+						<motion.div variants={cardVariants}>
+							<SkeletonCard />
+						</motion.div>
+						<motion.div variants={cardVariants}>
+							<SkeletonCard />
+						</motion.div>
+					</>
+				) : (
+					<>
+						{/* User Card */}
+						<motion.div variants={cardVariants}>
+							<FestiveGlow>
+								<CardSpotlight
+									color="#3b0f0f"
+									className="relative w-full max-w-md h-96 text-center"
+								>
+									<div className="relative z-20 flex flex-col items-center justify-center h-full">
+										<ListTodo
+											className="h-6 w-6 text-red-200"
+											strokeWidth={1.75}
+											aria-hidden
+										/>
+										<span className="sr-only">My Lists</span>
+										<h1 className="text-xl font-bold text-white">My Lists</h1>
+										<p className="text-neutral-300 mt-4 text-sm">
+											Once it’s ready, your lists will appear here for easy
+											access.
+										</p>
+										<Link href="/lists" className="mt-6">
+											<button className="rounded-md border border-white/10 px-5 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 bg-red-700/80 hover:bg-red-600 text-white">
+												View My Lists
+											</button>
+										</Link>
+									</div>
+								</CardSpotlight>
+							</FestiveGlow>
+						</motion.div>
+
+						{/* Family Card */}
+						<motion.div variants={cardVariants}>
+							<FestiveGlow>
+								<CardSpotlight
+									color="#0f3b17"
+									className="relative w-full max-w-md h-96 text-center"
+								>
+									<div className="relative z-20 flex flex-col items-center justify-center h-full">
+										<UsersRound
+											className="h-6 w-6 text-emerald-200"
+											strokeWidth={1.75}
+											aria-hidden
+										/>
+										<span className="sr-only">Family Lists</span>
+										<h1 className="text-xl font-bold text-white">
+											Family Lists
+										</h1>
+										<p className="text-neutral-300 mt-4 text-sm">
+											Here is where you can view lists others have created
+										</p>
+										<Link href="/lists" className="mt-6">
+											<button className="rounded-md border border-white/10 px-5 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 bg-emerald-700/80 hover:bg-emerald-600 text-white">
+												View User Lists
+											</button>
+										</Link>
+									</div>
+								</CardSpotlight>
+							</FestiveGlow>
+						</motion.div>
+					</>
+				)}
+			</motion.div>
 			<LightRays className="fixed inset-0 -z-10 opacity-60" />
 		</main>
 	);
