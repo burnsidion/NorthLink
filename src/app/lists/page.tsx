@@ -9,6 +9,8 @@ import { LightRays } from "@/components/ui/light-rays";
 import { HeroHighlight, Highlight } from "@/components/ui/hero-highlight";
 import { FestiveGlow } from "@/components/ui/festive-glow";
 import { SkeletonCard } from "@/components/ui/skeleton-card";
+import { EditOutlined, TeamOutlined, GiftOutlined } from "@ant-design/icons";
+import { HolidayBanner } from "@/components/ui/holiday-banner";
 
 import { motion } from "motion/react";
 import Link from "next/link";
@@ -64,7 +66,8 @@ export default function ListsPage() {
 	return (
 		<main className="relative mx-auto max-w-6xl min-h-dvh px-4 pb-24 pt-24 lg:pt-20">
 			{/* Hero Section */}
-			<HeroHighlight className="bg-none">
+			<HolidayBanner />
+			<HeroHighlight className="bg-none mt-12">
 				<motion.h1
 					initial={{
 						opacity: 0,
@@ -174,6 +177,53 @@ export default function ListsPage() {
 					</>
 				)}
 			</motion.div>
+			{/* How It Works Section */}
+			<div className="relative mt-24">
+				<div
+					aria-hidden="true"
+					className="pointer-events-none absolute -inset-0.5 rounded-2xl opacity-30 blur-xl"
+					style={{
+						background:
+							"conic-gradient(from 0deg at 50% 50%, rgba(239,68,68,0.6), rgba(34,197,94,0.6), rgba(239,68,68,0.6))",
+					}}
+				/>
+				<div className="relative rounded-2xl bg-black/50 p-8 text-center ring-1 ring-white/10">
+					<h2 className="text-2xl font-bold mb-8 text-white">How It Works</h2>
+
+					<div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+						<div>
+							<EditOutlined />
+							<h3 className="text-lg font-semibold text-white">
+								Create Your List
+							</h3>
+							<p className="mt-2 text-sm text-neutral-300">
+								Add all the items you’re wishing for this Christmas.
+							</p>
+						</div>
+
+						<div>
+							<TeamOutlined />
+							<h3 className="text-lg font-semibold text-white">
+								Share With Others
+							</h3>
+							<p className="mt-2 text-sm text-neutral-300">
+								Let friends and family see your wish list.
+							</p>
+						</div>
+
+						<div>
+							<GiftOutlined />
+							<h3 className="text-lg font-semibold text-white">
+								Track Purchases
+							</h3>
+							<p className="mt-2 text-sm text-neutral-300">
+								Items are marked when claimed to avoid duplicates.
+							</p>
+						</div>
+					</div>
+				</div>
+			</div>
+
 			<LightRays className="fixed inset-0 -z-10 opacity-60" />
 		</main>
 	);
