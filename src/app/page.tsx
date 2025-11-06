@@ -49,7 +49,7 @@ export default function HomeGate() {
         if (profErr) throw profErr;
 
         const incomplete = !profile || !profile.display_name || !profile.avatar_url;
-        if (!cancelled) router.replace(incomplete ? "/onboarding" : "/lists");
+        if (!cancelled) router.replace(incomplete ? "/onboarding" : "/landing");
       } catch (err: any) {
         toast.error(err?.message ?? "Something went wrong checking your session.");
         if (!cancelled) router.replace("/login");
