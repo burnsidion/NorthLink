@@ -11,3 +11,7 @@ export const supabase = createClient(
 		},
 	}
 );
+
+export function createSupabaseServer() {
+	return supabase;
+}
