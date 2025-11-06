@@ -135,7 +135,7 @@ export default function ListsPage() {
 											Once it’s ready, your lists will appear here for easy
 											access.
 										</p>
-										<Link href="/lists" className="mt-6">
+										<Link href="/user-lists" className="mt-6">
 											<button className="rounded-md border border-white/10 px-5 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 bg-red-700/80 hover:bg-red-600 text-white">
 												View My Lists
 											</button>
