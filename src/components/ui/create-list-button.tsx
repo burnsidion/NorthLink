@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { createPortal } from "react-dom";
 
 export default function CreateListButton() {
 	const router = useRouter();
@@ -100,56 +101,60 @@ export default function CreateListButton() {
 			</button>
 
 			{/* Modal */}
-			{open && (
-				<div
-					className="fixed inset-0 z-50 flex items-center justify-center"
-					role="dialog"
-					aria-modal="true"
-				>
+			{open &&
+				createPortal(
 					<div
-						className="absolute inset-0 bg-black/50"
-						onClick={closeModal}
-						aria-hidden
-					/>
-
-					<div className="relative z-10 w-full max-w-md rounded-lg bg-white p-6 shadow-lg dark:bg-slate-900">
-						<h3 className="mb-2 text-lg font-semibold">Create new list</h3>
-
-						<label className="mb-2 block text-sm text-slate-600 dark:text-slate-300">
-							Name
-						</label>
-						<input
-							ref={inputRef}
-							value={title}
-							onChange={(e) => setTitle(e.target.value)}
-							className="mb-3 w-full rounded border px-3 py-2 text-sm dark:bg-slate-800 dark:text-white"
-							placeholder="e.g. Mum's Christmas List"
-							aria-label="List title"
+						className="fixed inset-0 z-9999 flex items-center justify-center"
+						role="dialog"
+						aria-modal="true"
+					>
+						<div
+							className="absolute inset-0 bg-black/50"
+							onClick={closeModal}
+							aria-hidden
 						/>
 
-						{error && <div className="mb-3 text-sm text-red-500">{error}</div>}
+						<div className="relative z-10 w-full max-w-md rounded-lg bg-white p-6 shadow-lg dark:bg-slate-900">
+							<h3 className="mb-2 text-lg font-semibold">Create new list</h3>
 
-						<div className="flex justify-end gap-2">
-							<button
-								type="button"
-								onClick={closeModal}
-								className="rounded px-3 py-1 text-sm"
-								disabled={loading}
-							>
-								Cancel
-							</button>
-							<button
-								type="button"
-								onClick={handleCreate}
-								className="rounded bg-slate-900 px-3 py-1 text-sm text-white disabled:opacity-50"
-								disabled={loading}
-							>
-								{loading ? "Saving..." : "Save"}
-							</button>
+							<label className="mb-2 block text-sm text-slate-600 dark:text-slate-300">
+								Name
+							</label>
+							<input
+								ref={inputRef}
+								value={title}
+								onChange={(e) => setTitle(e.target.value)}
+								className="mb-3 w-full rounded border px-3 py-2 text-sm dark:bg-slate-800 dark:text-white"
+								placeholder="e.g. Mum's Christmas List"
+								aria-label="List title"
+							/>
+
+							{error && (
+								<div className="mb-3 text-sm text-red-500">{error}</div>
+							)}
+
+							<div className="flex justify-end gap-2">
+								<button
+									type="button"
+									onClick={closeModal}
+									className="rounded px-3 py-1 text-sm"
+									disabled={loading}
+								>
+									Cancel
+								</button>
+								<button
+									type="button"
+									onClick={handleCreate}
+									className="rounded bg-slate-900 px-3 py-1 text-sm text-white disabled:opacity-50"
+									disabled={loading}
+								>
+									{loading ? "Saving..." : "Save"}
+								</button>
+							</div>
 						</div>
-					</div>
-				</div>
-			)}
+					</div>,
+					document.body
+				)}
 		</>
 	);
 }

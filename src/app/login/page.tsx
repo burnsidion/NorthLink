@@ -1,11 +1,13 @@
 "use client";
-
+//Deps
 import { useEffect } from "react";
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/lib/supabase";
-import { ShootingStars } from "@/components/ui/shooting-stars";
+
+//UI components
 import { StarsBackground } from "@/components/ui/stars-background";
+import Snowfall from "@/components/ui/snowfall";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 export default function LoginPage() {
@@ -16,7 +18,6 @@ export default function LoginPage() {
 			data: { subscription },
 		} = sb.auth.onAuthStateChange((evt, session) => {
 			if (session && (evt === "SIGNED_IN" || evt === "TOKEN_REFRESHED")) {
-				// Hard redirect so the new session is visible everywhere immediately
 				window.location.replace("/");
 			}
 		});
@@ -28,9 +29,11 @@ export default function LoginPage() {
 			{/* backgrounds behind everything */}
 			<div className="pointer-events-none fixed inset-0 -z-10">
 				<StarsBackground starColor="var(--stars-dim)" />
-				<ShootingStars
-					starColor="var(--stars-fg)"
-					trailColor="var(--stars-trail)"
+				<Snowfall
+					className="absolute inset-0 z-0"
+					count={70}
+					speed={40}
+					wind={0.18}
 				/>
 			</div>
 
@@ -38,7 +41,7 @@ export default function LoginPage() {
 
 			<div className="w-full max-w-md rounded-lg border p-6 shadow-sm">
 				<h1 className="mb-4 text-2xl font-semibold text-center">
-				  🎁 🎄 Sign in to NorthLink 🎄 🎁
+					🎁 🎄 Sign in to NorthLink 🎄 🎁
 				</h1>
 				<Auth
 					supabaseClient={sb}
