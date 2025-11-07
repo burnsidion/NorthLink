@@ -1,4 +1,3 @@
-// app/user-lists/page.tsx
 import { createSupabaseServer } from "@/lib/supabase";
 import Link from "next/link";
 import CreateListButton from "@/components/ui/create-list-button";
@@ -79,21 +78,6 @@ export default async function UserListsPage() {
 										>
 											View List
 										</Link>
-										<form
-											action={async () => {
-												const { deleteList } = await import(
-													"@/app/actions/lists"
-												);
-												await deleteList(l.id);
-											}}
-										>
-											<button
-												type="submit"
-												className="px-3 py-1.5 rounded-lg bg-red-500/80 hover:bg-red-400 text-sm text-black"
-											>
-												Delete
-											</button>
-										</form>
 									</div>
 								</div>
 							</GlareCard>
