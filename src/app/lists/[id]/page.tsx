@@ -61,7 +61,7 @@ export default async function ListDetail({ params }: Params) {
 				{(items ?? []).map((it) => (
 					<li
 						key={it.id}
-						className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2"
+						className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/2 px-3 py-2"
 					>
 						<form
 							action={async () => {

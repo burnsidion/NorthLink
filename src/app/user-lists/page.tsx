@@ -95,7 +95,7 @@ export default function UserListsPage() {
 						<GlareCard containerClassName="h-64 sm:h-72 lg:h-80" key={l.id}>
 							<div className="flex flex-col justify-between h-full w-full p-4">
 								<div className="flex flex-col items-center">
-									<h2 className="text-3xl font-semibold text-white break-words">
+									<h2 className="text-3xl font-semibold text-white wrap-break-word">
 										{l.title}
 									</h2>
 									<p className="text-md text-white/70 mb-4">

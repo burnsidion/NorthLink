@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { AVATARS } from "@/lib/avatars";
 import { StarsBackground } from "@/components/ui/stars-background";
-import { ShootingStars } from "@/components/ui/shooting-stars";
+import SnowFall from "@/components/ui/snow-fall";
 
 export default function OnboardingPage() {
 	const sb = supabase;
@@ -70,9 +70,11 @@ export default function OnboardingPage() {
 		<main className="min-h-dvh grid place-items-center p-6">
 			<div className="pointer-events-none fixed inset-0 -z-10">
 				<StarsBackground starColor="var(--stars-dim)" />
-				<ShootingStars
-					starColor="var(--stars-fg)"
-					trailColor="var(--stars-trail)"
+				<Snowfall
+					className="absolute inset-0 z-0"
+					count={70}
+					speed={40}
+					wind={0.18}
 				/>
 			</div>
 			<div className="w-full max-w-md space-y-4 rounded-lg border p-6 shadow-sm">
