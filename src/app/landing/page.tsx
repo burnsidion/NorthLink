@@ -1,17 +1,20 @@
 "use client";
-
+//Deps
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { useTheme } from "next-themes";
 
+// UI Components
 import { CardSpotlight } from "@/components/ui/card-spotlight";
-import { LightRays } from "@/components/ui/light-rays";
 import { HeroHighlight, Highlight } from "@/components/ui/hero-highlight";
 import { FestiveGlow } from "@/components/ui/festive-glow";
 import { SkeletonCard } from "@/components/ui/skeleton-card";
 import { EditOutlined, TeamOutlined, GiftOutlined } from "@ant-design/icons";
-import { HolidayBanner } from "@/components/ui/holiday-banner";
-
+import CountdownBanner from "@/components/ui/countdown-banner";
+import Snowfall from "@/components/ui/snowfall";
+import { StarsBackground } from "@/components/ui/stars-background";
+// Animation
 import { motion } from "motion/react";
 import Link from "next/link";
 import { ListTodo, UsersRound } from "lucide-react";
@@ -65,8 +68,17 @@ export default function ListsPage() {
 
 	return (
 		<main className="relative mx-auto max-w-6xl min-h-dvh px-4 pb-24 pt-24 lg:pt-20">
+			<StarsBackground starColor="var(--stars-dim)" />
+			<Snowfall
+				className="absolute inset-0 z-0"
+				count={70}
+				speed={40}
+				wind={0.18}
+			/>
+
+			<CountdownBanner initialNow={Date.now()} />
+
 			{/* Hero Section */}
-			<HolidayBanner />
 			<HeroHighlight className="bg-none mt-12">
 				<motion.h1
 					initial={{
@@ -83,17 +95,22 @@ export default function ListsPage() {
 					}}
 					className="text-2xl px-4 md:text-4xl lg:text-5xl font-bold text-neutral-700 dark:text-white max-w-4xl leading-relaxed lg:leading-snug text-center mx-auto "
 				>
-					Welcome {displayName !== null ? displayName : "shopper"}!{" "}
-					<Highlight className="text-black dark:text-white">Create</Highlight>
-					your own lists.{" "}
-					<Highlight className="text-black dark:text-white"> Browse</Highlight>
+					Welcome {displayName !== null ? displayName : "shopper"}!
+					<br />
+					<Highlight className="text-black dark:text-white">
+						Create
+					</Highlight>{" "}
+					your own lists.
+					<br />
+					<Highlight className="text-black dark:text-white">
+						Browse
+					</Highlight>{" "}
 					Family Lists.
 					<br />
-					Keep
+					Keep{" "}
 					<Highlight className="text-black dark:text-white">
-						{" "}
 						surprises
-					</Highlight>
+					</Highlight>{" "}
 					secret!
 				</motion.h1>
 			</HeroHighlight>
@@ -106,6 +123,7 @@ export default function ListsPage() {
 				animate="show"
 			>
 				{loading ? (
+					// Loading Skeletons
 					<>
 						<motion.div variants={cardVariants}>
 							<SkeletonCard />
@@ -223,8 +241,6 @@ export default function ListsPage() {
 					</div>
 				</div>
 			</div>
-
-			<LightRays className="fixed inset-0 -z-10 opacity-60" />
 		</main>
 	);
 }
