@@ -5,7 +5,16 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { createPortal } from "react-dom";
 
-export default function CreateListButton() {
+export const glowButtonClasses = {
+  outer:
+    "relative inline-flex h-12 overflow-hidden rounded-full p-px focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50",
+  spinner:
+    "absolute inset-[-1000%] animate-[spin_2s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#FF0000_0%,#008000_50%,#FFFFFF_100%)]",
+  inner:
+    "inline-flex h-full w-full items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white backdrop-blur-3xl",
+};
+
+export default function CreateListButton({ onCreated }: { onCreated?: (newList: any) => void }) {
 	const router = useRouter();
 	const [pending, startTransition] = useTransition();
 
@@ -66,9 +75,11 @@ export default function CreateListButton() {
 				return;
 			}
 
-			const { error: insertErr } = await supabase
+			const { data: newList, error: insertErr } = await supabase
 				.from("lists")
-				.insert({ title: t, owner_user_id: user.id });
+				.insert({ title: t, owner_user_id: user.id })
+				.select()
+				.single();
 
 			if (insertErr) {
 				setError(insertErr.message);
@@ -78,7 +89,11 @@ export default function CreateListButton() {
 
 			setLoading(false);
 			closeModal();
-			startTransition(() => router.refresh());
+			if (onCreated && newList) {
+				onCreated(newList);
+			} else {
+				startTransition(() => router.refresh());
+			}
 		} catch (e: any) {
 			setError(e?.message ?? String(e));
 			setLoading(false);
@@ -89,15 +104,13 @@ export default function CreateListButton() {
 		<>
 			{/* Trigger button */}
 			<button
-				onClick={openModal}
-				aria-busy={pending}
-				disabled={pending}
-				className="relative inline-flex h-12 overflow-hidden rounded-full p-px focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50"
+			  onClick={openModal}
+			  aria-busy={pending}
+			  disabled={pending}
+			  className={glowButtonClasses.outer}
 			>
-				<span className="absolute inset-[-1000%] animate-[spin_2s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#FF0000_0%,#008000_50%,#FFFFFF_100%)]" />
-				<span className="inline-flex h-full w-full items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white backdrop-blur-3xl">
-					Create New List
-				</span>
+			  <span className={glowButtonClasses.spinner} />
+			  <span className={glowButtonClasses.inner}>Create New List</span>
 			</button>
 
 			{/* Modal */}
