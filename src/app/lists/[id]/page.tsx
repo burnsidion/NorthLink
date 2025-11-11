@@ -10,6 +10,7 @@ import Snowfall from "@/components/ui/snowfall";
 import CountdownBanner from "@/components/ui/countdown-banner";
 import { ShinyButton } from "@/components/ui/shiny-button";
 import { TextAnimate } from "@/components/ui/text-animate";
+import { toCents, normalizeUrl, usd } from "@/lib/format";
 
 type ListRow = { id: string; title: string; created_at: string };
 type ItemRow = {
@@ -32,6 +33,7 @@ export default function ListDetailPage() {
 	const [items, setItems] = useState<ItemRow[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
+	const [now0] = useState(() => Date.now());
 
 	// form state
 	const [newName, setNewName] = useState("");
@@ -49,26 +51,6 @@ export default function ListDetailPage() {
 	const [editLink, setEditLink] = useState("");
 	const [editNotes, setEditNotes] = useState("");
 	const [savingEdit, setSavingEdit] = useState(false);
-
-	const toCents = (v: string) => {
-		const n = Number(v.replace(/[^0-9.]/g, ""));
-		return Number.isFinite(n) ? Math.round(n * 100) : null;
-	};
-
-	const normalizeUrl = (v: string) => {
-		if (!v.trim()) return null;
-		try {
-			const u = new URL(v.match(/^https?:\/\//) ? v : "https://" + v);
-			return u.toString();
-		} catch {
-			return null;
-		}
-	};
-
-	const fmt = new Intl.NumberFormat(undefined, {
-		style: "currency",
-		currency: "USD",
-	});
 
 	useEffect(() => {
 		let alive = true;
@@ -202,7 +184,9 @@ export default function ListDetailPage() {
 		setEditingId(it.id);
 		setEditTitle(it.title ?? "");
 		setEditPrice(
-			typeof it.price_cents === "number" ? String((it.price_cents / 100).toFixed(2)) : ""
+			typeof it.price_cents === "number"
+				? String((it.price_cents / 100).toFixed(2))
+				: ""
 		);
 		setEditLink(it.link ?? "");
 		setEditNotes(it.notes ?? "");
@@ -229,7 +213,13 @@ export default function ListDetailPage() {
 		setItems((p) =>
 			p.map((it) =>
 				it.id === editingId
-					? { ...it, title: editTitle.trim(), price_cents: priceCents, link: linkNorm, notes: editNotes.trim() || null }
+					? {
+							...it,
+							title: editTitle.trim(),
+							price_cents: priceCents,
+							link: linkNorm,
+							notes: editNotes.trim() || null,
+					  }
 					: it
 			)
 		);
@@ -273,7 +263,7 @@ export default function ListDetailPage() {
 	return (
 		<main className="px-6 py-8 max-w-2xl mx-auto space-y-6">
 			<Snowfall />
-			<CountdownBanner initialNow={Date.now()} />
+			<CountdownBanner initialNow={now0} />
 			{/* Header */}
 			<header className="space-y-1">
 				<TextAnimate
@@ -429,21 +419,34 @@ export default function ListDetailPage() {
 									// VIEW MODE
 									<div>
 										<div className="flex items-center gap-2">
-											<span className={it.purchased ? "line-through text-white/50" : ""}>
+											<span
+												className={
+													it.purchased ? "line-through text-white/50" : ""
+												}
+											>
 												{it.title}
 											</span>
 											{typeof it.price_cents === "number" && (
-												<span className="text-xs text-white/60">· {fmt.format(it.price_cents / 100)}</span>
+												<span className="text-xs text-white/60">
+													· {usd.format(it.price_cents / 100)}
+												</span>
 											)}
 										</div>
 										{(it.link || it.notes) && (
 											<div className="mt-1 text-sm text-white/70 space-x-2">
 												{it.link && (
-													<a href={it.link} target="_blank" rel="noreferrer" className="underline hover:text-white">
+													<a
+														href={it.link}
+														target="_blank"
+														rel="noreferrer"
+														className="underline hover:text-white"
+													>
 														View
 													</a>
 												)}
-												{it.notes && <span className="opacity-80">{it.notes}</span>}
+												{it.notes && (
+													<span className="opacity-80">{it.notes}</span>
+												)}
 											</div>
 										)}
 										<div className="mt-2 flex gap-2">
