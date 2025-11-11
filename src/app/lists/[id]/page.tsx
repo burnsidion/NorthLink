@@ -27,6 +27,7 @@ export default function ListDetailPage() {
 	const { id } = useParams<{ id: string }>();
 	const router = useRouter();
 
+	// state
 	const [list, setList] = useState<ListRow | null>(null);
 	const [items, setItems] = useState<ItemRow[]>([]);
 	const [loading, setLoading] = useState(true);
@@ -39,6 +40,7 @@ export default function ListDetailPage() {
 	const [newPrice, setNewPrice] = useState("");
 	const [newLink, setNewLink] = useState("");
 	const [newNotes, setNewNotes] = useState("");
+	const [formOpen, setFormOpen] = useState(false);
 
 	const toCents = (v: string) => {
 		const n = Number(v.replace(/[^0-9.]/g, ""));
@@ -140,6 +142,7 @@ export default function ListDetailPage() {
 			setNewPrice("");
 			setNewLink("");
 			setNewNotes("");
+			setFormOpen(false);
 		} catch (err: any) {
 			setError(err?.message ?? String(err));
 		} finally {
@@ -220,48 +223,71 @@ export default function ListDetailPage() {
 				</p>
 			</header>
 
-			{/* Add item */}
-			<form onSubmit={handleAdd} className="space-y-3">
-				<div className="flex gap-2">
-					<input
-						name="title"
-						placeholder="Add an item…"
-						maxLength={120}
-						value={newTitle}
-						onChange={(e) => setNewTitle(e.target.value)}
-						className="flex-1 rounded-lg bg-neutral-800 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-400/40"
-					/>
-					<ShinyButton disabled={adding}>
-						{" "}
-						{adding ? "Adding…" : "Add"}{" "}
-					</ShinyButton>
+			{/* Toggle button shown when the form is collapsed */}
+			{!formOpen ? (
+				<div className="pt-2">
+					<button
+						type="button"
+						onClick={() => setFormOpen(true)}
+						aria-expanded={formOpen}
+						aria-controls="add-item-form"
+						className="px-6 py-2 bg-black/70 text-white rounded-lg font-semibold border border-white/10 hover:bg-black/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+					>
+						Add item
+					</button>
 				</div>
+			) : null}
 
-				<div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-					<input
-						name="price"
-						inputMode="decimal"
-						placeholder="Price (e.g. 24.99)"
-						value={newPrice}
-						onChange={(e) => setNewPrice(e.target.value)}
-						className="rounded-lg bg-neutral-800 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-400/40"
-					/>
-					<input
-						name="link"
-						placeholder="Link (amazon.com/…)"
-						value={newLink}
-						onChange={(e) => setNewLink(e.target.value)}
-						className="rounded-lg bg-neutral-800 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-400/40"
-					/>
-					<input
-						name="notes"
-						placeholder="Notes (size, color, etc.)"
-						value={newNotes}
-						onChange={(e) => setNewNotes(e.target.value)}
-						className="rounded-lg bg-neutral-800 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-400/40"
-					/>
-				</div>
-			</form>
+			{formOpen && (
+				<form id="add-item-form" onSubmit={handleAdd} className="space-y-3">
+					<div className="flex flex-col sm:flex-row gap-2">
+						<input
+							name="title"
+							placeholder="Item Name"
+							maxLength={120}
+							value={newTitle}
+							onChange={(e) => setNewTitle(e.target.value)}
+							className="flex-1 min-w-0 rounded-lg bg-neutral-800 border border-white/10 px-3 py-2 text-base outline-none focus:ring-2 focus:ring-emerald-400/40"
+						/>
+						<ShinyButton disabled={adding} className="w-full sm:w-auto h-11">
+							{" "}
+							{adding ? "Adding…" : "Save"}{" "}
+						</ShinyButton>
+						<button
+							type="button"
+							onClick={() => setFormOpen(false)}
+							className="rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-sm text-white hover:bg-black/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 ml-2"
+						>
+							Cancel
+						</button>
+					</div>
+
+					<div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+						<input
+							name="price"
+							inputMode="decimal"
+							placeholder="Price (e.g. 24.99)"
+							value={newPrice}
+							onChange={(e) => setNewPrice(e.target.value)}
+							className="rounded-lg bg-neutral-800 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-400/40"
+						/>
+						<input
+							name="link"
+							placeholder="Link (amazon.com/…)"
+							value={newLink}
+							onChange={(e) => setNewLink(e.target.value)}
+							className="rounded-lg bg-neutral-800 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-400/40"
+						/>
+						<input
+							name="notes"
+							placeholder="Notes (size, color, etc.)"
+							value={newNotes}
+							onChange={(e) => setNewNotes(e.target.value)}
+							className="rounded-lg bg-neutral-800 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-400/40"
+						/>
+					</div>
+				</form>
+			)}
 
 			{/* Error message */}
 			{error && <p className="text-red-400 text-sm">{error}</p>}
