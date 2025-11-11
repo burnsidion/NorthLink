@@ -1,105 +1,331 @@
-import { createSupabaseServer } from "@/lib/supabase";
-import { addItem, toggleItem, deleteItem } from "@/app/actions/items";
+"use client";
 
-type Params = { params: { id: string } };
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
 
-export default async function ListDetail({ params }: Params) {
-	const supabase = createSupabaseServer();
+//Ui components
+import { FestiveGlow } from "@/components/ui/festive-glow";
+import Snowfall from "@/components/ui/snowfall";
+import CountdownBanner from "@/components/ui/countdown-banner";
+import { ShinyButton } from "@/components/ui/shiny-button";
+import { TextAnimate } from "@/components/ui/text-animate";
 
-	const [{ data: list }, { data: items }] = await Promise.all([
-		supabase
-			.from("lists")
-			.select("id,title,created_at")
-			.eq("id", params.id)
-			.single(),
-		supabase
+type ListRow = { id: string; title: string; created_at: string };
+type ItemRow = {
+	id: string;
+	list_id: string;
+	title: string;
+	purchased: boolean;
+	created_at: string;
+	price_cents: number | null;
+	link: string | null;
+	notes: string | null;
+};
+
+export default function ListDetailPage() {
+	const { id } = useParams<{ id: string }>();
+	const router = useRouter();
+
+	const [list, setList] = useState<ListRow | null>(null);
+	const [items, setItems] = useState<ItemRow[]>([]);
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState<string | null>(null);
+
+	// form state
+	const [newName, setNewName] = useState("");
+	const [adding, setAdding] = useState(false);
+	const [newTitle, setNewTitle] = useState("");
+	const [newPrice, setNewPrice] = useState("");
+	const [newLink, setNewLink] = useState("");
+	const [newNotes, setNewNotes] = useState("");
+
+	const toCents = (v: string) => {
+		const n = Number(v.replace(/[^0-9.]/g, ""));
+		return Number.isFinite(n) ? Math.round(n * 100) : null;
+	};
+
+	const normalizeUrl = (v: string) => {
+		if (!v.trim()) return null;
+		try {
+			const u = new URL(v.match(/^https?:\/\//) ? v : "https://" + v);
+			return u.toString();
+		} catch {
+			return null;
+		}
+	};
+
+	const fmt = new Intl.NumberFormat(undefined, {
+		style: "currency",
+		currency: "USD",
+	});
+
+	useEffect(() => {
+		let alive = true;
+
+		(async () => {
+			const {
+				data: { user },
+				error: userErr,
+			} = await supabase.auth.getUser();
+			if (userErr || !user) {
+				router.push("/signin");
+				return;
+			}
+
+			// Load list + items
+			const [
+				{ data: theList, error: listErr },
+				{ data: theItems, error: itemsErr },
+			] = await Promise.all([
+				supabase
+					.from("lists")
+					.select("id,title,created_at")
+					.eq("id", id)
+					.single(),
+				supabase
+					.from("items")
+					.select(
+						"id,list_id,title,purchased,created_at,price_cents,link,notes"
+					)
+					.eq("list_id", id)
+					.order("created_at", { ascending: true }),
+			]);
+
+			if (!alive) return;
+
+			if (listErr || !theList) {
+				setError(listErr?.message ?? "List not found.");
+				setLoading(false);
+				return;
+			}
+
+			if (itemsErr) setError(itemsErr.message ?? null);
+
+			setList(theList);
+			setItems(theItems ?? []);
+			setLoading(false);
+		})();
+
+		return () => {
+			alive = false;
+		};
+	}, [id, router]);
+
+	async function handleAdd(e: React.FormEvent) {
+		e.preventDefault();
+		const title = newTitle.trim();
+		if (!title || !list) return;
+
+		setAdding(true);
+		setError(null);
+
+		try {
+			const { data: inserted, error: insertErr } = await supabase
+				.from("items")
+				.insert({
+					list_id: list.id,
+					title,
+					price_cents: toCents(newPrice),
+					link: normalizeUrl(newLink),
+					notes: newNotes.trim() || null,
+				})
+				.select()
+				.single();
+
+			if (insertErr) throw insertErr;
+
+			setItems((prev) => [...prev, inserted as ItemRow]);
+			setNewTitle("");
+			setNewPrice("");
+			setNewLink("");
+			setNewNotes("");
+		} catch (err: any) {
+			setError(err?.message ?? String(err));
+		} finally {
+			setAdding(false);
+		}
+	}
+
+	async function handleToggle(idToToggle: string, nextPurchased: boolean) {
+		// optimistic update
+		setItems((prev) =>
+			prev.map((it) =>
+				it.id === idToToggle ? { ...it, purchased: nextPurchased } : it
+			)
+		);
+
+		const { error: updErr } = await supabase
 			.from("items")
-			.select("id,name,purchased,created_at")
-			.eq("list_id", params.id)
-			.order("created_at", { ascending: true }),
-	]);
+			.update({ purchased: nextPurchased })
+			.eq("id", idToToggle);
 
-	if (!list) {
+		if (updErr) {
+			// revert
+			setItems((prev) =>
+				prev.map((it) =>
+					it.id === idToToggle ? { ...it, purchased: !nextPurchased } : it
+				)
+			);
+			setError(updErr.message);
+		}
+	}
+
+	async function handleDelete(idToDelete: string) {
+		// optimistic remove
+		const prev = items;
+		setItems((p) => p.filter((it) => it.id !== idToDelete));
+
+		const { error: delErr } = await supabase
+			.from("items")
+			.delete()
+			.eq("id", idToDelete);
+
+		if (delErr) {
+			setItems(prev); // revert
+			setError(delErr.message);
+		}
+	}
+
+	if (loading) return <main className="px-6 py-8 text-white/80">Loading…</main>;
+	if (error && !list)
+		return (
+			<main className="px-6 py-8">
+				<p className="text-red-400">{error}</p>
+			</main>
+		);
+	if (!list)
 		return (
 			<main className="px-6 py-8">
 				<p className="text-red-400">List not found.</p>
 			</main>
 		);
-	}
 
 	return (
 		<main className="px-6 py-8 max-w-2xl mx-auto space-y-6">
+			<Snowfall />
+			<CountdownBanner initialNow={Date.now()} />
+			{/* Header */}
 			<header className="space-y-1">
-				<h1 className="text-2xl font-semibold">{list.title}</h1>
+				<TextAnimate
+					animation="blurInUp"
+					by="character"
+					once
+					className="text-2xl font-semibold"
+				>
+					{list.title}
+				</TextAnimate>
 				<p className="text-sm text-white/60">
-					{new Date(list.created_at).toLocaleString()}
+					Created at: {new Date(list.created_at).toLocaleString()}
 				</p>
 			</header>
 
 			{/* Add item */}
-			<form
-				action={async (formData) => {
-					"use server";
-					const name = String(formData.get("name") || "");
-					await addItem(list.id, name);
-				}}
-				className="flex gap-2"
-			>
-				<input
-					name="name"
-					placeholder="Add an item…"
-					maxLength={120}
-					className="flex-1 rounded-lg bg-neutral-800 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-400/40"
-				/>
-				<button className="px-3 py-2 rounded-lg bg-emerald-500/90 hover:bg-emerald-400 text-black font-medium">
-					Add
-				</button>
+			<form onSubmit={handleAdd} className="space-y-3">
+				<div className="flex gap-2">
+					<input
+						name="title"
+						placeholder="Add an item…"
+						maxLength={120}
+						value={newTitle}
+						onChange={(e) => setNewTitle(e.target.value)}
+						className="flex-1 rounded-lg bg-neutral-800 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-400/40"
+					/>
+					<ShinyButton disabled={adding}>
+						{" "}
+						{adding ? "Adding…" : "Add"}{" "}
+					</ShinyButton>
+				</div>
+
+				<div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+					<input
+						name="price"
+						inputMode="decimal"
+						placeholder="Price (e.g. 24.99)"
+						value={newPrice}
+						onChange={(e) => setNewPrice(e.target.value)}
+						className="rounded-lg bg-neutral-800 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-400/40"
+					/>
+					<input
+						name="link"
+						placeholder="Link (amazon.com/…)"
+						value={newLink}
+						onChange={(e) => setNewLink(e.target.value)}
+						className="rounded-lg bg-neutral-800 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-400/40"
+					/>
+					<input
+						name="notes"
+						placeholder="Notes (size, color, etc.)"
+						value={newNotes}
+						onChange={(e) => setNewNotes(e.target.value)}
+						className="rounded-lg bg-neutral-800 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-400/40"
+					/>
+				</div>
 			</form>
 
+			{/* Error message */}
+			{error && <p className="text-red-400 text-sm">{error}</p>}
+
 			{/* Items list */}
-			<ul className="space-y-2">
-				{(items ?? []).map((it) => (
-					<li
-						key={it.id}
-						className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/2 px-3 py-2"
-					>
-						<form
-							action={async () => {
-								"use server";
-								await toggleItem(it.id, list.id, !it.purchased);
-							}}
+			<FestiveGlow>
+				<ul className="space-y-2">
+					{items.map((it) => (
+						<li
+							key={it.id}
+							className="flex items-start gap-3 rounded-lg border border-white/10 bg-white/2 px-3 py-2"
 						>
 							<button
+								type="button"
 								aria-label={
 									it.purchased ? "Mark unpurchased" : "Mark purchased"
 								}
-								className={`h-5 w-5 rounded border ${
+								onClick={() => handleToggle(it.id, !it.purchased)}
+								className={`mt-1 h-5 w-5 rounded border ${
 									it.purchased
 										? "bg-emerald-400/80 border-emerald-300"
 										: "border-white/20"
 								}`}
 							/>
-						</form>
-						<span
-							className={`flex-1 ${
-								it.purchased ? "line-through text-white/50" : ""
-							}`}
-						>
-							{it.name}
-						</span>
-						<form
-							action={async () => {
-								"use server";
-								await deleteItem(it.id, list.id);
-							}}
-						>
-							<button className="text-sm rounded-lg bg-red-500/80 hover:bg-red-400 text-black px-2 py-1">
+							<div className="flex-1">
+								<div className="flex items-center gap-2">
+									<span
+										className={it.purchased ? "line-through text-white/50" : ""}
+									>
+										{it.title}
+									</span>
+									{typeof it.price_cents === "number" && (
+										<span className="text-xs text-white/60">
+											· {fmt.format(it.price_cents / 100)}
+										</span>
+									)}
+								</div>
+								{(it.link || it.notes) && (
+									<div className="mt-1 text-sm text-white/70 space-x-2">
+										{it.link && (
+											<a
+												href={it.link}
+												target="_blank"
+												rel="noreferrer"
+												className="underline hover:text-white"
+											>
+												View
+											</a>
+										)}
+										{it.notes && <span className="opacity-80">{it.notes}</span>}
+									</div>
+								)}
+							</div>
+							<button
+								type="button"
+								onClick={() => handleDelete(it.id)}
+								className="text-sm rounded-lg bg-red-500/80 hover:bg-red-400 text-black px-2 py-1"
+							>
 								Delete
 							</button>
-						</form>
-					</li>
-				))}
-			</ul>
+						</li>
+					))}
+				</ul>
+			</FestiveGlow>
 		</main>
 	);
 }
