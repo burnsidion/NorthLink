@@ -8,7 +8,6 @@ import { supabase } from "@/lib/supabase";
 //UI components
 import { StarsBackground } from "@/components/ui/stars-background";
 import Snowfall from "@/components/ui/snowfall";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 export default function LoginPage() {
 	const sb = supabase;
@@ -29,16 +28,10 @@ export default function LoginPage() {
 			{/* backgrounds behind everything */}
 			<div className="pointer-events-none fixed inset-0 -z-10">
 				<StarsBackground starColor="var(--stars-dim)" />
-				<Snowfall
-					className="absolute inset-0 z-0"
-					count={70}
-					speed={40}
-					wind={0.18}
-				/>
+				<Snowfall className="absolute" count={70} speed={40} wind={0.18} />
 			</div>
 
-			<ThemeToggle />
-
+			{/* Auth Card */}
 			<div className="w-full max-w-md rounded-lg border p-6 shadow-sm">
 				<h1 className="mb-4 text-2xl font-semibold text-center">
 					🎁 🎄 Sign in to NorthLink 🎄 🎁

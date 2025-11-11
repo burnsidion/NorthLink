@@ -71,7 +71,7 @@ export default function OnboardingPage() {
 			<div className="pointer-events-none fixed inset-0 -z-10">
 				<StarsBackground starColor="var(--stars-dim)" />
 				<Snowfall
-					className="absolute inset-0 z-0"
+					className="absolute"
 					count={70}
 					speed={40}
 					wind={0.18}

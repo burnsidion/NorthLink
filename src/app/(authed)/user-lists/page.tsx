@@ -1,6 +1,7 @@
 "use client";
 //Deps
 import { useState, useEffect, useCallback } from "react";
+import { motion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
@@ -15,7 +16,7 @@ import { ManageListModal } from "@/components/ui/manage-list-modal";
 import { GlareCard } from "@/components/ui/glare-card";
 import { FestiveGlow } from "@/components/ui/festive-glow";
 import Snowfall from "@/components/ui/snowfall";
-import { TextAnimate } from "@/components/ui/text-animate";
+import { StarsBackground } from "@/components/ui/stars-background";
 import CountdownBanner from "@/components/ui/countdown-banner";
 
 //Icons
@@ -128,47 +129,25 @@ export default function UserListsPage() {
 	const rows = lists ?? [];
 
 	return (
-		<main className="relative min-h-screen px-6 py-8 space-y-6 bg-linear-to-b from-[#1a0000] via-[#2b0000] to-[#3b1a00] overflow-hidden">
-			<Snowfall
-				className="absolute inset-0 z-0"
-				count={70}
-				speed={40}
-				wind={0.18}
-			/>
+		<main className="relative min-h-screen px-6 py-8 space-y-6 overflow-hidden">
+			<StarsBackground starColor="var(--stars-dim)" />
 			<CountdownBanner initialNow={Date.now()} />
-			<header className="relative z-10 mx-auto w-full max-w-5xl">
-				{/* toolbar */}
-				<div className="mb-3 flex items-center justify-between">
-					<Link
-						href="/landing"
-						aria-label="Go to Home"
-						title="Home"
-						className={glowButtonClasses.outer}
+			<header className="relative mx-auto w-full max-w-5xl">
+				{/* title */}
+				<div className="text-center">
+					<motion.h1
+						initial={{ opacity: 0, y: 6 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={{ duration: 0.25 }}
+						className="text-4xl mb-2"
 					>
-						<span className={glowButtonClasses.spinner} />
-						<span className={glowButtonClasses.inner}>
-							<HomeOutlined className="mr-2" />
-							<span className="hidden sm:inline">Home</span>
-						</span>
-					</Link>
-
+						Your Lists
+					</motion.h1>
 					<CreateListButton
 						onCreated={(newList) =>
 							setLists((prev) => [newList, ...(prev ?? [])])
 						}
 					/>
-				</div>
-
-				{/* title */}
-				<div className="text-center">
-					<TextAnimate
-						animation="blurInUp"
-						by="character"
-						once
-						className="text-3xl sm:text-4xl font-semibold"
-					>
-						Your Lists
-					</TextAnimate>
 				</div>
 			</header>
 
@@ -183,7 +162,7 @@ export default function UserListsPage() {
 				</FestiveGlow>
 			) : (
 				// List cards grid
-				<section className="relative z-10 grid grid-cols-1 sm:grid-cols-2 gap-8 justify-items-center">
+				<section className="relative grid grid-cols-1 sm:grid-cols-2 gap-8 justify-items-center">
 					{rows.map((l) => (
 						<GlareCard containerClassName="h-64 sm:h-72 lg:h-80" key={l.id}>
 							<div className="relative flex flex-col justify-between h-full w-full p-4">
@@ -198,7 +177,7 @@ export default function UserListsPage() {
 											setIsModalOpen(true);
 										}}
 										aria-label={`Manage list ${l.title}`}
-										className="absolute right-2 top-2 z-20 inline-flex items-center gap-1 rounded-md border border-white/10 bg-black/40 px-2 py-1 text-xs text-white hover:bg-black/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+										className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-md border border-white/10 bg-black/40 px-2 py-1 text-xs text-white hover:bg-black/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
 									>
 										<EditOutlined className="text-white/90" />
 									</button>
@@ -237,6 +216,7 @@ export default function UserListsPage() {
 					)}
 				</section>
 			)}
+			<Snowfall count={70} speed={40} wind={0.18} />
 		</main>
 	);
 }
