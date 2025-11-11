@@ -42,6 +42,14 @@ export default function ListDetailPage() {
 	const [newNotes, setNewNotes] = useState("");
 	const [formOpen, setFormOpen] = useState(false);
 
+	// edit state
+	const [editingId, setEditingId] = useState<string | null>(null);
+	const [editTitle, setEditTitle] = useState("");
+	const [editPrice, setEditPrice] = useState("");
+	const [editLink, setEditLink] = useState("");
+	const [editNotes, setEditNotes] = useState("");
+	const [savingEdit, setSavingEdit] = useState(false);
+
 	const toCents = (v: string) => {
 		const n = Number(v.replace(/[^0-9.]/g, ""));
 		return Number.isFinite(n) ? Math.round(n * 100) : null;
@@ -190,6 +198,64 @@ export default function ListDetailPage() {
 		}
 	}
 
+	function beginEdit(it: ItemRow) {
+		setEditingId(it.id);
+		setEditTitle(it.title ?? "");
+		setEditPrice(
+			typeof it.price_cents === "number" ? String((it.price_cents / 100).toFixed(2)) : ""
+		);
+		setEditLink(it.link ?? "");
+		setEditNotes(it.notes ?? "");
+	}
+
+	function cancelEdit() {
+		setEditingId(null);
+		setEditTitle("");
+		setEditPrice("");
+		setEditLink("");
+		setEditNotes("");
+	}
+
+	async function saveEdit() {
+		if (!editingId) return;
+		setSavingEdit(true);
+
+		// capture old for revert
+		const prev = items;
+		const priceCents = toCents(editPrice);
+		const linkNorm = normalizeUrl(editLink);
+
+		// optimistic update
+		setItems((p) =>
+			p.map((it) =>
+				it.id === editingId
+					? { ...it, title: editTitle.trim(), price_cents: priceCents, link: linkNorm, notes: editNotes.trim() || null }
+					: it
+			)
+		);
+
+		const { error: updErr } = await supabase
+			.from("items")
+			.update({
+				title: editTitle.trim(),
+				price_cents: priceCents,
+				link: linkNorm,
+				notes: editNotes.trim() || null,
+			})
+			.eq("id", editingId);
+
+		if (updErr) {
+			// revert and surface error
+			setItems(prev);
+			setError(updErr.message);
+			setSavingEdit(false);
+			return;
+		}
+
+		setSavingEdit(false);
+		cancelEdit();
+	}
+
 	if (loading) return <main className="px-6 py-8 text-white/80">Loading…</main>;
 	if (error && !list)
 		return (
@@ -313,41 +379,90 @@ export default function ListDetailPage() {
 								}`}
 							/>
 							<div className="flex-1">
-								<div className="flex items-center gap-2">
-									<span
-										className={it.purchased ? "line-through text-white/50" : ""}
-									>
-										{it.title}
-									</span>
-									{typeof it.price_cents === "number" && (
-										<span className="text-xs text-white/60">
-											· {fmt.format(it.price_cents / 100)}
-										</span>
-									)}
-								</div>
-								{(it.link || it.notes) && (
-									<div className="mt-1 text-sm text-white/70 space-x-2">
-										{it.link && (
-											<a
-												href={it.link}
-												target="_blank"
-												rel="noreferrer"
-												className="underline hover:text-white"
+								{editingId === it.id ? (
+									// EDIT MODE
+									<div className="space-y-2">
+										<div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
+											<input
+												value={editTitle}
+												onChange={(e) => setEditTitle(e.target.value)}
+												placeholder="Title"
+												className="rounded-lg bg-neutral-800 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-400/40"
+											/>
+											<input
+												value={editPrice}
+												onChange={(e) => setEditPrice(e.target.value)}
+												placeholder="Price (e.g. 24.99)"
+												inputMode="decimal"
+												className="rounded-lg bg-neutral-800 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-400/40"
+											/>
+											<input
+												value={editLink}
+												onChange={(e) => setEditLink(e.target.value)}
+												placeholder="Link"
+												className="rounded-lg bg-neutral-800 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-400/40"
+											/>
+											<input
+												value={editNotes}
+												onChange={(e) => setEditNotes(e.target.value)}
+												placeholder="Notes"
+												className="rounded-lg bg-neutral-800 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-400/40"
+											/>
+										</div>
+										<div className="flex gap-2">
+											<button
+												onClick={saveEdit}
+												disabled={savingEdit}
+												className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm hover:bg-emerald-500 disabled:opacity-60"
 											>
-												View
-											</a>
+												{savingEdit ? "Saving…" : "Save"}
+											</button>
+											<button
+												onClick={cancelEdit}
+												className="rounded-lg border border-white/10 bg-red-600 px-3 py-1.5 text-sm hover:bg-red-500"
+											>
+												Cancel
+											</button>
+										</div>
+									</div>
+								) : (
+									// VIEW MODE
+									<div>
+										<div className="flex items-center gap-2">
+											<span className={it.purchased ? "line-through text-white/50" : ""}>
+												{it.title}
+											</span>
+											{typeof it.price_cents === "number" && (
+												<span className="text-xs text-white/60">· {fmt.format(it.price_cents / 100)}</span>
+											)}
+										</div>
+										{(it.link || it.notes) && (
+											<div className="mt-1 text-sm text-white/70 space-x-2">
+												{it.link && (
+													<a href={it.link} target="_blank" rel="noreferrer" className="underline hover:text-white">
+														View
+													</a>
+												)}
+												{it.notes && <span className="opacity-80">{it.notes}</span>}
+											</div>
 										)}
-										{it.notes && <span className="opacity-80">{it.notes}</span>}
+										<div className="mt-2 flex gap-2">
+											<button
+												onClick={() => beginEdit(it)}
+												className="text-sm rounded-lg bg-emerald-800 hover:bg-emerald-900 text-white px-2 py-1"
+											>
+												Edit
+											</button>
+											<button
+												onClick={() => handleDelete(it.id)}
+												className="text-sm rounded-lg bg-red-500/80 hover:bg-red-400 text-white px-2 py-1"
+											>
+												Delete
+											</button>
+										</div>
 									</div>
 								)}
 							</div>
-							<button
-								type="button"
-								onClick={() => handleDelete(it.id)}
-								className="text-sm rounded-lg bg-red-500/80 hover:bg-red-400 text-black px-2 py-1"
-							>
-								Delete
-							</button>
 						</li>
 					))}
 				</ul>
