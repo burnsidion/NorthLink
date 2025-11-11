@@ -69,12 +69,9 @@ export default function ListsPage() {
 	return (
 		<main className="relative mx-auto max-w-6xl min-h-dvh px-4 pb-24 pt-24 lg:pt-20">
 			<StarsBackground starColor="var(--stars-dim)" />
-			<Snowfall
-				className="absolute inset-0 z-0"
-				count={70}
-				speed={40}
-				wind={0.18}
-			/>
+			<div className="pointer-events-none fixed inset-0 z-9999">
+				<Snowfall count={70} speed={40} wind={0.18} />
+			</div>
 
 			<CountdownBanner initialNow={Date.now()} />
 

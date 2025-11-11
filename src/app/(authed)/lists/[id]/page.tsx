@@ -1,14 +1,17 @@
 "use client";
 
+//React
 import { useEffect, useState } from "react";
+import { motion } from "motion/react";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { links } from "@/config/nav-links";
 
 //Ui components
 import { FestiveGlow } from "@/components/ui/festive-glow";
 import Snowfall from "@/components/ui/snowfall";
+import { StarsBackground } from "@/components/ui/stars-background";
 import CountdownBanner from "@/components/ui/countdown-banner";
-import { TextAnimate } from "@/components/ui/text-animate";
 import AddItemForm from "@/components/items/add-item-form";
 import ItemRowCard from "@/components/items/item-row";
 
@@ -16,6 +19,7 @@ import ItemRowCard from "@/components/items/item-row";
 import { toCents, normalizeUrl, usd } from "@/lib/format";
 import type { ListRow, ItemRow as ItemRowType } from "@/types/db";
 
+// API
 import {
 	addItem,
 	updateItem,
@@ -29,7 +33,7 @@ export default function ListDetailPage() {
 
 	// state
 	const [list, setList] = useState<ListRow | null>(null);
-	const [items, setItems] = useState<ItemRow[]>([]);
+	const [items, setItems] = useState<ItemRowType[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const [now0] = useState(() => Date.now());
@@ -150,7 +154,9 @@ export default function ListDetailPage() {
 
 	async function handleUpdate(
 		itemId: string,
-		patch: Partial<Pick<ItemRow, "title" | "price_cents" | "link" | "notes">>
+		patch: Partial<
+			Pick<ItemRowType, "title" | "price_cents" | "link" | "notes">
+		>
 	) {
 		const prev = items;
 		setItems((p) =>
@@ -180,18 +186,19 @@ export default function ListDetailPage() {
 
 	return (
 		<main className="px-6 py-8 max-w-2xl mx-auto space-y-6">
-			<Snowfall />
+			<StarsBackground starColor="var(--stars-dim)" />
+			<Snowfall count={70} speed={40} wind={0.18} />
 			<CountdownBanner initialNow={now0} />
 			{/* Header */}
 			<header className="space-y-1">
-				<TextAnimate
-					animation="blurInUp"
-					by="character"
-					once
-					className="text-2xl font-semibold"
+				<motion.h1
+					initial={{ opacity: 0, y: 6 }}
+					animate={{ opacity: 1, y: 0 }}
+					transition={{ duration: 0.25 }}
+					className="text-4xl mb-2"
 				>
 					{list.title}
-				</TextAnimate>
+				</motion.h1>
 				<p className="text-sm text-white/60">
 					Created at: {new Date(list.created_at).toLocaleString()}
 				</p>

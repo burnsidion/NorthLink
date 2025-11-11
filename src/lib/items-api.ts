@@ -31,29 +31,64 @@ export async function addItem(
 	return data as ItemRow;
 }
 
+// Accept either UI-friendly patch (with `price` as string) or DB patch (with `price_cents`)
+type PatchByUI = {
+	title?: string;
+	price?: string; // e.g. "24.99"
+	link?: string | null;
+	notes?: string | null;
+};
+type PatchByDB = Partial<
+	Pick<ItemRow, "title" | "price_cents" | "link" | "notes">
+>;
 
-/** Patch an existing item. Returns void (use optimistic UI in the caller). */
 export async function updateItem(
 	itemId: string,
-	patch: Partial<Pick<ItemRow, "title" | "price_cents" | "link" | "notes">>
+	patch: PatchByUI
+): Promise<void>;
+export async function updateItem(
+	itemId: string,
+	patch: PatchByDB
+): Promise<void>;
+export async function updateItem(
+	itemId: string,
+	patch: PatchByUI | PatchByDB
 ): Promise<void> {
-	const mapped = {
-		...patch,
-		// allow callers to pass price as string; normalize if so
-		...(typeof (patch as any).price === "string"
-			? { price_cents: toCents((patch as any).price) }
-			: {}),
-		link:
-			typeof patch.link === "string" ? normalizeUrl(patch.link) : patch.link,
-		notes:
-			typeof patch.notes === "string"
-				? patch.notes.trim() || null
-				: patch.notes,
-	};
+	const mapped: PatchByDB = {};
+
+	// title
+	if ("title" in patch && typeof patch.title === "string") {
+		mapped.title = patch.title.trim();
+	}
+
+	// price: support either `price` (string) or `price_cents` (number|null)
+	if ("price" in patch) {
+		const val = (patch as PatchByUI).price ?? "";
+		mapped.price_cents = toCents(val);
+	} else if ("price_cents" in patch) {
+		mapped.price_cents = (patch as PatchByDB).price_cents ?? null;
+	}
+
+	// link
+	if ("link" in patch) {
+		const v = patch.link;
+		mapped.link = typeof v === "string" ? normalizeUrl(v) : v ?? null;
+	}
+
+	// notes
+	if ("notes" in patch) {
+		const v = patch.notes;
+		mapped.notes = typeof v === "string" ? v.trim() || null : v ?? null;
+	}
+
+	// Remove undefined keys to avoid overwriting with undefined
+	const payload = Object.fromEntries(
+		Object.entries(mapped).filter(([, v]) => v !== undefined)
+	) as PatchByDB;
 
 	const { error } = await supabase
 		.from("items")
-		.update(mapped)
+		.update(payload)
 		.eq("id", itemId);
 	if (error) throw error;
 }
