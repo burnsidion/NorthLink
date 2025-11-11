@@ -8,21 +8,20 @@ import { supabase } from "@/lib/supabase";
 import { FestiveGlow } from "@/components/ui/festive-glow";
 import Snowfall from "@/components/ui/snowfall";
 import CountdownBanner from "@/components/ui/countdown-banner";
-import { ShinyButton } from "@/components/ui/shiny-button";
 import { TextAnimate } from "@/components/ui/text-animate";
-import { toCents, normalizeUrl, usd } from "@/lib/format";
+import AddItemForm from "@/components/items/add-item-form";
+import ItemRowCard from "@/components/items/item-row";
 
-type ListRow = { id: string; title: string; created_at: string };
-type ItemRow = {
-	id: string;
-	list_id: string;
-	title: string;
-	purchased: boolean;
-	created_at: string;
-	price_cents: number | null;
-	link: string | null;
-	notes: string | null;
-};
+//Utils
+import { toCents, normalizeUrl, usd } from "@/lib/format";
+import type { ListRow, ItemRow as ItemRowType } from "@/types/db";
+
+import {
+	addItem,
+	updateItem,
+	togglePurchased,
+	deleteItem,
+} from "@/lib/items-api";
 
 export default function ListDetailPage() {
 	const { id } = useParams<{ id: string }>();
@@ -36,21 +35,12 @@ export default function ListDetailPage() {
 	const [now0] = useState(() => Date.now());
 
 	// form state
-	const [newName, setNewName] = useState("");
 	const [adding, setAdding] = useState(false);
 	const [newTitle, setNewTitle] = useState("");
 	const [newPrice, setNewPrice] = useState("");
 	const [newLink, setNewLink] = useState("");
 	const [newNotes, setNewNotes] = useState("");
 	const [formOpen, setFormOpen] = useState(false);
-
-	// edit state
-	const [editingId, setEditingId] = useState<string | null>(null);
-	const [editTitle, setEditTitle] = useState("");
-	const [editPrice, setEditPrice] = useState("");
-	const [editLink, setEditLink] = useState("");
-	const [editNotes, setEditNotes] = useState("");
-	const [savingEdit, setSavingEdit] = useState(false);
 
 	useEffect(() => {
 		let alive = true;
@@ -106,28 +96,20 @@ export default function ListDetailPage() {
 
 	async function handleAdd(e: React.FormEvent) {
 		e.preventDefault();
+		if (!list) return;
 		const title = newTitle.trim();
-		if (!title || !list) return;
+		if (!title) return;
 
 		setAdding(true);
 		setError(null);
-
 		try {
-			const { data: inserted, error: insertErr } = await supabase
-				.from("items")
-				.insert({
-					list_id: list.id,
-					title,
-					price_cents: toCents(newPrice),
-					link: normalizeUrl(newLink),
-					notes: newNotes.trim() || null,
-				})
-				.select()
-				.single();
-
-			if (insertErr) throw insertErr;
-
-			setItems((prev) => [...prev, inserted as ItemRow]);
+			const inserted = await addItem(list.id, {
+				title,
+				price: newPrice,
+				link: newLink,
+				notes: newNotes,
+			});
+			setItems((prev) => [...prev, inserted]);
 			setNewTitle("");
 			setNewPrice("");
 			setNewLink("");
@@ -141,109 +123,45 @@ export default function ListDetailPage() {
 	}
 
 	async function handleToggle(idToToggle: string, nextPurchased: boolean) {
-		// optimistic update
-		setItems((prev) =>
-			prev.map((it) =>
+		const prev = items;
+		setItems((p) =>
+			p.map((it) =>
 				it.id === idToToggle ? { ...it, purchased: nextPurchased } : it
 			)
 		);
-
-		const { error: updErr } = await supabase
-			.from("items")
-			.update({ purchased: nextPurchased })
-			.eq("id", idToToggle);
-
-		if (updErr) {
-			// revert
-			setItems((prev) =>
-				prev.map((it) =>
-					it.id === idToToggle ? { ...it, purchased: !nextPurchased } : it
-				)
-			);
-			setError(updErr.message);
+		try {
+			await togglePurchased(idToToggle, nextPurchased);
+		} catch (e: any) {
+			setItems(prev); // revert
+			setError(e?.message ?? String(e));
 		}
 	}
 
 	async function handleDelete(idToDelete: string) {
-		// optimistic remove
 		const prev = items;
 		setItems((p) => p.filter((it) => it.id !== idToDelete));
-
-		const { error: delErr } = await supabase
-			.from("items")
-			.delete()
-			.eq("id", idToDelete);
-
-		if (delErr) {
+		try {
+			await deleteItem(idToDelete);
+		} catch (e: any) {
 			setItems(prev); // revert
-			setError(delErr.message);
+			setError(e?.message ?? String(e));
 		}
 	}
 
-	function beginEdit(it: ItemRow) {
-		setEditingId(it.id);
-		setEditTitle(it.title ?? "");
-		setEditPrice(
-			typeof it.price_cents === "number"
-				? String((it.price_cents / 100).toFixed(2))
-				: ""
-		);
-		setEditLink(it.link ?? "");
-		setEditNotes(it.notes ?? "");
-	}
-
-	function cancelEdit() {
-		setEditingId(null);
-		setEditTitle("");
-		setEditPrice("");
-		setEditLink("");
-		setEditNotes("");
-	}
-
-	async function saveEdit() {
-		if (!editingId) return;
-		setSavingEdit(true);
-
-		// capture old for revert
+	async function handleUpdate(
+		itemId: string,
+		patch: Partial<Pick<ItemRow, "title" | "price_cents" | "link" | "notes">>
+	) {
 		const prev = items;
-		const priceCents = toCents(editPrice);
-		const linkNorm = normalizeUrl(editLink);
-
-		// optimistic update
 		setItems((p) =>
-			p.map((it) =>
-				it.id === editingId
-					? {
-							...it,
-							title: editTitle.trim(),
-							price_cents: priceCents,
-							link: linkNorm,
-							notes: editNotes.trim() || null,
-					  }
-					: it
-			)
+			p.map((it) => (it.id === itemId ? { ...it, ...patch } : it))
 		);
-
-		const { error: updErr } = await supabase
-			.from("items")
-			.update({
-				title: editTitle.trim(),
-				price_cents: priceCents,
-				link: linkNorm,
-				notes: editNotes.trim() || null,
-			})
-			.eq("id", editingId);
-
-		if (updErr) {
-			// revert and surface error
-			setItems(prev);
-			setError(updErr.message);
-			setSavingEdit(false);
-			return;
+		try {
+			await updateItem(itemId, patch);
+		} catch (e: any) {
+			setItems(prev); // revert
+			setError(e?.message ?? String(e));
 		}
-
-		setSavingEdit(false);
-		cancelEdit();
 	}
 
 	if (loading) return <main className="px-6 py-8 text-white/80">Loading…</main>;
@@ -295,54 +213,20 @@ export default function ListDetailPage() {
 			) : null}
 
 			{formOpen && (
-				<form id="add-item-form" onSubmit={handleAdd} className="space-y-3">
-					<div className="flex flex-col sm:flex-row gap-2">
-						<input
-							name="title"
-							placeholder="Item Name"
-							maxLength={120}
-							value={newTitle}
-							onChange={(e) => setNewTitle(e.target.value)}
-							className="flex-1 min-w-0 rounded-lg bg-neutral-800 border border-white/10 px-3 py-2 text-base outline-none focus:ring-2 focus:ring-emerald-400/40"
-						/>
-						<ShinyButton disabled={adding} className="w-full sm:w-auto h-11">
-							{" "}
-							{adding ? "Adding…" : "Save"}{" "}
-						</ShinyButton>
-						<button
-							type="button"
-							onClick={() => setFormOpen(false)}
-							className="rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-sm text-white hover:bg-black/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 ml-2"
-						>
-							Cancel
-						</button>
-					</div>
-
-					<div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-						<input
-							name="price"
-							inputMode="decimal"
-							placeholder="Price (e.g. 24.99)"
-							value={newPrice}
-							onChange={(e) => setNewPrice(e.target.value)}
-							className="rounded-lg bg-neutral-800 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-400/40"
-						/>
-						<input
-							name="link"
-							placeholder="Link (amazon.com/…)"
-							value={newLink}
-							onChange={(e) => setNewLink(e.target.value)}
-							className="rounded-lg bg-neutral-800 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-400/40"
-						/>
-						<input
-							name="notes"
-							placeholder="Notes (size, color, etc.)"
-							value={newNotes}
-							onChange={(e) => setNewNotes(e.target.value)}
-							className="rounded-lg bg-neutral-800 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-400/40"
-						/>
-					</div>
-				</form>
+				<AddItemForm
+					open={formOpen}
+					onOpenChange={setFormOpen}
+					title={newTitle}
+					setTitle={setNewTitle}
+					price={newPrice}
+					setPrice={setNewPrice}
+					link={newLink}
+					setLink={setNewLink}
+					notes={newNotes}
+					setNotes={setNewNotes}
+					onSubmit={handleAdd}
+					submitting={adding}
+				/>
 			)}
 
 			{/* Error message */}
@@ -352,121 +236,13 @@ export default function ListDetailPage() {
 			<FestiveGlow>
 				<ul className="space-y-2">
 					{items.map((it) => (
-						<li
+						<ItemRowCard
 							key={it.id}
-							className="flex items-start gap-3 rounded-lg border border-white/10 bg-white/2 px-3 py-2"
-						>
-							<button
-								type="button"
-								aria-label={
-									it.purchased ? "Mark unpurchased" : "Mark purchased"
-								}
-								onClick={() => handleToggle(it.id, !it.purchased)}
-								className={`mt-1 h-5 w-5 rounded border ${
-									it.purchased
-										? "bg-emerald-400/80 border-emerald-300"
-										: "border-white/20"
-								}`}
-							/>
-							<div className="flex-1">
-								{editingId === it.id ? (
-									// EDIT MODE
-									<div className="space-y-2">
-										<div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
-											<input
-												value={editTitle}
-												onChange={(e) => setEditTitle(e.target.value)}
-												placeholder="Title"
-												className="rounded-lg bg-neutral-800 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-400/40"
-											/>
-											<input
-												value={editPrice}
-												onChange={(e) => setEditPrice(e.target.value)}
-												placeholder="Price (e.g. 24.99)"
-												inputMode="decimal"
-												className="rounded-lg bg-neutral-800 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-400/40"
-											/>
-											<input
-												value={editLink}
-												onChange={(e) => setEditLink(e.target.value)}
-												placeholder="Link"
-												className="rounded-lg bg-neutral-800 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-400/40"
-											/>
-											<input
-												value={editNotes}
-												onChange={(e) => setEditNotes(e.target.value)}
-												placeholder="Notes"
-												className="rounded-lg bg-neutral-800 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-400/40"
-											/>
-										</div>
-										<div className="flex gap-2">
-											<button
-												onClick={saveEdit}
-												disabled={savingEdit}
-												className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm hover:bg-emerald-500 disabled:opacity-60"
-											>
-												{savingEdit ? "Saving…" : "Save"}
-											</button>
-											<button
-												onClick={cancelEdit}
-												className="rounded-lg border border-white/10 bg-red-600 px-3 py-1.5 text-sm hover:bg-red-500"
-											>
-												Cancel
-											</button>
-										</div>
-									</div>
-								) : (
-									// VIEW MODE
-									<div>
-										<div className="flex items-center gap-2">
-											<span
-												className={
-													it.purchased ? "line-through text-white/50" : ""
-												}
-											>
-												{it.title}
-											</span>
-											{typeof it.price_cents === "number" && (
-												<span className="text-xs text-white/60">
-													· {usd.format(it.price_cents / 100)}
-												</span>
-											)}
-										</div>
-										{(it.link || it.notes) && (
-											<div className="mt-1 text-sm text-white/70 space-x-2">
-												{it.link && (
-													<a
-														href={it.link}
-														target="_blank"
-														rel="noreferrer"
-														className="underline hover:text-white"
-													>
-														View
-													</a>
-												)}
-												{it.notes && (
-													<span className="opacity-80">{it.notes}</span>
-												)}
-											</div>
-										)}
-										<div className="mt-2 flex gap-2">
-											<button
-												onClick={() => beginEdit(it)}
-												className="text-sm rounded-lg bg-emerald-800 hover:bg-emerald-900 text-white px-2 py-1"
-											>
-												Edit
-											</button>
-											<button
-												onClick={() => handleDelete(it.id)}
-												className="text-sm rounded-lg bg-red-500/80 hover:bg-red-400 text-white px-2 py-1"
-											>
-												Delete
-											</button>
-										</div>
-									</div>
-								)}
-							</div>
-						</li>
+							item={it}
+							onToggle={handleToggle}
+							onDelete={handleDelete}
+							onUpdate={handleUpdate}
+						/>
 					))}
 				</ul>
 			</FestiveGlow>
