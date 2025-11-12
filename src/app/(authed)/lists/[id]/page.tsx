@@ -100,6 +100,40 @@ export default function ListDetailPage() {
 		};
 	}, [id, router]);
 
+	useEffect(() => {
+		// subscribe to INSERT/UPDATE/DELETE for items in this list
+		const channel = supabase
+			.channel(`items:${id}`)
+			.on(
+				"postgres_changes",
+				{
+					event: "*",
+					schema: "public",
+					table: "items",
+					filter: `list_id=eq.${id}`,
+				},
+				() => {
+					refreshItems();
+				}
+			)
+			.subscribe();
+
+		return () => {
+			// cleanup channel on route change/unmount
+			supabase.removeChannel(channel);
+		};
+	}, [id]);
+
+	async function refreshItems() {
+		const { data, error } = await supabase
+			.from("items")
+			.select("id,list_id,title,purchased,created_at,price_cents,link,notes")
+			.eq("list_id", id)
+			.order("created_at", { ascending: true });
+
+		if (!error) setItems(data ?? []);
+	}
+
 	async function handleAdd(e: React.FormEvent) {
 		e.preventDefault();
 		if (!list) return;
@@ -140,6 +174,8 @@ export default function ListDetailPage() {
 		} catch (e: any) {
 			setItems(prev); // revert
 			setError(e?.message ?? String(e));
+		} finally {
+			await refreshItems();
 		}
 	}
 
@@ -151,6 +187,8 @@ export default function ListDetailPage() {
 		} catch (e: any) {
 			setItems(prev); // revert
 			setError(e?.message ?? String(e));
+		} finally {
+			await refreshItems();
 		}
 	}
 
@@ -169,6 +207,8 @@ export default function ListDetailPage() {
 		} catch (e: any) {
 			setItems(prev); // revert
 			setError(e?.message ?? String(e));
+		} finally {
+			await refreshItems();
 		}
 	}
 
@@ -178,7 +218,7 @@ export default function ListDetailPage() {
 				<PageFade>
 					<StarsBackground starColor="var(--stars-dim)" />
 					<Snowfall
-						className="pointer-events-none fixed inset-0 z-9999"
+						className="pointer-events-none fixed inset-0 z-0"
 						count={70}
 						speed={40}
 						wind={0.18}
@@ -221,9 +261,12 @@ export default function ListDetailPage() {
 
 	return (
 		<main className="px-6 py-8 max-w-2xl mx-auto space-y-6">
+			<StarsBackground
+				starColor="var(--stars-dim)"
+				className="pointer-events-none fixed inset-0 z-0"
+			/>
+			<Snowfall count={70} speed={40} wind={0.18} />
 			<PageFade>
-				<StarsBackground starColor="var(--stars-dim)" />
-				<Snowfall count={70} speed={40} wind={0.18} />
 				<CountdownBanner initialNow={now0} />
 				{/* Header */}
 				<header className="space-y-1">
@@ -241,13 +284,13 @@ export default function ListDetailPage() {
 				</header>
 				{/* Toggle button shown when the form is collapsed */}
 				{!formOpen ? (
-					<div className="py-2">
+					<div className="py-4">
 						<button
 							type="button"
 							onClick={() => setFormOpen(true)}
 							aria-expanded={formOpen}
 							aria-controls="add-item-form"
-							className="px-6 py-2 bg-black/70 text-white rounded-lg font-semibold border border-white/10 hover:bg-black/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+							className="px-6 py-2 bg-black/70 text-white rounded-lg font-semibold border border-white/10 hover:bg-emerald-700/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black z-30"
 						>
 							Add item
 						</button>

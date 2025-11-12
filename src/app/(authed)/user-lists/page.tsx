@@ -7,9 +7,7 @@ import { supabase } from "@/lib/supabase";
 
 //components
 import Link from "next/link";
-import CreateListButton, {
-	glowButtonClasses,
-} from "@/components/ui/create-list-button";
+import CreateListButton from "@/components/ui/create-list-button";
 import { ManageListModal } from "@/components/ui/manage-list-modal";
 import ListCard from "@/components/lists/list-card";
 
@@ -21,11 +19,6 @@ import { StarsBackground } from "@/components/ui/stars-background";
 import CountdownBanner from "@/components/ui/countdown-banner";
 import { SkeletonCard } from "@/components/ui/skeleton-card";
 import PageFade from "@/components/ui/page-fade";
-
-//Icons
-import { EditOutlined, HomeOutlined } from "@ant-design/icons";
-import { Icon, Star } from "lucide-react";
-import { IconCalendar, IconGift } from "@tabler/icons-react";
 
 // Helper to get progress for a list
 async function getListProgress(listId: string) {
@@ -73,44 +66,69 @@ export default function UserListsPage() {
 	const [saving, setSaving] = useState(false);
 	const [deleting, setDeleting] = useState(false);
 
-	useEffect(() => {
-		async function fetchData() {
-			const {
-				data: { user },
-				error: userError,
-			} = await supabase.auth.getUser();
+	// Refetch lists and recompute progress counts
+	const refreshLists = useCallback(async () => {
+		const {
+			data: { user },
+			error: userError,
+		} = await supabase.auth.getUser();
 
-			if (userError || !user) {
-				router.push("/signin");
-				return;
-			}
-
-			const { data, error } = await supabase
-				.from("lists")
-				.select("id,title,created_at")
-				.eq("owner_user_id", user.id)
-				.order("created_at", { ascending: false });
-
-			if (error) {
-				setError(error.message);
-				setLoading(false);
-				return;
-			}
-
-			// Enrich lists with progress (total and purchased counts)
-			const enriched = await Promise.all(
-				(data ?? []).map(async (l) => {
-					const progress = await getListProgress(l.id);
-					return { ...l, ...progress };
-				})
-			);
-
-			setLists(enriched);
-			setLoading(false);
+		if (userError || !user) {
+			router.push("/signin");
+			return;
 		}
 
-		fetchData();
+		const { data, error } = await supabase
+			.from("lists")
+			.select("id,title,created_at")
+			.eq("owner_user_id", user.id)
+			.order("created_at", { ascending: false });
+
+		if (error) {
+			setError(error.message);
+			setLoading(false);
+			return;
+		}
+
+		// Enrich lists with progress (total and purchased counts)
+		const enriched = await Promise.all(
+			(data ?? []).map(async (l) => {
+				const progress = await getListProgress(l.id);
+				return { ...l, ...progress };
+			})
+		);
+
+		setLists(enriched);
+		setLoading(false);
 	}, [router]);
+
+	useEffect(() => {
+		let channel: ReturnType<typeof supabase.channel> | null = null;
+
+		(async () => {
+			// initial load
+			await refreshLists();
+
+			// subscribe to realtime changes on lists to refresh the grid
+			channel = supabase
+				.channel("lists:self")
+				.on(
+					"postgres_changes",
+					{ event: "*", schema: "public", table: "lists" },
+					() => {
+						// refetch lists on insert/update/delete
+						refreshLists();
+					}
+				)
+				.subscribe();
+		})();
+
+		return () => {
+			if (channel) {
+				supabase.removeChannel(channel);
+			}
+		};
+	}, [refreshLists]);
 
 	async function handleRename() {
 		if (!manageList) return;

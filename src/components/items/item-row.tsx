@@ -119,31 +119,34 @@ export default function ItemRow({ item, onToggle, onDelete, onUpdate }: Props) {
 					</div>
 				) : (
 					<div>
-						<div className="flex items-center gap-2">
+						<div className="flex items-center gap-2 justify-between">
 							<span
 								className={item.purchased ? "line-through text-white/50" : ""}
 							>
 								{item.title}
 							</span>
-							{typeof item.price_cents === "number" && (
-								<span className="text-xs text-white/60">
-									· {usd.format(item.price_cents / 100)}
-								</span>
-							)}
-						</div>
-
-						{(item.link || item.notes) && (
-							<div className="mt-1 text-sm text-white/70 space-x-2">
+							<div className="flex gap-4 items-center">
+								{typeof item.price_cents === "number" && (
+									<span className="text-xs text-white/60">
+										· {usd.format(item.price_cents / 100)}
+									</span>
+								)}
 								{item.link && (
 									<a
 										href={item.link}
 										target="_blank"
 										rel="noreferrer"
-										className="underline hover:text-white"
+										className="underline hover:text-white text-sm"
 									>
 										View
 									</a>
 								)}
+							</div>
+						</div>
+
+						{(item.link || item.notes) && (
+							<div className="mt-1 text-sm text-white/70 space-x-2 grid">
+								<p>Notes:</p>
 								{item.notes && <span className="opacity-80">{item.notes}</span>}
 							</div>
 						)}
