@@ -23,12 +23,42 @@ import PageFade from "@/components/ui/page-fade";
 
 //Icons
 import { EditOutlined, HomeOutlined } from "@ant-design/icons";
-import { Star } from "lucide-react";
+import { Icon, Star } from "lucide-react";
+import { IconCalendar, IconGift } from "@tabler/icons-react";
+
+// Helper to get progress for a list
+async function getListProgress(listId: string) {
+	const { count: total, error: totalErr } = await supabase
+		.from("items")
+		.select("id", { count: "exact", head: true })
+		.eq("list_id", listId);
+
+	const { count: purchased, error: purchasedErr } = await supabase
+		.from("items")
+		.select("id", { count: "exact", head: true })
+		.eq("list_id", listId)
+		.eq("purchased", true);
+
+	if (totalErr) throw totalErr;
+	if (purchasedErr) throw purchasedErr;
+
+	return {
+		total: total ?? 0,
+		purchased: purchased ?? 0,
+	};
+}
 
 export default function UserListsPage() {
 	const router = useRouter();
 	const [lists, setLists] = useState<
-		{ id: string; title: string; created_at: string }[] | null
+		| {
+				id: string;
+				title: string;
+				created_at: string;
+				total?: number;
+				purchased?: number;
+		  }[]
+		| null
 	>(null);
 	const [error, setError] = useState<string | null>(null);
 	const [loading, setLoading] = useState(true);
@@ -62,9 +92,19 @@ export default function UserListsPage() {
 
 			if (error) {
 				setError(error.message);
-			} else {
-				setLists(data);
+				setLoading(false);
+				return;
 			}
+
+			// Enrich lists with progress (total and purchased counts)
+			const enriched = await Promise.all(
+				(data ?? []).map(async (l) => {
+					const progress = await getListProgress(l.id);
+					return { ...l, ...progress };
+				})
+			);
+
+			setLists(enriched);
 			setLoading(false);
 		}
 
@@ -223,9 +263,42 @@ export default function UserListsPage() {
 										>
 											<EditOutlined className="text-white/90" />
 										</button>
-										<p className="text-md text-white/70 mb-4">
-											{new Date(l.created_at).toLocaleDateString()}
+									</div>
+									<div className="flex items-center gap-4 my-6">
+										<div className="flex items-center gap-2 text-white/70">
+											<IconCalendar className="h-4 w-4 shrink-0" aria-hidden />
+											<time dateTime={l.created_at}>
+												{new Date(l.created_at).toLocaleDateString()}
+											</time>
+										</div>
+										<div className="flex items-center gap-2 text-white/70">
+											<IconGift className="h-4 w-4 shrink-0" aria-hidden />
+											<span aria-label="Total items">{l.total ?? 0} items</span>
+										</div>
+									</div>
+									<div className="flex justify-between">
+										<p className="text-sm text-white/70 mb-2">Progress</p>
+										<p className="text-sm text-white/70 mb-2">
+											{l.purchased ?? 0} / {l.total ?? 0} items purchased
 										</p>
+									</div>
+									<div
+										role="progressbar"
+										aria-label="List purchase progress"
+										aria-valuemin={0}
+										aria-valuemax={l.total ?? 0}
+										aria-valuenow={l.purchased ?? 0}
+										className="w-full h-2 bg-white/10 rounded-full overflow-hidden"
+									>
+										<div
+											className="h-full bg-red-600 transition-all duration-300"
+											style={{
+												width: `${(
+													((l.purchased ?? 0) / Math.max(l.total ?? 0, 1)) *
+													100
+												).toFixed(1)}%`,
+											}}
+										/>
 									</div>
 									<div className="mt-auto">
 										<Link
