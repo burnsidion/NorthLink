@@ -71,17 +71,20 @@ export default function AddItemForm({
 					className="flex-1 min-w-0 rounded-lg bg-neutral-800 border border-white/10 px-3 py-2 text-base outline-none focus:ring-2 focus:ring-emerald-700/40"
 				/>
 
-				<ShinyButton disabled={!!submitting} className="w-full sm:w-auto h-11">
+				<ShinyButton
+					disabled={!!submitting}
+					className="w-full sm:w-auto h-11 hover:bg-emerald-700/60"
+				>
 					{submitting ? "Adding…" : "Save"}
 				</ShinyButton>
-
-				<button
+				<ShinyButton
+					className="w-full sm:w-auto h-11 hover:bg-red-700/60"
 					type="button"
 					onClick={() => onOpenChange(false)}
-					className="rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-sm text-white hover:bg-black/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 sm:ml-2"
 				>
+					{" "}
 					Cancel
-				</button>
+				</ShinyButton>
 			</div>
 
 			<div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
