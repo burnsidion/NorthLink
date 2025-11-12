@@ -110,3 +110,16 @@ export async function deleteItem(itemId: string): Promise<void> {
 	const { error } = await supabase.from("items").delete().eq("id", itemId);
 	if (error) throw error;
 }
+
+export async function getListProgress(listId: string) {
+	const { data, error } = await supabase
+		.from("items")
+		.select("purchased", { count: "exact" })
+		.eq("list_id", listId);
+
+	if (error) throw error;
+
+	const total = data?.length ?? 0;
+	const purchased = data?.filter((i) => i.purchased).length ?? 0;
+	return { total, purchased };
+}
