@@ -6,15 +6,19 @@ import { supabase } from "@/lib/supabase";
 import { createPortal } from "react-dom";
 
 export const glowButtonClasses = {
-  outer:
-    "relative inline-flex h-12 overflow-hidden rounded-full p-px focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50",
-  spinner:
-    "absolute inset-[-1000%] animate-[spin_2s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#FF0000_0%,#008000_50%,#FFFFFF_100%)]",
-  inner:
-    "inline-flex h-full w-full items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white backdrop-blur-3xl",
+	outer:
+		"relative inline-flex h-12 overflow-hidden rounded-full p-px focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50",
+	spinner:
+		"absolute inset-[-1000%] animate-[spin_2s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#FF0000_0%,#008000_50%,#FFFFFF_100%)]",
+	inner:
+		"inline-flex h-full w-full items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white backdrop-blur-3xl",
 };
 
-export default function CreateListButton({ onCreated }: { onCreated?: (newList: any) => void }) {
+export default function CreateListButton({
+	onCreated,
+}: {
+	onCreated?: (newList: any) => void;
+}) {
 	const router = useRouter();
 	const [pending, startTransition] = useTransition();
 
@@ -104,13 +108,13 @@ export default function CreateListButton({ onCreated }: { onCreated?: (newList: 
 		<>
 			{/* Trigger button */}
 			<button
-			  onClick={openModal}
-			  aria-busy={pending}
-			  disabled={pending}
-			  className={glowButtonClasses.outer}
+				onClick={openModal}
+				aria-busy={pending}
+				disabled={pending}
+				className={glowButtonClasses.outer}
 			>
-			  <span className={glowButtonClasses.spinner} />
-			  <span className={glowButtonClasses.inner}>Create New List</span>
+				<span className={glowButtonClasses.spinner} />
+				<span className={glowButtonClasses.inner}>Create New List</span>
 			</button>
 
 			{/* Modal */}
@@ -143,7 +147,7 @@ export default function CreateListButton({ onCreated }: { onCreated?: (newList: 
 							/>
 
 							{error && (
-								<div className="mb-3 text-sm text-red-500">{error}</div>
+								<div className="mb-3 text-sm text-red-600">{error}</div>
 							)}
 
 							<div className="flex justify-end gap-2">

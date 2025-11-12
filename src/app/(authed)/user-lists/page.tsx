@@ -158,10 +158,11 @@ export default function UserListsPage() {
 	}
 
 	if (error) {
-		return <p className="text-red-400 px-6 py-8">Error: {error}</p>;
+		return <p className="text-red-600 px-6 py-8">Error: {error}</p>;
 	}
 
 	const rows = lists ?? [];
+	const many = rows.length > 1;
 
 	return (
 		<main className="relative min-h-screen px-6 py-8 space-y-6 overflow-hidden">
@@ -197,7 +198,13 @@ export default function UserListsPage() {
 					</FestiveGlow>
 				) : (
 					// List cards grid
-					<section className="relative grid grid-cols-1 sm:grid-cols-2 gap-8 justify-items-center">
+					<section
+						className={`relative grid gap-8 ${
+							many
+								? "grid-cols-1 sm:grid-cols-2 justify-items-center"
+								: "grid-cols-1 place-items-center max-w-3xl mx-auto"
+						}`}
+					>
 						{rows.map((l) => (
 							<GlareCard containerClassName="h-64 sm:h-72 lg:h-80" key={l.id}>
 								<div className="relative flex flex-col justify-between h-full w-full p-4">
@@ -224,7 +231,7 @@ export default function UserListsPage() {
 										<Link
 											href={`/lists/${l.id}`}
 											aria-label={`View list ${l.title}`}
-											className="block w-full text-center px-3 py-2 rounded-lg bg-red-900 hover:bg-red-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black text-sm font-medium"
+											className="block w-full text-center px-3 py-2 rounded-lg bg-red-600 hover:bg-red-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black text-sm font-medium"
 										>
 											View List
 										</Link>

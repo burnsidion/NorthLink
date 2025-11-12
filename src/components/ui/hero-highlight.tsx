@@ -139,7 +139,7 @@ export const Highlight = ({
 			}}
 			className={cn(
 				"relative inline-block rounded-md px-1.5 py-0.5 -mx-0.5 " +
-					"bg-linear-to-r from-red-600/45 via-red-600/15 to-emerald-600/45 " ,
+					"bg-linear-to-r from-red-600/45 via-red-600/15 to-emerald-700/45 ",
 				className
 			)}
 		>

@@ -60,7 +60,7 @@ export function ManageListModal({
 					<button
 						onClick={onDelete}
 						disabled={deleting}
-						className="inline-flex items-center gap-2 rounded-md border border-red-800/60 bg-red-900/70 px-3 py-2 text-sm hover:bg-red-800 disabled:opacity-60"
+						className="inline-flex items-center gap-2 rounded-md border border-red-600/60 bg-red-600/70 px-3 py-2 text-sm hover:bg-red-600 disabled:opacity-60"
 					>
 						<DeleteOutlined /> Delete
 					</button>
@@ -75,7 +75,7 @@ export function ManageListModal({
 						<button
 							onClick={onRename}
 							disabled={saving}
-							className="rounded-md bg-emerald-600 px-3 py-2 text-sm hover:bg-emerald-500 disabled:opacity-60"
+							className="rounded-md bg-emerald-700 px-3 py-2 text-sm hover:bg-emerald-700 disabled:opacity-60"
 						>
 							Save
 						</button>

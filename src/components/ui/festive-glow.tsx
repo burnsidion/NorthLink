@@ -15,7 +15,7 @@ export function FestiveGlow({
 	children,
 	className,
 	from = "from-red-600/20",
-	to = "to-emerald-600/20",
+	to = "to-emerald-700/20",
 	pulse = true,
 }: Props) {
 	return (

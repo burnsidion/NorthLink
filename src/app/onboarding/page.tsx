@@ -70,12 +70,7 @@ export default function OnboardingPage() {
 		<main className="min-h-dvh grid place-items-center p-6">
 			<div className="pointer-events-none fixed inset-0 -z-10">
 				<StarsBackground starColor="var(--stars-dim)" />
-				<Snowfall
-					className="absolute"
-					count={70}
-					speed={40}
-					wind={0.18}
-				/>
+				<Snowfall className="absolute" count={70} speed={40} wind={0.18} />
 			</div>
 			<div className="w-full max-w-md space-y-4 rounded-lg border p-6 shadow-sm">
 				<h1 className="text-2xl font-semibold text-center">
@@ -100,7 +95,7 @@ export default function OnboardingPage() {
 							key={a}
 							onClick={() => setAvatar(a)}
 							className={`h-10 rounded border flex items-center justify-center text-xl ${
-								avatar === a ? "ring-2 ring-emerald-500" : ""
+								avatar === a ? "ring-2 ring-emerald-700" : ""
 							}`}
 							aria-pressed={avatar === a}
 						>
@@ -112,7 +107,7 @@ export default function OnboardingPage() {
 				<button
 					onClick={save}
 					disabled={!displayName.trim()}
-					className="w-full rounded bg-emerald-600 py-2 text-white disabled:opacity-50"
+					className="w-full rounded bg-emerald-700 py-2 text-white disabled:opacity-50"
 				>
 					Save & continue
 				</button>
