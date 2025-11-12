@@ -18,9 +18,11 @@ import { FestiveGlow } from "@/components/ui/festive-glow";
 import Snowfall from "@/components/ui/snowfall";
 import { StarsBackground } from "@/components/ui/stars-background";
 import CountdownBanner from "@/components/ui/countdown-banner";
+import { SkeletonCard } from "@/components/ui/skeleton-card";
 
 //Icons
 import { EditOutlined, HomeOutlined } from "@ant-design/icons";
+import { Star } from "lucide-react";
 
 export default function UserListsPage() {
 	const router = useRouter();
@@ -119,7 +121,39 @@ export default function UserListsPage() {
 	}
 
 	if (loading) {
-		return <p className="px-6 py-8 text-white/80">Loading...</p>;
+		return (
+			<main className="relative min-h-screen px-6 py-8 space-y-6 overflow-hidden">
+				<StarsBackground starColor="var(--stars-dim)" />
+				<Snowfall
+					className="pointer-events-none fixed inset-0 z-9999"
+					count={70}
+					speed={40}
+					wind={0.18}
+				/>
+				<CountdownBanner initialNow={Date.now()} />
+
+				{/* header skeleton */}
+				<header className="mx-auto w-full max-w-5xl">
+					<div className="text-center space-y-3">
+						<div className="mx-auto h-8 w-40 rounded bg-white/10 animate-pulse" />
+						<div className="mx-auto h-10 w-48 rounded-full bg-white/10 animate-pulse" />
+					</div>
+				</header>
+
+				{/* cards grid skeleton */}
+				<section
+					className="grid grid-cols-1 sm:grid-cols-2 gap-8 justify-items-center"
+					aria-label="Loading lists"
+				>
+					{[0, 1, 2, 3].map((k) => (
+						<SkeletonCard
+							key={k}
+							className="w-full max-w-[720px] h-64 sm:h-72 lg:h-80 rounded-xl"
+						/>
+					))}
+				</section>
+			</main>
+		);
 	}
 
 	if (error) {
