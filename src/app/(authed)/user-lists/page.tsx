@@ -19,6 +19,7 @@ import Snowfall from "@/components/ui/snowfall";
 import { StarsBackground } from "@/components/ui/stars-background";
 import CountdownBanner from "@/components/ui/countdown-banner";
 import { SkeletonCard } from "@/components/ui/skeleton-card";
+import PageFade from "@/components/ui/page-fade";
 
 //Icons
 import { EditOutlined, HomeOutlined } from "@ant-design/icons";
@@ -123,35 +124,35 @@ export default function UserListsPage() {
 	if (loading) {
 		return (
 			<main className="relative min-h-screen px-6 py-8 space-y-6 overflow-hidden">
-				<StarsBackground starColor="var(--stars-dim)" />
-				<Snowfall
-					className="pointer-events-none fixed inset-0 z-9999"
-					count={70}
-					speed={40}
-					wind={0.18}
-				/>
-				<CountdownBanner initialNow={Date.now()} />
-
-				{/* header skeleton */}
-				<header className="mx-auto w-full max-w-5xl">
-					<div className="text-center space-y-3">
-						<div className="mx-auto h-8 w-40 rounded bg-white/10 animate-pulse" />
-						<div className="mx-auto h-10 w-48 rounded-full bg-white/10 animate-pulse" />
-					</div>
-				</header>
-
-				{/* cards grid skeleton */}
-				<section
-					className="grid grid-cols-1 sm:grid-cols-2 gap-8 justify-items-center"
-					aria-label="Loading lists"
-				>
-					{[0, 1, 2, 3].map((k) => (
-						<SkeletonCard
-							key={k}
-							className="w-full max-w-[720px] h-64 sm:h-72 lg:h-80 rounded-xl"
-						/>
-					))}
-				</section>
+				<PageFade>
+					<StarsBackground starColor="var(--stars-dim)" />
+					<Snowfall
+						className="pointer-events-none fixed inset-0 z-9999"
+						count={70}
+						speed={40}
+						wind={0.18}
+					/>
+					<CountdownBanner initialNow={Date.now()} />
+					{/* header skeleton */}
+					<header className="mx-auto w-full max-w-5xl">
+						<div className="text-center space-y-3">
+							<div className="mx-auto h-8 w-40 rounded bg-white/10 animate-pulse" />
+							<div className="mx-auto h-10 w-48 rounded-full bg-white/10 animate-pulse" />
+						</div>
+					</header>
+					{/* cards grid skeleton */}
+					<section
+						className="grid grid-cols-1 sm:grid-cols-2 gap-8 justify-items-center"
+						aria-label="Loading lists"
+					>
+						{[0, 1, 2, 3].map((k) => (
+							<SkeletonCard
+								key={k}
+								className="w-full max-w-[720px] h-64 sm:h-72 lg:h-80 rounded-xl"
+							/>
+						))}
+					</section>
+				</PageFade>
 			</main>
 		);
 	}
@@ -164,93 +165,93 @@ export default function UserListsPage() {
 
 	return (
 		<main className="relative min-h-screen px-6 py-8 space-y-6 overflow-hidden">
-			<StarsBackground starColor="var(--stars-dim)" />
-			<CountdownBanner initialNow={Date.now()} />
-			<header className="relative mx-auto w-full max-w-5xl">
-				{/* title */}
-				<div className="text-center">
-					<motion.h1
-						initial={{ opacity: 0, y: 6 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.25 }}
-						className="text-4xl mb-2"
-					>
-						Your Lists
-					</motion.h1>
-					<CreateListButton
-						onCreated={(newList) =>
-							setLists((prev) => [newList, ...(prev ?? [])])
-						}
-					/>
-				</div>
-			</header>
-
-			{rows.length === 0 ? (
-				// No lists yet
-				<FestiveGlow>
-					<div className="rounded-xl border border-white/10 p-6 text-white/80">
-						No lists yet. Click{" "}
-						<span className="font-medium">“Create New List”</span> to get
-						started.
-					</div>
-				</FestiveGlow>
-			) : (
-				// List cards grid
-				<section className="relative grid grid-cols-1 sm:grid-cols-2 gap-8 justify-items-center">
-					{rows.map((l) => (
-						<GlareCard containerClassName="h-64 sm:h-72 lg:h-80" key={l.id}>
-							<div className="relative flex flex-col justify-between h-full w-full p-4">
-								<div className="flex flex-col items-center">
-									<h2 className="text-3xl font-semibold text-white wrap-break-word">
-										{l.title}
-									</h2>
-									<button
-										onClick={() => {
-											setManageList({ id: l.id, title: l.title });
-											setNewTitle(l.title);
-											setIsModalOpen(true);
-										}}
-										aria-label={`Manage list ${l.title}`}
-										className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-md border border-white/10 bg-black/40 px-2 py-1 text-xs text-white hover:bg-black/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
-									>
-										<EditOutlined className="text-white/90" />
-									</button>
-									<p className="text-md text-white/70 mb-4">
-										{new Date(l.created_at).toLocaleDateString()}
-									</p>
-								</div>
-
-								<div className="mt-auto">
-									<Link
-										href={`/lists/${l.id}`}
-										aria-label={`View list ${l.title}`}
-										className="block w-full text-center px-3 py-2 rounded-lg bg-red-900 hover:bg-red-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black text-sm font-medium"
-									>
-										View List
-									</Link>
-								</div>
-							</div>
-						</GlareCard>
-					))}
-					{isModalOpen && (
-						<ManageListModal
-							open={isModalOpen}
-							list={manageList}
-							newTitle={newTitle}
-							setNewTitle={setNewTitle}
-							saving={saving}
-							deleting={deleting}
-							onRename={handleRename}
-							onDelete={handleDelete}
-							onClose={() => {
-								setIsModalOpen(false);
-								setManageList(null);
-							}}
+			<PageFade>
+				<StarsBackground starColor="var(--stars-dim)" />
+				<CountdownBanner initialNow={Date.now()} />
+				<header className="relative mx-auto w-full max-w-5xl">
+					{/* title */}
+					<div className="text-center my-7">
+						<motion.h1
+							initial={{ opacity: 0, y: 6 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ duration: 0.25 }}
+							className="text-4xl mb-2"
+						>
+							Your Lists
+						</motion.h1>
+						<CreateListButton
+							onCreated={(newList) =>
+								setLists((prev) => [newList, ...(prev ?? [])])
+							}
 						/>
-					)}
-				</section>
-			)}
-			<Snowfall count={70} speed={40} wind={0.18} />
+					</div>
+				</header>
+				{rows.length === 0 ? (
+					// No lists yet
+					<FestiveGlow>
+						<div className="rounded-xl border border-white/10 p-6 text-white/80">
+							No lists yet. Click{" "}
+							<span className="font-medium">“Create New List”</span> to get
+							started.
+						</div>
+					</FestiveGlow>
+				) : (
+					// List cards grid
+					<section className="relative grid grid-cols-1 sm:grid-cols-2 gap-8 justify-items-center">
+						{rows.map((l) => (
+							<GlareCard containerClassName="h-64 sm:h-72 lg:h-80" key={l.id}>
+								<div className="relative flex flex-col justify-between h-full w-full p-4">
+									<div className="flex flex-col items-center">
+										<h2 className="text-3xl font-semibold text-white wrap-break-word">
+											{l.title}
+										</h2>
+										<button
+											onClick={() => {
+												setManageList({ id: l.id, title: l.title });
+												setNewTitle(l.title);
+												setIsModalOpen(true);
+											}}
+											aria-label={`Manage list ${l.title}`}
+											className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-md border border-white/10 bg-black/40 px-2 py-1 text-xs text-white hover:bg-black/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+										>
+											<EditOutlined className="text-white/90" />
+										</button>
+										<p className="text-md text-white/70 mb-4">
+											{new Date(l.created_at).toLocaleDateString()}
+										</p>
+									</div>
+									<div className="mt-auto">
+										<Link
+											href={`/lists/${l.id}`}
+											aria-label={`View list ${l.title}`}
+											className="block w-full text-center px-3 py-2 rounded-lg bg-red-900 hover:bg-red-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black text-sm font-medium"
+										>
+											View List
+										</Link>
+									</div>
+								</div>
+							</GlareCard>
+						))}
+						{isModalOpen && (
+							<ManageListModal
+								open={isModalOpen}
+								list={manageList}
+								newTitle={newTitle}
+								setNewTitle={setNewTitle}
+								saving={saving}
+								deleting={deleting}
+								onRename={handleRename}
+								onDelete={handleDelete}
+								onClose={() => {
+									setIsModalOpen(false);
+									setManageList(null);
+								}}
+							/>
+						)}
+					</section>
+				)}
+				<Snowfall count={70} speed={40} wind={0.18} />
+			</PageFade>
 		</main>
 	);
 }
