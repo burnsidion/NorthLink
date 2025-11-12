@@ -14,6 +14,8 @@ import { StarsBackground } from "@/components/ui/stars-background";
 import CountdownBanner from "@/components/ui/countdown-banner";
 import AddItemForm from "@/components/items/add-item-form";
 import ItemRowCard from "@/components/items/item-row";
+import PageFade from "@/components/ui/page-fade";
+import { SkeletonCard } from "@/components/ui/skeleton-card";
 
 //Utils
 import { toCents, normalizeUrl, usd } from "@/lib/format";
@@ -170,7 +172,40 @@ export default function ListDetailPage() {
 		}
 	}
 
-	if (loading) return <main className="px-6 py-8 text-white/80">Loading…</main>;
+	if (loading)
+		return (
+			<main className="relative min-h-screen px-6 py-8 space-y-6 overflow-hidden">
+				<PageFade>
+					<StarsBackground starColor="var(--stars-dim)" />
+					<Snowfall
+						className="pointer-events-none fixed inset-0 z-9999"
+						count={70}
+						speed={40}
+						wind={0.18}
+					/>
+					<CountdownBanner initialNow={Date.now()} />
+					{/* header skeleton */}
+					<header className="mx-auto w-full max-w-5xl">
+						<div className="text-center space-y-3">
+							<div className="mx-auto h-8 w-40 rounded bg-white/10 animate-pulse" />
+							<div className="mx-auto h-10 w-48 rounded-full bg-white/10 animate-pulse" />
+						</div>
+					</header>
+					{/* cards grid skeleton */}
+					<section
+						className="grid grid-cols-1 sm:grid-cols-2 gap-8 justify-items-center"
+						aria-label="Loading lists"
+					>
+						{[0, 1, 2, 3].map((k) => (
+							<SkeletonCard
+								key={k}
+								className="w-full max-w-[720px] h-64 sm:h-72 lg:h-80 rounded-xl"
+							/>
+						))}
+					</section>
+				</PageFade>
+			</main>
+		);
 	if (error && !list)
 		return (
 			<main className="px-6 py-8">
@@ -186,73 +221,71 @@ export default function ListDetailPage() {
 
 	return (
 		<main className="px-6 py-8 max-w-2xl mx-auto space-y-6">
-			<StarsBackground starColor="var(--stars-dim)" />
-			<Snowfall count={70} speed={40} wind={0.18} />
-			<CountdownBanner initialNow={now0} />
-			{/* Header */}
-			<header className="space-y-1">
-				<motion.h1
-					initial={{ opacity: 0, y: 6 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={{ duration: 0.25 }}
-					className="text-4xl mb-2"
-				>
-					{list.title}
-				</motion.h1>
-				<p className="text-sm text-white/60">
-					Created at: {new Date(list.created_at).toLocaleString()}
-				</p>
-			</header>
-
-			{/* Toggle button shown when the form is collapsed */}
-			{!formOpen ? (
-				<div className="pt-2">
-					<button
-						type="button"
-						onClick={() => setFormOpen(true)}
-						aria-expanded={formOpen}
-						aria-controls="add-item-form"
-						className="px-6 py-2 bg-black/70 text-white rounded-lg font-semibold border border-white/10 hover:bg-black/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+			<PageFade>
+				<StarsBackground starColor="var(--stars-dim)" />
+				<Snowfall count={70} speed={40} wind={0.18} />
+				<CountdownBanner initialNow={now0} />
+				{/* Header */}
+				<header className="space-y-1">
+					<motion.h1
+						initial={{ opacity: 0, y: 6 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={{ duration: 0.25 }}
+						className="text-4xl mb-2"
 					>
-						Add item
-					</button>
-				</div>
-			) : null}
-
-			{formOpen && (
-				<AddItemForm
-					open={formOpen}
-					onOpenChange={setFormOpen}
-					title={newTitle}
-					setTitle={setNewTitle}
-					price={newPrice}
-					setPrice={setNewPrice}
-					link={newLink}
-					setLink={setNewLink}
-					notes={newNotes}
-					setNotes={setNewNotes}
-					onSubmit={handleAdd}
-					submitting={adding}
-				/>
-			)}
-
-			{/* Error message */}
-			{error && <p className="text-red-400 text-sm">{error}</p>}
-
-			{/* Items list */}
-			<FestiveGlow>
-				<ul className="space-y-2">
-					{items.map((it) => (
-						<ItemRowCard
-							key={it.id}
-							item={it}
-							onToggle={handleToggle}
-							onDelete={handleDelete}
-							onUpdate={handleUpdate}
-						/>
-					))}
-				</ul>
-			</FestiveGlow>
+						{list.title}
+					</motion.h1>
+					<p className="text-sm text-white/60">
+						Created at: {new Date(list.created_at).toLocaleString()}
+					</p>
+				</header>
+				{/* Toggle button shown when the form is collapsed */}
+				{!formOpen ? (
+					<div className="pt-2">
+						<button
+							type="button"
+							onClick={() => setFormOpen(true)}
+							aria-expanded={formOpen}
+							aria-controls="add-item-form"
+							className="px-6 py-2 bg-black/70 text-white rounded-lg font-semibold border border-white/10 hover:bg-black/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+						>
+							Add item
+						</button>
+					</div>
+				) : null}
+				{formOpen && (
+					<AddItemForm
+						open={formOpen}
+						onOpenChange={setFormOpen}
+						title={newTitle}
+						setTitle={setNewTitle}
+						price={newPrice}
+						setPrice={setNewPrice}
+						link={newLink}
+						setLink={setNewLink}
+						notes={newNotes}
+						setNotes={setNewNotes}
+						onSubmit={handleAdd}
+						submitting={adding}
+					/>
+				)}
+				{/* Error message */}
+				{error && <p className="text-red-400 text-sm">{error}</p>}
+				{/* Items list */}
+				<FestiveGlow>
+					<ul className="space-y-2">
+						{items.map((it) => (
+							<ItemRowCard
+								key={it.id}
+								item={it}
+								onToggle={handleToggle}
+								onDelete={handleDelete}
+								onUpdate={handleUpdate}
+							/>
+						))}
+					</ul>
+				</FestiveGlow>
+			</PageFade>
 		</main>
 	);
 }
