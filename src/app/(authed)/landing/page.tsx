@@ -141,7 +141,7 @@ export default function ListsPage() {
 									>
 										<div className="relative z-20 flex flex-col items-center justify-center h-full">
 											<ListTodo
-												className="h-6 w-6 text-red-200"
+												className="h-6 w-6 text-red-600"
 												strokeWidth={1.75}
 												aria-hidden
 											/>
@@ -152,7 +152,7 @@ export default function ListsPage() {
 												access.
 											</p>
 											<Link href="/user-lists" className="mt-6">
-												<button className="rounded-md border border-white/10 px-5 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 bg-red-700/80 hover:bg-red-600 text-white">
+												<button className="rounded-md border border-white/10 px-5 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 bg-red-600/80 hover:bg-red-600 text-white">
 													View My Lists
 												</button>
 											</Link>
@@ -169,7 +169,7 @@ export default function ListsPage() {
 									>
 										<div className="relative z-20 flex flex-col items-center justify-center h-full">
 											<UsersRound
-												className="h-6 w-6 text-emerald-200"
+												className="h-6 w-6 text-emerald-700"
 												strokeWidth={1.75}
 												aria-hidden
 											/>
@@ -181,7 +181,7 @@ export default function ListsPage() {
 												Here is where you can view lists others have created
 											</p>
 											<Link href="/lists" className="mt-6">
-												<button className="rounded-md border border-white/10 px-5 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 bg-emerald-700/80 hover:bg-emerald-600 text-white">
+												<button className="rounded-md border border-white/10 px-5 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 bg-emerald-700/80 hover:bg-emerald-700 text-white">
 													View User Lists
 												</button>
 											</Link>

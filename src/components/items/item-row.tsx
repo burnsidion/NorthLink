@@ -65,7 +65,7 @@ export default function ItemRow({ item, onToggle, onDelete, onUpdate }: Props) {
 				onClick={() => onToggle(item.id, !item.purchased)}
 				className={`mt-1 h-5 w-5 rounded border ${
 					item.purchased
-						? "bg-emerald-400/80 border-emerald-300"
+						? "bg-emerald-700/80 border-emerald-700"
 						: "border-white/20"
 				}`}
 			/>
@@ -78,26 +78,26 @@ export default function ItemRow({ item, onToggle, onDelete, onUpdate }: Props) {
 								value={title}
 								onChange={(e) => setTitle(e.target.value)}
 								placeholder="Title"
-								className="rounded-lg bg-neutral-800 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-400/40"
+								className="rounded-lg bg-neutral-800 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-700/40"
 							/>
 							<input
 								value={price}
 								onChange={(e) => setPrice(e.target.value)}
 								placeholder="Price (e.g. 24.99)"
 								inputMode="decimal"
-								className="rounded-lg bg-neutral-800 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-400/40"
+								className="rounded-lg bg-neutral-800 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-700/40"
 							/>
 							<input
 								value={link}
 								onChange={(e) => setLink(e.target.value)}
 								placeholder="Link"
-								className="rounded-lg bg-neutral-800 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-400/40"
+								className="rounded-lg bg-neutral-800 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-700/40"
 							/>
 							<input
 								value={notes}
 								onChange={(e) => setNotes(e.target.value)}
 								placeholder="Notes"
-								className="rounded-lg bg-neutral-800 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-400/40"
+								className="rounded-lg bg-neutral-800 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-700/40"
 							/>
 						</div>
 
@@ -105,13 +105,13 @@ export default function ItemRow({ item, onToggle, onDelete, onUpdate }: Props) {
 							<button
 								onClick={saveEdit}
 								disabled={saving}
-								className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm hover:bg-emerald-500 disabled:opacity-60"
+								className="rounded-lg bg-emerald-700 px-3 py-1.5 text-sm hover:bg-emerald-700 disabled:opacity-60"
 							>
 								{saving ? "Saving…" : "Save"}
 							</button>
 							<button
 								onClick={cancelEdit}
-								className="rounded-lg border border-white/10 bg-red-600 px-3 py-1.5 text-sm hover:bg-red-500"
+								className="rounded-lg border border-white/10 bg-red-600 px-3 py-1.5 text-sm hover:bg-red-600"
 							>
 								Cancel
 							</button>
@@ -151,13 +151,13 @@ export default function ItemRow({ item, onToggle, onDelete, onUpdate }: Props) {
 						<div className="mt-2 flex gap-2">
 							<button
 								onClick={beginEdit}
-								className="text-sm rounded-lg bg-emerald-800 hover:bg-emerald-900 text-white px-2 py-1"
+								className="text-sm rounded-lg bg-emerald-700 hover:bg-emerald-700 text-white px-2 py-1"
 							>
 								Edit
 							</button>
 							<button
 								onClick={() => onDelete(item.id)}
-								className="text-sm rounded-lg bg-red-500/80 hover:bg-red-400 text-white px-2 py-1"
+								className="text-sm rounded-lg bg-red-600/80 hover:bg-red-600 text-white px-2 py-1"
 							>
 								Delete
 							</button>

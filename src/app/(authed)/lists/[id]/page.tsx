@@ -209,13 +209,13 @@ export default function ListDetailPage() {
 	if (error && !list)
 		return (
 			<main className="px-6 py-8">
-				<p className="text-red-400">{error}</p>
+				<p className="text-red-600">{error}</p>
 			</main>
 		);
 	if (!list)
 		return (
 			<main className="px-6 py-8">
-				<p className="text-red-400">List not found.</p>
+				<p className="text-red-600">List not found.</p>
 			</main>
 		);
 
@@ -241,7 +241,7 @@ export default function ListDetailPage() {
 				</header>
 				{/* Toggle button shown when the form is collapsed */}
 				{!formOpen ? (
-					<div className="pt-2">
+					<div className="py-2">
 						<button
 							type="button"
 							onClick={() => setFormOpen(true)}
@@ -270,7 +270,7 @@ export default function ListDetailPage() {
 					/>
 				)}
 				{/* Error message */}
-				{error && <p className="text-red-400 text-sm">{error}</p>}
+				{error && <p className="text-red-600 text-sm">{error}</p>}
 				{/* Items list */}
 				<FestiveGlow>
 					<ul className="space-y-2">

@@ -68,7 +68,7 @@ export default function AddItemForm({
 					maxLength={120}
 					value={title}
 					onChange={(e) => setTitle(e.target.value)}
-					className="flex-1 min-w-0 rounded-lg bg-neutral-800 border border-white/10 px-3 py-2 text-base outline-none focus:ring-2 focus:ring-emerald-400/40"
+					className="flex-1 min-w-0 rounded-lg bg-neutral-800 border border-white/10 px-3 py-2 text-base outline-none focus:ring-2 focus:ring-emerald-700/40"
 				/>
 
 				<ShinyButton disabled={!!submitting} className="w-full sm:w-auto h-11">
@@ -91,21 +91,21 @@ export default function AddItemForm({
 					placeholder="Price (e.g. 24.99)"
 					value={price}
 					onChange={(e) => setPrice(e.target.value)}
-					className="rounded-lg bg-neutral-800 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-400/40"
+					className="rounded-lg bg-neutral-800 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-700/40"
 				/>
 				<input
 					name="link"
 					placeholder="Link (amazon.com/…)"
 					value={link}
 					onChange={(e) => setLink(e.target.value)}
-					className="rounded-lg bg-neutral-800 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-400/40"
+					className="rounded-lg bg-neutral-800 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-700/40"
 				/>
 				<input
 					name="notes"
 					placeholder="Notes (size, color, etc.)"
 					value={notes}
 					onChange={(e) => setNotes(e.target.value)}
-					className="rounded-lg bg-neutral-800 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-400/40"
+					className="rounded-lg bg-neutral-800 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-700/40"
 				/>
 			</div>
 		</form>
