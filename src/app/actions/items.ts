@@ -19,10 +19,30 @@ export async function addItem(listId: string, name: string) {
 
 export async function toggleItem(id: string, listId: string, value: boolean) {
 	const supabase = createSupabaseServer();
+	// get current user
+	const {
+		data: { user },
+		error: userErr,
+	} = await supabase.auth.getUser();
+	if (userErr || !user) return { error: "Not signed in." };
+
+	const payload = value
+		? {
+				purchased: true,
+				purchased_by: user.id,
+				purchased_at: new Date().toISOString(),
+		  }
+		: {
+				purchased: false,
+				purchased_by: null,
+				purchased_at: null,
+		  };
+
 	const { error } = await supabase
 		.from("items")
-		.update({ purchased: value })
-		.eq("id", id);
+		.update(payload)
+		.eq("id", id)
+		.eq("list_id", listId);
 	if (error) return { error: error.message };
 	revalidatePath(`/lists/${listId}`);
 	return { ok: true };
