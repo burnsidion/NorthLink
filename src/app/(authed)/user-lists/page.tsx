@@ -79,9 +79,8 @@ export default function UserListsPage() {
 		}
 
 		const { data, error } = await supabase
-			.from("lists")
+			.from("v_user_accessible_lists")
 			.select("id,title,created_at")
-			.eq("owner_user_id", user.id)
 			.order("created_at", { ascending: false });
 
 		if (error) {
