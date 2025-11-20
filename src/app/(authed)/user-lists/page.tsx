@@ -74,13 +74,14 @@ export default function UserListsPage() {
 		} = await supabase.auth.getUser();
 
 		if (userError || !user) {
-			router.push("/signin");
+			router.push("/login"); // or "/signin" if that's what you're using now
 			return;
 		}
 
 		const { data, error } = await supabase
-			.from("v_user_accessible_lists")
+			.from("lists")
 			.select("id,title,created_at")
+			.eq("owner_user_id", user.id)
 			.order("created_at", { ascending: false });
 
 		if (error) {
@@ -89,7 +90,6 @@ export default function UserListsPage() {
 			return;
 		}
 
-		// Enrich lists with progress (total and purchased counts)
 		const enriched = await Promise.all(
 			(data ?? []).map(async (l) => {
 				const progress = await getListProgress(l.id);
