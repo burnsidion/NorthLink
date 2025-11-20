@@ -43,6 +43,7 @@ export default function ListDetailPage() {
 	const [familyGroupId, setFamilyGroupId] = useState<string | null>(null);
 	const [isShared, setIsShared] = useState(false);
 	const [shareLoading, setShareLoading] = useState(false);
+	const [newPurchaseCount, setNewPurchaseCount] = useState<number>(0);
 
 	// form state
 	const [adding, setAdding] = useState(false);
@@ -78,20 +79,20 @@ export default function ListDetailPage() {
 				setFamilyGroupId(familyGroup.group_id);
 			}
 
-			// Load list + items
+			// Load list + items (including last_viewed_at and purchased_at)
 			const [
 				{ data: theList, error: listErr },
 				{ data: theItems, error: itemsErr },
 			] = await Promise.all([
 				supabase
 					.from("lists")
-					.select("id,title,created_at,owner_user_id")
+					.select("id,title,created_at,owner_user_id,last_viewed_at")
 					.eq("id", id)
 					.single(),
 				supabase
 					.from("items")
 					.select(
-						"id,list_id,title,purchased,created_at,price_cents,link,notes"
+						"id,list_id,title,purchased,purchased_at,created_at,price_cents,link,notes"
 					)
 					.eq("list_id", id)
 					.order("created_at", { ascending: true }),
@@ -110,7 +111,44 @@ export default function ListDetailPage() {
 			setList(theList);
 			setItems(theItems ?? []);
 
-			// Check if list is shared with family group
+			// Compute new purchases since last_viewed_at (owner-only banner)
+			try {
+				if (theList.last_viewed_at && Array.isArray(theItems)) {
+					const count = (theItems ?? []).filter(
+						(it: any) =>
+							it.purchased === true &&
+							it.purchased_at &&
+							new Date(it.purchased_at) >
+								new Date(theList.last_viewed_at as string)
+					).length;
+					setNewPurchaseCount(count);
+				} else {
+					setNewPurchaseCount(0);
+				}
+			} catch (e) {
+				console.warn("Error computing newPurchaseCount:", e);
+				setNewPurchaseCount(0);
+			}
+
+			// Update last_viewed_at for the list when the owner views it (best-effort)
+			try {
+				const { error: lastViewedError } = await supabase
+					.from("lists")
+					.update({ last_viewed_at: new Date().toISOString() })
+					.eq("id", id)
+					.eq("owner_user_id", user.id);
+
+				if (lastViewedError) {
+					console.warn(
+						"Failed to update last_viewed_at:",
+						lastViewedError.message
+					);
+				}
+			} catch (e) {
+				console.warn("Error updating last_viewed_at:", e);
+			}
+
+			// Check if this list is shared to the user's family group
 			if (familyGroup?.group_id) {
 				const { data: shareRow } = await supabase
 					.from("list_shares")
@@ -272,6 +310,8 @@ export default function ListDetailPage() {
 		}
 	}
 
+	const isOwner = userId && list && userId === (list as any).owner_user_id;
+
 	if (loading)
 		return (
 			<main className="relative min-h-screen px-6 py-8 space-y-6 overflow-hidden">
@@ -328,6 +368,12 @@ export default function ListDetailPage() {
 			<Snowfall count={70} speed={40} wind={0.18} />
 			<PageFade>
 				<CountdownBanner initialNow={now0} />
+				{isOwner && newPurchaseCount > 0 && (
+					<div className="mb-4 p-3 rounded-lg bg-emerald-700/20 text-emerald-300 border border-emerald-500/40">
+						🎁 {newPurchaseCount} gift
+						{newPurchaseCount > 1 ? "s" : ""} were purchased since your last visit!
+					</div>
+				)}
 				{/* Header */}
 				<header className="space-y-1">
 					<motion.h1
