@@ -47,3 +47,46 @@ USING (
       AND gm.user_id = auth.uid()
   )
 );
+
+-- Items RLS: allow users from accessible lists to view/update items
+
+DROP POLICY IF EXISTS "Users can view items from accessible lists"
+ON public.items;
+
+DROP POLICY IF EXISTS "Users can update items from accessible lists"
+ON public.items;
+
+CREATE POLICY "Users can view items from accessible lists"
+ON public.items
+FOR SELECT
+USING (
+  EXISTS (
+    SELECT 1 FROM v_user_accessible_lists
+    WHERE v_user_accessible_lists.id = items.list_id
+  )
+);
+
+CREATE POLICY "Users can update items from accessible lists"
+ON public.items
+FOR UPDATE
+USING (
+  EXISTS (
+    SELECT 1 FROM v_user_accessible_lists
+    WHERE v_user_accessible_lists.id = items.list_id
+  )
+)
+WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM v_user_accessible_lists
+    WHERE v_user_accessible_lists.id = items.list_id
+  )
+);
+
+-- Clean up redundant items RLS policies
+
+DROP POLICY IF EXISTS "items_by_list_owner_delete" ON public.items;
+DROP POLICY IF EXISTS "items_by_list_owner_insert" ON public.items;
+DROP POLICY IF EXISTS "items_by_list_owner_select" ON public.items;
+DROP POLICY IF EXISTS "items_by_list_owner_update" ON public.items;
+DROP POLICY IF EXISTS "items_cud_through_list" ON public.items;
+DROP POLICY IF EXISTS "items_select_through_list" ON public.items;

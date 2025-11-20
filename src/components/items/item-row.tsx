@@ -12,9 +12,16 @@ type Props = {
 		id: string,
 		patch: Partial<Pick<ItemRow, "title" | "price_cents" | "link" | "notes">>
 	) => Promise<void> | void;
+	isOwner?: boolean;
 };
 
-export default function ItemRow({ item, onToggle, onDelete, onUpdate }: Props) {
+export default function ItemRow({
+	item,
+	onToggle,
+	onDelete,
+	onUpdate,
+	isOwner = true,
+}: Props) {
 	const [editing, setEditing] = useState(false);
 	const [saving, setSaving] = useState(false);
 
@@ -151,20 +158,25 @@ export default function ItemRow({ item, onToggle, onDelete, onUpdate }: Props) {
 							</div>
 						)}
 
-						<div className="mt-2 flex gap-2">
-							<button
-								onClick={beginEdit}
-								className="text-sm rounded-lg bg-emerald-700 hover:bg-emerald-700 text-white px-2 py-1"
-							>
-								Edit
-							</button>
-							<button
-								onClick={() => onDelete(item.id)}
-								className="text-sm rounded-lg bg-red-600/80 hover:bg-red-600 text-white px-2 py-1"
-							>
-								Delete
-							</button>
-						</div>
+						{/* Show Edit/Delete only for owner, and only Edit button if item is not purchased */}
+						{isOwner && (
+							<div className="mt-2 flex gap-2">
+								{!item.purchased && (
+									<button
+										onClick={beginEdit}
+										className="text-sm rounded-lg bg-emerald-700 hover:bg-emerald-700 text-white px-2 py-1"
+									>
+										Edit
+									</button>
+								)}
+								<button
+									onClick={() => onDelete(item.id)}
+									className="text-sm rounded-lg bg-red-600/80 hover:bg-red-600 text-white px-2 py-1"
+								>
+									Delete
+								</button>
+							</div>
+						)}
 					</div>
 				)}
 			</div>
