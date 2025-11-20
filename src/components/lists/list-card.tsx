@@ -8,6 +8,7 @@ import { EditOutlined } from "@ant-design/icons";
 export type ListWithProgress = {
 	id: string;
 	title: string;
+	owner_display_name?: string;
 	created_at: string;
 	total?: number;
 	purchased?: number;
@@ -15,10 +16,12 @@ export type ListWithProgress = {
 
 type Props = {
 	list: ListWithProgress;
-	onManage: (id: string, title: string) => void;
+	onManage?: (id: string, title: string) => void;
+	showOwner?: boolean;
+	hideManageButton?: boolean;
 };
 
-export default function ListCard({ list: l, onManage }: Props) {
+export default function ListCard({ list: l, onManage, showOwner = false, hideManageButton = false }: Props) {
 	const purchased = l.purchased ?? 0;
 	const total = l.total ?? 0;
 	const pct = ((purchased / Math.max(total, 1)) * 100).toFixed(1);
@@ -31,13 +34,18 @@ export default function ListCard({ list: l, onManage }: Props) {
 					<h2 className="text-3xl font-semibold text-white wrap-break-word">
 						{l.title}
 					</h2>
-					<button
-						onClick={() => onManage(l.id, l.title)}
-						aria-label={`Manage list ${l.title}`}
-						className="absolute right-1.5 top-2 inline-flex items-center gap-1 rounded-md border border-white/10 bg-black/40 px-2 py-1 text-xs text-white hover:bg-black/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
-					>
-						<EditOutlined className="text-white/90" />
-					</button>
+					{showOwner && l.owner_display_name && (
+						<p className="mt-1 text-sm text-white/70">By {l.owner_display_name}</p>
+					)}
+					{!hideManageButton && onManage && (
+						<button
+							onClick={() => onManage(l.id, l.title)}
+							aria-label={`Manage list ${l.title}`}
+							className="absolute right-1.5 top-2 inline-flex items-center gap-1 rounded-md border border-white/10 bg-black/40 px-2 py-1 text-xs text-white hover:bg-black/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+						>
+							<EditOutlined className="text-white/90" />
+						</button>
+					)}
 				</div>
 
 				{/* Meta row */}

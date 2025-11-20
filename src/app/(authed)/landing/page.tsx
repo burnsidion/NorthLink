@@ -180,7 +180,7 @@ export default function ListsPage() {
 											<p className="text-neutral-300 mt-4 text-sm">
 												Here is where you can view lists others have created
 											</p>
-											<Link href="/lists" className="mt-6">
+											<Link href="/family-lists" className="mt-6">
 												<button className="rounded-md border border-white/10 px-5 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 bg-emerald-700/80 hover:bg-emerald-700 text-white">
 													View User Lists
 												</button>

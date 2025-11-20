@@ -31,7 +31,7 @@ export const links: NavLink[] = [
 	}, // tweak route later
 	{
 		title: "Family",
-		href: "/onboarding",
+		href: "/family-lists",
 		icon: <IconUsersGroup className="h-full w-full" />,
 	},
 	// optional:
