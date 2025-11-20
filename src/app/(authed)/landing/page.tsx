@@ -182,7 +182,7 @@ export default function ListsPage() {
 											</p>
 											<Link href="/family-lists" className="mt-6">
 												<button className="rounded-md border border-white/10 px-5 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 bg-emerald-700/80 hover:bg-emerald-700 text-white">
-													View User Lists
+													View Family Lists
 												</button>
 											</Link>
 										</div>

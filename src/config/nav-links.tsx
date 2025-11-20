@@ -35,5 +35,9 @@ export const links: NavLink[] = [
 		icon: <IconUsersGroup className="h-full w-full" />,
 	},
 	// optional:
-	// { title: "Sign out", href: "/api/logout", icon: <IconLogout className="h-full w-full" /> },
+	{
+		title: "Sign out",
+		href: "/api/logout",
+		icon: <IconLogout className="h-full w-full" />,
+	},
 ];

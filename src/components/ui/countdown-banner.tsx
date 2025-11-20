@@ -87,7 +87,7 @@ export default function CountdownBanner({
 			<div className="mx-auto max-w-6xl px-4 py-2 flex flex-wrap md:flex-nowrap items-center justify-center gap-x-4 gap-y-2 text-sm text-white">
 				<span className="font-bold text-xl tracking-normal md:tracking-wide shrink-0">
 					{" "}
-					<ColourfulText text="Christmas Countdown" /> :
+					<ColourfulText text="Christmas Countdown!!!" /> :
 				</span>
 				<div className="flex items-center gap-2">
 					<TimePill label="Days" value={left.d} />
