@@ -26,9 +26,9 @@ export const links: NavLink[] = [
 	},
 	{
 		title: "Gifts",
-		href: "/user-lists",
+		href: "/purchased-items",
 		icon: <IconGift className="h-full w-full" />,
-	}, // tweak route later
+	},
 	{
 		title: "Family",
 		href: "/family-lists",

@@ -98,9 +98,26 @@ export async function togglePurchased(
 	itemId: string,
 	next: boolean
 ): Promise<void> {
+	// Get current user
+	const {
+		data: { user },
+	} = await supabase.auth.getUser();
+	if (!user) throw new Error("User not authenticated");
+
+	// Prepare update payload
+	const payload: {
+		purchased: boolean;
+		purchased_by: string | null;
+		purchased_at: string | null;
+	} = {
+		purchased: next,
+		purchased_by: next ? user.id : null,
+		purchased_at: next ? new Date().toISOString() : null,
+	};
+
 	const { error } = await supabase
 		.from("items")
-		.update({ purchased: next })
+		.update(payload)
 		.eq("id", itemId);
 	if (error) throw error;
 }
