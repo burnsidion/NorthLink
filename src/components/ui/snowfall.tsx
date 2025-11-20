@@ -133,7 +133,7 @@ export default function Snowfall({
 	return (
 		<canvas
 			ref={ref}
-			className="pointer-events-none absolute inset-0 w-full h-full z-0"
+			className="pointer-events-none fixed inset-0 w-full h-full z-50"
 			style={{ width: "100%", height: "100%", background: "transparent" }}
 			aria-hidden
 		/>

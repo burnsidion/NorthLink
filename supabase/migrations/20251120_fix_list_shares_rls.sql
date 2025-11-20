@@ -83,10 +83,14 @@ WITH CHECK (
 );
 
 -- Clean up redundant items RLS policies
-
 DROP POLICY IF EXISTS "items_by_list_owner_delete" ON public.items;
 DROP POLICY IF EXISTS "items_by_list_owner_insert" ON public.items;
 DROP POLICY IF EXISTS "items_by_list_owner_select" ON public.items;
 DROP POLICY IF EXISTS "items_by_list_owner_update" ON public.items;
 DROP POLICY IF EXISTS "items_cud_through_list" ON public.items;
 DROP POLICY IF EXISTS "items_select_through_list" ON public.items;
+
+-- Track who purchased an item and when
+ALTER TABLE items
+ADD COLUMN IF NOT EXISTS purchased_by uuid REFERENCES profiles(id),
+ADD COLUMN IF NOT EXISTS purchased_at timestamptz;
