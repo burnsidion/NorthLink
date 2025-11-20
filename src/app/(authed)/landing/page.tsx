@@ -140,6 +140,16 @@ export default function ListsPage() {
 					</motion.h1>
 				</HeroHighlight>
 
+				{/* Edit profile button*/}
+				<div className="flex justify-center my-6">
+					<button
+						onClick={() => router.push("/onboarding")}
+						className="rounded-md border border-white/10 px-4 py-2 text-sm font-medium bg-emerald-700/80 hover:bg-emerald-700 text-white"
+					>
+						Edit profile
+					</button>
+				</div>
+
 				{/* Activity tab (owner notifications) */}
 				{activityCount > 0 && (
 					<div className="fixed right-4 top-1/3 z-50 pointer-events-auto">
@@ -155,7 +165,6 @@ export default function ListsPage() {
 					</div>
 				)}
 				{/* Card Container */}
-				<div className="h-24 sm:h-32 lg:h-40" />
 				<motion.div
 					className="grid grid-cols-1 md:grid-cols-2 gap-8 justify-items-center"
 					variants={gridVariants}

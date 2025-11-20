@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase";
 import { AVATARS } from "@/lib/avatars";
 import { StarsBackground } from "@/components/ui/stars-background";
 import Snowfall from "@/components/ui/snowfall";
+import { cn } from "@/lib/utils";
 
 export default function OnboardingPage() {
 	const sb = supabase;
@@ -58,7 +59,7 @@ export default function OnboardingPage() {
 			return;
 		}
 
-		router.replace("/lists");
+		router.replace("/landing");
 	};
 
 	if (loading)
@@ -90,16 +91,22 @@ export default function OnboardingPage() {
 
 				<label className="block text-sm font-medium">Choose an avatar</label>
 				<div className="grid grid-cols-8 gap-2">
-					{AVATARS.map((a) => (
+					{AVATARS.map((avatarUrl) => (
 						<button
-							key={a}
-							onClick={() => setAvatar(a)}
-							className={`h-10 rounded border flex items-center justify-center text-xl ${
-								avatar === a ? "ring-2 ring-emerald-700" : ""
-							}`}
-							aria-pressed={avatar === a}
+							key={avatarUrl}
+							type="button"
+							onClick={() => setAvatar(avatarUrl)}
+							className={cn(
+								"relative flex h-12 w-12 items-center justify-center rounded-lg border text-white transition",
+								// default
+								"border-white/10 bg-white/5 hover:bg-white/15",
+								// selected state
+								avatar === avatarUrl &&
+									"bg-emerald-600/90 border-emerald-300 shadow-lg shadow-emerald-500/40"
+							)}
+							aria-pressed={avatar === avatarUrl}
 						>
-							{a}
+							<img src={avatarUrl} alt="Avatar option" className="h-9 w-9" />
 						</button>
 					))}
 				</div>
