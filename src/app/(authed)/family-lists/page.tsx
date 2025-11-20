@@ -9,9 +9,26 @@ import ListCard, { ListWithProgress } from "@/components/lists/list-card";
 import Snowfall from "@/components/ui/snowfall";
 import { StarsBackground } from "@/components/ui/stars-background";
 import { HeroHighlight, Highlight } from "@/components/ui/hero-highlight";
+import { SkeletonCard } from "@/components/ui/skeleton-card";
+import CountdownBanner from "@/components/ui/countdown-banner";
 
 //Animation
 import { motion } from "motion/react";
+
+const gridVariants = {
+	hidden: {},
+	show: { transition: { staggerChildren: 0.1 } },
+};
+
+const cardVariants = {
+	hidden: { opacity: 0, y: 20, scale: 0.95 },
+	show: {
+		opacity: 1,
+		y: 0,
+		scale: 1,
+		transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] },
+	},
+};
 
 async function getListProgress(listId: string) {
 	const { count: total, error: totalErr } = await supabase
@@ -104,8 +121,36 @@ export default function FamilyListsPage() {
 		return (
 			<main className="max-w-6xl mx-auto px-4 py-10 text-white">
 				<StarsBackground starColor="var(--stars-dim)" />
-				<h1 className="text-3xl sm:text-4xl font-bold mb-4">Shared Lists</h1>
-				<p className="text-white/70">Loading shared lists…</p>
+				<Snowfall />
+				<HeroHighlight className="bg-none mb-12">
+					<motion.h1
+						initial={{
+							opacity: 0,
+							y: 20,
+						}}
+						animate={{
+							opacity: 1,
+							y: [20, -5, 0],
+						}}
+						transition={{
+							duration: 0.5,
+							ease: [0.4, 0.0, 0.2, 1],
+						}}
+						className="text-2xl px-4 md:text-4xl lg:text-5xl font-bold text-neutral-700 dark:text-white max-w-4xl leading-relaxed lg:leading-snug text-center mx-auto "
+					>
+						<Highlight className="text-black dark:text-white">Browse</Highlight>{" "}
+						wish lists from your
+						<br />
+						<Highlight className="text-black dark:text-white">
+							friends and family
+						</Highlight>
+					</motion.h1>
+				</HeroHighlight>
+				<section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+					{[0, 1, 2, 3, 4, 5].map((i) => (
+						<SkeletonCard key={i} className="h-64 sm:h-72 lg:h-80" />
+					))}
+				</section>
 			</main>
 		);
 	}
@@ -124,6 +169,7 @@ export default function FamilyListsPage() {
 		<main className="max-w-6xl mx-auto px-4 py-10 text-white">
 			<StarsBackground starColor="var(--stars-dim)" />
 			<Snowfall />
+			<CountdownBanner initialNow={Date.now()} />
 			<HeroHighlight className="bg-none mb-12">
 				<motion.h1
 					initial={{
@@ -162,11 +208,18 @@ export default function FamilyListsPage() {
 					lists with you, they&apos;ll appear here.
 				</p>
 			) : (
-				<section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+				<motion.section
+					className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+					variants={gridVariants}
+					initial="hidden"
+					animate="show"
+				>
 					{lists.map((list) => (
-						<ListCard key={list.id} list={list} hideManageButton showOwner />
+						<motion.div key={list.id} variants={cardVariants}>
+							<ListCard list={list} hideManageButton showOwner />
+						</motion.div>
 					))}
-				</section>
+				</motion.section>
 			)}
 		</main>
 	);

@@ -39,6 +39,10 @@ export default function ListDetailPage() {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const [now0] = useState(() => Date.now());
+	const [userId, setUserId] = useState<string | null>(null);
+	const [familyGroupId, setFamilyGroupId] = useState<string | null>(null);
+	const [isShared, setIsShared] = useState(false);
+	const [shareLoading, setShareLoading] = useState(false);
 
 	// form state
 	const [adding, setAdding] = useState(false);
@@ -61,6 +65,19 @@ export default function ListDetailPage() {
 				return;
 			}
 
+			setUserId(user.id);
+
+			// Fetch user's family group
+			const { data: familyGroup } = await supabase
+				.from("group_members")
+				.select("group_id")
+				.eq("user_id", user.id)
+				.maybeSingle();
+
+			if (familyGroup?.group_id) {
+				setFamilyGroupId(familyGroup.group_id);
+			}
+
 			// Load list + items
 			const [
 				{ data: theList, error: listErr },
@@ -68,7 +85,7 @@ export default function ListDetailPage() {
 			] = await Promise.all([
 				supabase
 					.from("lists")
-					.select("id,title,created_at")
+					.select("id,title,created_at,owner_user_id")
 					.eq("id", id)
 					.single(),
 				supabase
@@ -92,6 +109,19 @@ export default function ListDetailPage() {
 
 			setList(theList);
 			setItems(theItems ?? []);
+
+			// Check if list is shared with family group
+			if (familyGroup?.group_id) {
+				const { data: shareRow } = await supabase
+					.from("list_shares")
+					.select("*")
+					.eq("list_id", id)
+					.eq("group_id", familyGroup.group_id)
+					.maybeSingle();
+
+				setIsShared(!!shareRow);
+			}
+
 			setLoading(false);
 		})();
 
@@ -212,6 +242,38 @@ export default function ListDetailPage() {
 		}
 	}
 
+	async function handleShareToggle() {
+		if (!familyGroupId || !list) return;
+
+		setShareLoading(true);
+		setError(null);
+
+		try {
+			if (isShared) {
+				// Unshare
+				const { error } = await supabase
+					.from("list_shares")
+					.delete()
+					.match({ list_id: list.id, group_id: familyGroupId });
+
+				if (error) throw error;
+				setIsShared(false);
+			} else {
+				// Share
+				const { error } = await supabase
+					.from("list_shares")
+					.insert({ list_id: list.id, group_id: familyGroupId });
+
+				if (error) throw error;
+				setIsShared(true);
+			}
+		} catch (err: any) {
+			setError(err?.message ?? String(err));
+		} finally {
+			setShareLoading(false);
+		}
+	}
+
 	if (loading)
 		return (
 			<main className="relative min-h-screen px-6 py-8 space-y-6 overflow-hidden">
@@ -282,6 +344,26 @@ export default function ListDetailPage() {
 						Created at: {new Date(list.created_at).toLocaleString()}
 					</p>
 				</header>
+				{/* Share button - only show for owner */}
+				{userId &&
+					list &&
+					userId === (list as any).owner_user_id &&
+					familyGroupId && (
+						<div className="py-2">
+							<button
+								type="button"
+								onClick={handleShareToggle}
+								disabled={shareLoading}
+								className="px-4 py-2 bg-emerald-700/80 text-white rounded-lg text-sm font-medium border border-emerald-700/50 hover:bg-emerald-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700/60 disabled:opacity-50 transition-colors"
+							>
+								{shareLoading
+									? "..."
+									: isShared
+									? "Unshare from Family"
+									: "Share to Family"}
+							</button>
+						</div>
+					)}
 				{/* Toggle button shown when the form is collapsed */}
 				{!formOpen ? (
 					<div className="py-4">
