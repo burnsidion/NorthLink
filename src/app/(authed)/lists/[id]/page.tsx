@@ -204,8 +204,6 @@ export default function ListDetailPage() {
 		} catch (e: any) {
 			setItems(prev); // revert
 			setError(e?.message ?? String(e));
-		} finally {
-			await refreshItems();
 		}
 	}
 
@@ -406,6 +404,7 @@ export default function ListDetailPage() {
 								onToggle={handleToggle}
 								onDelete={handleDelete}
 								onUpdate={handleUpdate}
+								isOwner={userId === (list as any).owner_user_id}
 							/>
 						))}
 					</ul>
