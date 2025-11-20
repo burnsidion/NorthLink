@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { AVATARS } from "@/lib/avatars";
 import { StarsBackground } from "@/components/ui/stars-background";
-import SnowFall from "@/components/ui/snow-fall";
+import Snowfall from "@/components/ui/snowfall";
 
 export default function OnboardingPage() {
 	const sb = supabase;

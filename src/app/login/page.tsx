@@ -17,7 +17,7 @@ export default function LoginPage() {
 			data: { subscription },
 		} = sb.auth.onAuthStateChange((evt, session) => {
 			if (session && (evt === "SIGNED_IN" || evt === "TOKEN_REFRESHED")) {
-				window.location.replace("/");
+				window.location.replace("/landing");
 			}
 		});
 		return () => subscription.unsubscribe();

@@ -74,7 +74,7 @@ export default function UserListsPage() {
 		} = await supabase.auth.getUser();
 
 		if (userError || !user) {
-			router.push("/signin");
+			router.push("/login"); // or "/signin" if that's what you're using now
 			return;
 		}
 
@@ -90,7 +90,6 @@ export default function UserListsPage() {
 			return;
 		}
 
-		// Enrich lists with progress (total and purchased counts)
 		const enriched = await Promise.all(
 			(data ?? []).map(async (l) => {
 				const progress = await getListProgress(l.id);
