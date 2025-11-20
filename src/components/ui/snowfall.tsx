@@ -134,8 +134,15 @@ export default function Snowfall({
 		<canvas
 			ref={ref}
 			className="pointer-events-none fixed inset-0 w-full h-full z-50"
-			style={{ width: "100%", height: "100%", background: "transparent" }}
-			aria-hidden
+			style={{
+				width: "100%",
+				height: "100%",
+				background: "transparent",
+				pointerEvents: "none",
+			}}
+			tabIndex={-1}
+			role="presentation"
+			aria-hidden="true"
 		/>
 	);
 }

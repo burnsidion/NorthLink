@@ -1,3 +1,17 @@
 export const AVATARS = [
-  "🎄", "🎁", "🧦", "🛷", "☃️", "🦌", "🧝", "⭐️",
+	"https://api.dicebear.com/7.x/lorelei/png?seed=holly",
+	"https://api.dicebear.com/7.x/lorelei/png?seed=frost",
+	"https://api.dicebear.com/7.x/lorelei/png?seed=ember",
+	"https://api.dicebear.com/7.x/lorelei/png?seed=blitzen",
+	"https://api.dicebear.com/7.x/lorelei/png?seed=juniper",
+	"https://api.dicebear.com/7.x/lorelei/png?seed=aurora",
+	"https://api.dicebear.com/7.x/lorelei/png?seed=ginger",
+	"https://api.dicebear.com/7.x/lorelei/png?seed=starfall",
+	"https://api.dicebear.com/7.x/lorelei/png?seed=mistletoe",
+	"https://api.dicebear.com/7.x/lorelei/png?seed=cranberry",
+	"https://api.dicebear.com/7.x/lorelei/png?seed=cinnamon",
+	"https://api.dicebear.com/7.x/lorelei/png?seed=solstice",
+	"https://api.dicebear.com/7.x/lorelei/png?seed=comet",
+	"https://api.dicebear.com/7.x/lorelei/png?seed=marzipan",
+	"https://api.dicebear.com/7.x/lorelei/png?seed=evergreen",
 ];
