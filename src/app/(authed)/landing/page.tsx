@@ -32,7 +32,7 @@ const cardVariants = {
 		opacity: 1,
 		y: 0,
 		filter: "blur(0px)",
-		transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] },
+		transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] as any },
 	},
 };
 
@@ -116,7 +116,7 @@ export default function ListsPage() {
 						}}
 						transition={{
 							duration: 0.5,
-							ease: [0.4, 0.0, 0.2, 1],
+							ease: [0.4, 0.0, 0.2, 1] as any,
 						}}
 						className="heading-festive text-2xl px-4 md:text-4xl lg:text-5xl font-bold text-neutral-700 dark:text-white max-w-4xl leading-relaxed lg:leading-snug text-center mx-auto "
 					>
