@@ -1,7 +1,7 @@
 import { supabase } from "@/lib/supabase";
 
 export async function ensureProfileAndMembership() {
-	const sb = supabase();
+	const sb = supabase;
 	const {
 		data: { user },
 	} = await sb.auth.getUser();

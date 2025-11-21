@@ -34,8 +34,7 @@ export const StarsBackground: React.FC<StarBackgroundProps> = ({
 	className,
 }) => {
 	const [stars, setStars] = useState<StarProps[]>([]);
-	const canvasRef: RefObject<HTMLCanvasElement> =
-		useRef<HTMLCanvasElement>(null);
+	const canvasRef = useRef<HTMLCanvasElement>(null);
 
 	const generateStars = useCallback(
 		(width: number, height: number): StarProps[] => {
@@ -137,7 +136,10 @@ export const StarsBackground: React.FC<StarBackgroundProps> = ({
 	return (
 		<canvas
 			ref={canvasRef}
-			className={cn("h-full w-full absolute inset-0 pointer-events-none", className)}
+			className={cn(
+				"h-full w-full absolute inset-0 pointer-events-none",
+				className
+			)}
 		/>
 	);
 };
