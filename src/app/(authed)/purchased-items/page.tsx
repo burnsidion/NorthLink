@@ -37,7 +37,7 @@ const cardVariants = {
 		opacity: 1,
 		y: 0,
 		scale: 1,
-		transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] },
+		transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] as any },
 	},
 };
 
@@ -195,11 +195,11 @@ export default function PurchasedItemsPage() {
 				Your Purchased Gifts
 			</TextAnimate>
 			<HeroHighlight className="bg-none mb-12">
-				<motion.h1
-					initial={{ opacity: 0, y: 20 }}
-					animate={{ opacity: 1, y: [20, -5, 0] }}
-					transition={{ duration: 0.5, ease: [0.4, 0.0, 0.2, 1] }}
-					className="heading-festive text-2xl px-4 md:text-4xl lg:text-5xl font-bold text-neutral-700 dark:text-white max-w-4xl leading-relaxed lg:leading-snug text-center mx-auto"
+			<motion.h1
+				initial={{ opacity: 0, y: 20 }}
+				animate={{ opacity: 1, y: [20, -5, 0] }}
+				transition={{ duration: 0.5, ease: [0.4, 0.0, 0.2, 1] as any }}
+				className="text-2xl px-4 md:text-4xl lg:text-5xl font-bold text-neutral-700 dark:text-white max-w-4xl leading-relaxed lg:leading-snug text-center mx-auto"
 				>
 					<br />
 					Keep track of all the gifts{" "}
