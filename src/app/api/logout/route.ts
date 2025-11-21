@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 
-export async function GET() {
+export async function GET(request: Request) {
 	try {
 		const { error } = await supabase.auth.signOut();
 
@@ -11,12 +11,8 @@ export async function GET() {
 		}
 
 		// Redirect to login page after successful logout
-		return NextResponse.redirect(
-			new URL(
-				"/login",
-				process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"
-			)
-		);
+		const url = new URL("/login", request.url);
+		return NextResponse.redirect(url);
 	} catch (err) {
 		console.error("Unexpected error during logout:", err);
 		return NextResponse.json(
