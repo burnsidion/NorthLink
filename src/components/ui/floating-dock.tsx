@@ -19,15 +19,25 @@ export const FloatingDock = ({
 	items = [],
 	desktopClassName,
 	mobileClassName,
+	onItemClick,
 }: {
 	items?: DockItem[];
 	desktopClassName?: string;
 	mobileClassName?: string;
+	onItemClick?: (href: string) => Promise<boolean> | boolean;
 }) => {
 	return (
 		<>
-			<FloatingDockDesktop items={items ?? []} className={desktopClassName} />
-			<FloatingDockMobile items={items ?? []} className={mobileClassName} />
+			<FloatingDockDesktop
+				items={items ?? []}
+				className={desktopClassName}
+				onItemClick={onItemClick}
+			/>
+			<FloatingDockMobile
+				items={items ?? []}
+				className={mobileClassName}
+				onItemClick={onItemClick}
+			/>
 		</>
 	);
 };
@@ -35,11 +45,25 @@ export const FloatingDock = ({
 const FloatingDockMobile = ({
 	items,
 	className,
+	onItemClick,
 }: {
 	items: { title: string; icon: React.ReactNode; href: string }[];
 	className?: string;
+	onItemClick?: (href: string) => Promise<boolean> | boolean;
 }) => {
 	const [open, setOpen] = useState(false);
+
+	const handleClick = async (e: React.MouseEvent, href: string) => {
+		if (onItemClick) {
+			const shouldNavigate = await onItemClick(href);
+			if (!shouldNavigate) {
+				e.preventDefault();
+				setOpen(false);
+				return;
+			}
+		}
+		setOpen(false);
+	};
 
 	return (
 		<div
@@ -63,7 +87,7 @@ const FloatingDockMobile = ({
 							<a
 								key={item.title}
 								href={item.href}
-								onClick={() => setOpen(false)}
+								onClick={(e) => handleClick(e, item.href)}
 								className="flex h-10 w-10 items-center justify-center rounded-full bg-red-600"
 							>
 								<div className="h-5 w-5 text-white">{item.icon}</div>
@@ -89,9 +113,11 @@ const FloatingDockMobile = ({
 const FloatingDockDesktop = ({
 	items = [],
 	className,
+	onItemClick,
 }: {
 	items?: DockItem[];
 	className?: string;
+	onItemClick?: (href: string) => Promise<boolean> | boolean;
 }) => {
 	let mouseX = useMotionValue(Infinity);
 	if (!items || items.length === 0) {
@@ -107,7 +133,12 @@ const FloatingDockDesktop = ({
 			)}
 		>
 			{items.map((item) => (
-				<IconContainer mouseX={mouseX} key={item.title} {...item} />
+				<IconContainer
+					mouseX={mouseX}
+					key={item.title}
+					{...item}
+					onItemClick={onItemClick}
+				/>
 			))}
 		</motion.div>
 	);
@@ -118,11 +149,13 @@ function IconContainer({
 	title,
 	icon,
 	href,
+	onItemClick,
 }: {
 	mouseX: MotionValue;
 	title: DockItem["title"];
 	icon: DockItem["icon"];
 	href: DockItem["href"];
+	onItemClick?: (href: string) => Promise<boolean> | boolean;
 }) {
 	let ref = useRef<HTMLDivElement>(null);
 
@@ -166,8 +199,17 @@ function IconContainer({
 
 	const [hovered, setHovered] = useState(false);
 
+	const handleClick = async (e: React.MouseEvent) => {
+		if (onItemClick) {
+			const shouldNavigate = await onItemClick(href);
+			if (!shouldNavigate) {
+				e.preventDefault();
+			}
+		}
+	};
+
 	return (
-		<a href={href}>
+		<a href={href} onClick={handleClick}>
 			<motion.div
 				ref={ref}
 				style={{ width, height }}
