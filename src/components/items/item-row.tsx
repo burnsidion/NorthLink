@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { ItemRow } from "@/types/db";
 import { toCents, normalizeUrl, usd } from "@/lib/format";
+import { LinkPreview } from "@/components/ui/link-preview";
 
 type Props = {
 	item: ItemRow;
@@ -139,25 +140,21 @@ export default function ItemRow({
 									</span>
 								)}
 								{item.link && (
-									<a
-										href={item.link}
-										target="_blank"
-										rel="noreferrer"
+									<LinkPreview
+										url={item.link}
 										className="underline hover:text-white text-sm"
 									>
 										View
-									</a>
+									</LinkPreview>
 								)}
 							</div>
-						</div>
-
+						</div>{" "}
 						{(item.link || item.notes) && (
 							<div className="mt-1 text-sm text-white/70 space-x-2 grid">
 								<p>Notes:</p>
 								{item.notes && <span className="opacity-80">{item.notes}</span>}
 							</div>
 						)}
-
 						{/* Show Edit/Delete only for owner, and only Edit button if item is not purchased */}
 						{isOwner && (
 							<div className="mt-2 flex gap-2">
