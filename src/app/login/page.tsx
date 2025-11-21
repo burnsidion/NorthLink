@@ -46,7 +46,7 @@ export default function LoginPage() {
 									brand: "oklch(0.60 0.118 184.704)",
 									inputText: "var(--foreground)",
 									inputLabelText: "var(--muted-foreground)",
-									inputPlaceholderText: "var(--muted-foreground)",
+									inputPlaceholder: "var(--muted-foreground)",
 								},
 							},
 						},
