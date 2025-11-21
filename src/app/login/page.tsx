@@ -27,7 +27,7 @@ export default function LoginPage() {
 		<main className="relative min-h-dvh grid place-items-center p-6">
 			{/* backgrounds behind everything */}
 			<div className="pointer-events-none fixed inset-0 -z-10">
-				<StarsBackground starColor="var(--stars-dim)" />
+				<StarsBackground />
 				<Snowfall className="absolute" count={70} speed={40} wind={0.18} />
 			</div>
 

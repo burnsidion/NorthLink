@@ -143,7 +143,7 @@ export default function PurchasedItemsPage() {
 	if (loading) {
 		return (
 			<main className="max-w-6xl mx-auto px-4 py-10 text-white">
-				<StarsBackground starColor="var(--stars-dim)" />
+				<StarsBackground />
 				<Snowfall />
 				<HeroHighlight className="bg-none mb-12">
 					<motion.h1
@@ -171,7 +171,7 @@ export default function PurchasedItemsPage() {
 	if (error) {
 		return (
 			<main className="max-w-6xl mx-auto px-4 py-10 text-white">
-				<StarsBackground starColor="var(--stars-dim)" />
+				<StarsBackground />
 				<Snowfall />
 				<h1 className="heading-festive text-3xl sm:text-4xl font-bold mb-4">
 					Purchased Gifts
@@ -183,7 +183,7 @@ export default function PurchasedItemsPage() {
 
 	return (
 		<main className="max-w-6xl mx-auto px-4 py-10 text-white">
-			<StarsBackground starColor="var(--stars-dim)" />
+			<StarsBackground />
 			<Snowfall />
 			<CountdownBanner initialNow={Date.now()} />
 			<TextAnimate

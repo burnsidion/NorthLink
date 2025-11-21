@@ -127,7 +127,7 @@ export default function FamilyListsPage() {
 	if (loading) {
 		return (
 			<main className="max-w-6xl mx-auto px-4 py-10 text-white">
-				<StarsBackground starColor="var(--stars-dim)" />
+				<StarsBackground />
 				<Snowfall />
 				<HeroHighlight className="bg-none mb-12">
 					<motion.h1
@@ -165,7 +165,7 @@ export default function FamilyListsPage() {
 	if (error) {
 		return (
 			<main className="max-w-6xl mx-auto px-4 py-10 text-white">
-				<StarsBackground starColor="var(--stars-dim)" />
+				<StarsBackground />
 				<h1 className="heading-festive text-3xl sm:text-4xl font-bold mb-4">
 					Shared Lists
 				</h1>
@@ -176,7 +176,7 @@ export default function FamilyListsPage() {
 
 	return (
 		<main className="max-w-6xl mx-auto px-4 py-10 text-white">
-			<StarsBackground starColor="var(--stars-dim)" />
+			<StarsBackground />
 			<Snowfall />
 			<CountdownBanner initialNow={Date.now()} />
 			<HeroHighlight className="bg-none mb-12">

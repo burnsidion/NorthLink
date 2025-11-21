@@ -316,7 +316,7 @@ export default function ListDetailPage() {
 		return (
 			<main className="relative min-h-screen px-6 py-8 space-y-6 overflow-hidden">
 				<PageFade>
-					<StarsBackground starColor="var(--stars-dim)" />
+					<StarsBackground />
 					<Snowfall
 						className="pointer-events-none fixed inset-0 z-0"
 						count={70}
@@ -361,10 +361,7 @@ export default function ListDetailPage() {
 
 	return (
 		<main className="px-6 py-8 max-w-2xl mx-auto space-y-6">
-			<StarsBackground
-				starColor="var(--stars-dim)"
-				className="pointer-events-none fixed inset-0 z-0"
-			/>
+			<StarsBackground className="pointer-events-none fixed inset-0 z-0" />
 			<Snowfall count={70} speed={40} wind={0.18} />
 			<PageFade>
 				<CountdownBanner initialNow={now0} />

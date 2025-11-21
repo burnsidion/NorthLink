@@ -183,7 +183,7 @@ export default function UserListsPage() {
 		return (
 			<main className="relative min-h-screen px-6 py-8 space-y-6 overflow-hidden">
 				<PageFade>
-					<StarsBackground starColor="var(--stars-dim)" />
+					<StarsBackground />
 					<Snowfall
 						className="pointer-events-none fixed inset-0 z-9999"
 						count={70}
@@ -225,7 +225,7 @@ export default function UserListsPage() {
 	return (
 		<main className="relative min-h-screen px-6 py-8 space-y-6 overflow-hidden">
 			<PageFade>
-				<StarsBackground starColor="var(--stars-dim)" />
+				<StarsBackground />
 				<CountdownBanner initialNow={Date.now()} />
 				<header className="relative mx-auto w-full max-w-5xl">
 					{/* title */}
