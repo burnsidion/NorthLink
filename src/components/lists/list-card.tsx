@@ -49,7 +49,7 @@ export default function ListCard({
 			>
 				{/* Title + manage */}
 				<div className="flex flex-col items-center">
-					<h2 className="heading-festive text-3xl font-semibold text-white wrap-break-word">
+					<h2 className="heading-festive text-5xl font-semibold text-white wrap-break-word">
 						{l.title}
 					</h2>
 					{showOwner && l.owner_display_name && (
