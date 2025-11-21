@@ -15,6 +15,7 @@ import CountdownBanner from "@/components/ui/countdown-banner";
 import Snowfall from "@/components/ui/snowfall";
 import { StarsBackground } from "@/components/ui/stars-background";
 import PageFade from "@/components/ui/page-fade";
+import FamilyGroupPanel from "@/components/family/family-group-panel";
 
 // Animation
 import { motion } from "motion/react";
@@ -149,6 +150,9 @@ export default function ListsPage() {
 						Edit profile
 					</button>
 				</div>
+
+				{/* Family Group Panel */}
+				<FamilyGroupPanel />
 
 				{/* Activity tab (owner notifications) */}
 				{activityCount > 0 && (
