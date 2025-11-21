@@ -6,10 +6,12 @@ export const GlareCard = ({
 	children,
 	className,
 	containerClassName,
+	color = "emerald",
 }: {
 	children: React.ReactNode;
 	className?: string;
 	containerClassName?: string;
+	color?: "emerald" | "red";
 }) => {
 	const isPointerInside = useRef(false);
 	const refElement = useRef<HTMLDivElement>(null);
@@ -47,9 +49,13 @@ export const GlareCard = ({
 		"--foil-svg": "none",
 		"--pattern": "none",
 		"--rainbow":
-			"repeating-linear-gradient( 0deg,rgb(8,120,65) calc(var(--step) * 1),rgb(34,197,94) calc(var(--step) * 2),rgb(16,185,129) calc(var(--step) * 3),rgb(6,95,70) calc(var(--step) * 4),rgb(4,60,40) calc(var(--step) * 5),rgb(16,120,80) calc(var(--step) * 6),rgb(8,120,65) calc(var(--step) * 7) ) 0% var(--bg-y)/200% 700% no-repeat",
+			color === "red"
+				? "repeating-linear-gradient( 0deg,rgb(120,8,8) calc(var(--step) * 1),rgb(220,38,38) calc(var(--step) * 2),rgb(239,68,68) calc(var(--step) * 3),rgb(127,29,29) calc(var(--step) * 4),rgb(60,4,4) calc(var(--step) * 5),rgb(153,27,27) calc(var(--step) * 6),rgb(120,8,8) calc(var(--step) * 7) ) 0% var(--bg-y)/200% 700% no-repeat"
+				: "repeating-linear-gradient( 0deg,rgb(8,120,65) calc(var(--step) * 1),rgb(34,197,94) calc(var(--step) * 2),rgb(16,185,129) calc(var(--step) * 3),rgb(6,95,70) calc(var(--step) * 4),rgb(4,60,40) calc(var(--step) * 5),rgb(16,120,80) calc(var(--step) * 6),rgb(8,120,65) calc(var(--step) * 7) ) 0% var(--bg-y)/200% 700% no-repeat",
 		"--diagonal":
-			"repeating-linear-gradient( 128deg,#04260f 0%,hsl(140,45%,30%) 3.8%,hsl(140,45%,30%) 4.5%,hsl(140,45%,30%) 5.2%,#04260f 10%,#04260f 12% ) var(--bg-x) var(--bg-y)/300% no-repeat",
+			color === "red"
+				? "repeating-linear-gradient( 128deg,#260404 0%,hsl(0,45%,30%) 3.8%,hsl(0,45%,30%) 4.5%,hsl(0,45%,30%) 5.2%,#260404 10%,#260404 12% ) var(--bg-x) var(--bg-y)/300% no-repeat"
+				: "repeating-linear-gradient( 128deg,#04260f 0%,hsl(140,45%,30%) 3.8%,hsl(140,45%,30%) 4.5%,hsl(140,45%,30%) 5.2%,#04260f 10%,#04260f 12% ) var(--bg-x) var(--bg-y)/300% no-repeat",
 		"--shade":
 			"radial-gradient( farthest-corner circle at var(--m-x) var(--m-y),rgba(255,255,255,0.1) 12%,rgba(255,255,255,0.15) 20%,rgba(255,255,255,0.25) 120% ) var(--bg-x) var(--bg-y)/300% no-repeat",
 		backgroundBlendMode: "hue, hue, hue, overlay",
@@ -70,7 +76,7 @@ export const GlareCard = ({
 		<div
 			style={containerStyle}
 			className={cn(
-				"relative isolate [contain:layout_style] [perspective:600px] transition-transform duration-[var(--duration)] ease-[var(--easing)] delay-[var(--delay)] will-change-transform w-full [aspect-ratio:17/21]",
+				"relative isolate contain-[layout_style] perspective-[600px] transition-transform duration-(--duration) ease-(--easing) delay-(--delay) will-change-transform w-full aspect-17/21",
 				containerClassName
 			)}
 			ref={refElement}
@@ -121,20 +127,25 @@ export const GlareCard = ({
 				}
 			}}
 		>
-			<div className="h-full grid will-change-transform origin-center transition-transform duration-[var(--duration)] ease-[var(--easing)] delay-[var(--delay)] [transform:rotateY(var(--r-x))_rotateX(var(--r-y))] rounded-[var(--radius)] border border-emerald-800 hover:[--opacity:0.6] hover:[--duration:200ms] hover:[--easing:linear] hover:filter-none overflow-hidden">
+			<div
+				className={`h-full grid will-change-transform origin-center transition-transform duration-(--duration) ease-(--easing) delay-(--delay) transform-[rotateY(var(--r-x))_rotateX(var(--r-y))] rounded-(--radius) border hover:[--opacity:0.6] hover:[--duration:200ms] hover:[--easing:linear] hover:filter-none overflow-hidden ${
+					color === "red" ? "border-red-800" : "border-emerald-800"
+				}`}
+			>
 				<div className="w-full h-full grid [grid-area:1/1] mix-blend-soft-light [clip-path:inset(0_0_0_0_round_var(--radius))]">
 					<div
 						className={cn(
-							"h-full w-full bg-emerald-700 relative z-10 pointer-events-auto",
+							"h-full w-full relative z-10 pointer-events-auto",
+							color === "red" ? "bg-red-700" : "bg-emerald-700",
 							className
 						)}
 					>
 						{children}
 					</div>
 				</div>
-				<div className="w-full h-full grid [grid-area:1/1] mix-blend-soft-light [clip-path:inset(0_0_1px_0_round_var(--radius))] opacity-[var(--opacity)] transition-opacity transition-background duration-[var(--duration)] ease-[var(--easing)] delay-[var(--delay)] will-change-background pointer-events-none [background:radial-gradient(farthest-corner_circle_at_var(--m-x)_var(--m-y),_rgba(255,255,255,0.8)_10%,_rgba(255,255,255,0.65)_20%,_rgba(255,255,255,0)_90%)]" />
+				<div className="w-full h-full grid [grid-area:1/1] mix-blend-soft-light [clip-path:inset(0_0_1px_0_round_var(--radius))] opacity-(--opacity) transition-opacity transition-background duration-(--duration) ease-(--easing) delay-(--delay) will-change-background pointer-events-none [background:radial-gradient(farthest-corner_circle_at_var(--m-x)_var(--m-y),rgba(255,255,255,0.8)_10%,rgba(255,255,255,0.65)_20%,rgba(255,255,255,0)_90%)]" />
 				<div
-					className="w-full h-full grid [grid-area:1/1] mix-blend-color-dodge opacity-[var(--opacity)] will-change-background transition-opacity [clip-path:inset(0_0_1px_0_round_var(--radius))] [background-blend-mode:hue_hue_hue_overlay] [background:var(--pattern),_var(--rainbow),_var(--diagonal),_var(--shade)] relative pointer-events-none after:content-[''] after:grid-area-[inherit] after:bg-repeat-[inherit] after:bg-attachment-[inherit] after:bg-origin-[inherit] after:bg-clip-[inherit] after:bg-[inherit] after:mix-blend-exclusion after:[background-size:var(--foil-size),_200%_400%,_800%,_200%] after:[background-position:center,_0%_var(--bg-y),_calc(var(--bg-x)*_-1)_calc(var(--bg-y)*_-1),_var(--bg-x)_var(--bg-y)] after:[background-blend-mode:soft-light,_hue,_hard-light]"
+					className="w-full h-full grid [grid-area:1/1] mix-blend-color-dodge opacity-(--opacity) will-change-background transition-opacity [clip-path:inset(0_0_1px_0_round_var(--radius))] [background-blend-mode:hue_hue_hue_overlay] [background:var(--pattern),var(--rainbow),var(--diagonal),var(--shade)] relative pointer-events-none after:content-[''] after:grid-area-[inherit] after:bg-repeat-[inherit] after:bg-attachment-[inherit] after:bg-origin-[inherit] after:bg-clip-[inherit] after:bg-inherit after:mix-blend-exclusion after:bg-size-[var(--foil-size),200%_400%,800%,200%] after:bg-position-[center,0%_var(--bg-y),calc(var(--bg-x)*-1)_calc(var(--bg-y)*-1),var(--bg-x)_var(--bg-y)] after:[background-blend-mode:soft-light,hue,hard-light]"
 					style={{ ...backgroundStyle }}
 				/>
 			</div>

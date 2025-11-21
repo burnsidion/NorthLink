@@ -19,7 +19,7 @@ import PageFade from "@/components/ui/page-fade";
 // Animation
 import { motion } from "motion/react";
 import Link from "next/link";
-import { ListTodo, UsersRound } from "lucide-react";
+import { ListTodo, UsersRound, Gift } from "lucide-react";
 
 const gridVariants = {
 	hidden: {},
@@ -118,7 +118,7 @@ export default function ListsPage() {
 							duration: 0.5,
 							ease: [0.4, 0.0, 0.2, 1],
 						}}
-						className="text-2xl px-4 md:text-4xl lg:text-5xl font-bold text-neutral-700 dark:text-white max-w-4xl leading-relaxed lg:leading-snug text-center mx-auto "
+						className="heading-festive text-2xl px-4 md:text-4xl lg:text-5xl font-bold text-neutral-700 dark:text-white max-w-4xl leading-relaxed lg:leading-snug text-center mx-auto "
 					>
 						Welcome {displayName !== null ? displayName : "shopper"}!
 						<br />
@@ -166,7 +166,7 @@ export default function ListsPage() {
 				)}
 				{/* Card Container */}
 				<motion.div
-					className="grid grid-cols-1 md:grid-cols-2 gap-8 justify-items-center"
+					className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center"
 					variants={gridVariants}
 					initial="hidden"
 					animate="show"
@@ -174,6 +174,9 @@ export default function ListsPage() {
 					{loading ? (
 						// Loading Skeletons
 						<>
+							<motion.div variants={cardVariants}>
+								<SkeletonCard />
+							</motion.div>
 							<motion.div variants={cardVariants}>
 								<SkeletonCard />
 							</motion.div>
@@ -197,7 +200,9 @@ export default function ListsPage() {
 												aria-hidden
 											/>
 											<span className="sr-only">My Lists</span>
-											<h1 className="text-xl font-bold text-white">My Lists</h1>
+											<h1 className="heading-festive text-xl font-bold text-white">
+												My Lists
+											</h1>
 											<p className="text-neutral-300 mt-4 text-sm">
 												Once it’s ready, your lists will appear here for easy
 												access.
@@ -225,7 +230,7 @@ export default function ListsPage() {
 												aria-hidden
 											/>
 											<span className="sr-only">Family Lists</span>
-											<h1 className="text-xl font-bold text-white">
+											<h1 className="heading-festive text-xl font-bold text-white">
 												Family Lists
 											</h1>
 											<p className="text-neutral-300 mt-4 text-sm">
@@ -234,6 +239,35 @@ export default function ListsPage() {
 											<Link href="/family-lists" className="mt-6">
 												<button className="rounded-md border border-white/10 px-5 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 bg-emerald-700/80 hover:bg-emerald-700 text-white">
 													View Family Lists
+												</button>
+											</Link>
+										</div>
+									</CardSpotlight>
+								</FestiveGlow>
+							</motion.div>
+							{/* Purchases Card */}
+							<motion.div variants={cardVariants}>
+								<FestiveGlow>
+									<CardSpotlight
+										color="#3b0f0f"
+										className="relative w-full max-w-md h-96 text-center"
+									>
+										<div className="relative z-20 flex flex-col items-center justify-center h-full">
+											<Gift
+												className="h-6 w-6 text-red-600"
+												strokeWidth={1.75}
+												aria-hidden
+											/>
+											<span className="sr-only">My Purchases</span>
+											<h1 className="heading-festive text-xl font-bold text-white">
+												My Purchases
+											</h1>
+											<p className="text-neutral-300 mt-4 text-sm">
+												View the gifts you've purchased for others
+											</p>
+											<Link href="/purchased-items" className="mt-6">
+												<button className="rounded-md border border-white/10 px-5 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 bg-red-600/80 hover:bg-red-600 text-white">
+													View My Purchases
 												</button>
 											</Link>
 										</div>
@@ -253,32 +287,28 @@ export default function ListsPage() {
 								"conic-gradient(from 0deg at 50% 50%, rgba(239,68,68,0.6), rgba(34,197,94,0.6), rgba(239,68,68,0.6))",
 						}}
 					/>
-					<div className="relative rounded-2xl bg-black/50 p-8 text-center ring-1 ring-white/10">
-						<h2 className="text-2xl font-bold mb-8 text-white">How It Works</h2>
+					<div className="relative rounded-2xl bg-black/50 p-8 text-center ring-1 ring-white/10 text-white">
+						<h2 className="heading-festive text-2xl font-bold mb-8 text-white">
+							How It Works
+						</h2>
 						<div className="grid grid-cols-1 gap-8 md:grid-cols-3">
 							<div>
 								<EditOutlined />
-								<h3 className="text-lg font-semibold text-white">
-									Create Your List
-								</h3>
+								<h3 className="text-lg font-semibold">Create Your List</h3>
 								<p className="mt-2 text-sm text-neutral-300">
 									Add all the items you’re wishing for this Christmas.
 								</p>
 							</div>
 							<div>
 								<TeamOutlined />
-								<h3 className="text-lg font-semibold text-white">
-									Share With Others
-								</h3>
+								<h3 className="text-lg font-semibold">Share With Others</h3>
 								<p className="mt-2 text-sm text-neutral-300">
 									Let friends and family see your wish list.
 								</p>
 							</div>
 							<div>
 								<GiftOutlined />
-								<h3 className="text-lg font-semibold text-white">
-									Track Purchases
-								</h3>
+								<h3 className="text-lg font-semibold">Track Purchases</h3>
 								<p className="mt-2 text-sm text-neutral-300">
 									Items are marked when claimed to avoid duplicates.
 								</p>
