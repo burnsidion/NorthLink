@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
 
 //components
 import ListCard, { ListWithProgress } from "@/components/lists/list-card";
@@ -57,18 +58,16 @@ export default function FamilyListsPage() {
 	const [lists, setLists] = useState<ListWithProgress[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
+	const [userId, setUserId] = useState<string | null>(null);
+	const [userGroupId, setUserGroupId] = useState<string | null>(null);
 
-	useEffect(() => {
-		let alive = true;
-
-		(async () => {
+	async function fetchFamilyLists() {
+		try {
 			// 1) Get the current user
 			const {
 				data: { user },
 				error: userError,
 			} = await supabase.auth.getUser();
-
-			if (!alive) return;
 
 			if (userError || !user) {
 				console.error("Error fetching user:", userError);
@@ -76,17 +75,28 @@ export default function FamilyListsPage() {
 				return;
 			}
 
-			const userId = user.id;
+			const currentUserId = user.id;
+			setUserId(currentUserId);
 
-			// 2) Fetch all accessible lists from the view
+			// 2) Get user's family group
+			const { data: memberData } = await supabase
+				.from("group_members")
+				.select("group_id")
+				.eq("user_id", currentUserId)
+				.limit(1)
+				.maybeSingle();
+
+			const groupId = memberData?.group_id;
+			setUserGroupId(groupId);
+
+			// 3) Fetch all accessible lists from the view
 			const { data, error } = await supabase
 				.from("v_user_accessible_lists")
 				.select(
 					"id,title,owner_user_id,owner_display_name,owner_avatar_url,created_at"
 				)
+				.eq("shared_user_id", currentUserId)
 				.order("created_at", { ascending: false });
-
-			if (!alive) return;
 
 			if (error) {
 				console.error("Error fetching accessible lists:", error);
@@ -95,21 +105,24 @@ export default function FamilyListsPage() {
 				return;
 			}
 
-			// 3) Filter to only lists owned by OTHER users and deduplicate by list ID
+			// 4) Deduplicate by list ID and filter out lists owned by current user
 			const seenIds = new Set<string>();
 			const sharedLists = (data ?? []).filter((l) => {
-				if (l.owner_user_id === userId || seenIds.has(l.id)) {
+				if (seenIds.has(l.id)) {
+					return false;
+				}
+				if (l.owner_user_id === currentUserId) {
 					return false;
 				}
 				seenIds.add(l.id);
 				return true;
 			});
 
-			// 4) Enrich each list with item counts
+			// 5) Enrich each list with item counts and group_id
 			const enriched: ListWithProgress[] = await Promise.all(
 				sharedLists.map(async (l) => {
 					const progress = await getListProgress(l.id);
-					return { ...l, ...progress };
+					return { ...l, ...progress, group_id: groupId };
 				})
 			);
 
@@ -117,12 +130,58 @@ export default function FamilyListsPage() {
 
 			setLists(enriched);
 			setLoading(false);
-		})();
+		} catch (err) {
+			console.error("Failed to fetch family lists:", err);
+			setError("Failed to load family lists");
+			setLoading(false);
+		}
+	}
+
+	useEffect(() => {
+		fetchFamilyLists();
+
+		// Subscribe to realtime changes on list_shares table
+		const channel = supabase
+			.channel("family-lists-list_shares")
+			.on(
+				"postgres_changes",
+				{ event: "*", schema: "public", table: "list_shares" },
+				() => {
+					console.log("Realtime update → refetching");
+					fetchFamilyLists();
+				}
+			)
+			.subscribe();
 
 		return () => {
-			alive = false;
+			supabase.removeChannel(channel);
 		};
-	}, [router]);
+	}, []);
+
+	async function handleUnshare(listId: string, groupId: string) {
+		try {
+			const { error } = await supabase
+				.from("list_shares")
+				.delete()
+				.eq("list_id", listId)
+				.eq("group_id", groupId);
+
+			if (error) {
+				console.error("Error unsharing list:", error);
+				toast.error("Only the list owner can unshare this list.");
+				return;
+			}
+
+			toast.success("List unshared from family group");
+
+			// Re-fetch to get the updated list from the view
+			// This ensures all users see the change immediately
+			await fetchFamilyLists();
+		} catch (err) {
+			console.error("Failed to unshare list:", err);
+			toast.error("Failed to unshare list");
+		}
+	}
 
 	if (loading) {
 		return (

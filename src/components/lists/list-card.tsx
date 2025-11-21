@@ -8,16 +8,20 @@ import { EditOutlined } from "@ant-design/icons";
 export type ListWithProgress = {
 	id: string;
 	title: string;
+	owner_user_id?: string;
 	owner_display_name?: string;
 	owner_avatar_url?: string;
 	created_at: string;
 	total?: number;
 	purchased?: number;
+	group_id?: string;
 };
 
 type Props = {
 	list: ListWithProgress;
 	onManage?: (id: string, title: string) => void;
+	onUnshare?: (listId: string, groupId: string) => void;
+	currentUserId?: string;
 	showOwner?: boolean;
 	hideManageButton?: boolean;
 	index?: number;
@@ -26,6 +30,8 @@ type Props = {
 export default function ListCard({
 	list: l,
 	onManage,
+	onUnshare,
+	currentUserId,
 	showOwner = false,
 	hideManageButton = false,
 	index = 0,
@@ -71,6 +77,15 @@ export default function ListCard({
 							className="absolute right-1.5 top-2 inline-flex items-center gap-1 rounded-md border border-white/10 bg-black/40 px-2 py-1 text-xs text-white hover:bg-black/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
 						>
 							<EditOutlined className="text-white/90" />
+						</button>
+					)}
+					{onUnshare && l.group_id && currentUserId === l.owner_user_id && (
+						<button
+							onClick={() => onUnshare(l.id, l.group_id!)}
+							aria-label={`Unshare ${l.title} from family`}
+							className="absolute left-1.5 top-2 inline-flex items-center gap-1 rounded-md border border-red-500/50 bg-red-900/40 px-2 py-1 text-xs text-white hover:bg-red-900/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+						>
+							Unshare
 						</button>
 					)}
 				</div>
