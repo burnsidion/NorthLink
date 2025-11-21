@@ -81,7 +81,9 @@ export default function FamilyListsPage() {
 			// 2) Fetch all accessible lists from the view
 			const { data, error } = await supabase
 				.from("v_user_accessible_lists")
-				.select("id,title,created_at,owner_user_id,owner_display_name")
+				.select(
+					"id,title,owner_user_id,owner_display_name,owner_avatar_url,created_at"
+				)
 				.order("created_at", { ascending: false });
 
 			if (!alive) return;
@@ -93,10 +95,15 @@ export default function FamilyListsPage() {
 				return;
 			}
 
-			// 3) Filter to only lists owned by OTHER users
-			const sharedLists = (data ?? []).filter(
-				(l) => l.owner_user_id !== userId
-			);
+			// 3) Filter to only lists owned by OTHER users and deduplicate by list ID
+			const seenIds = new Set<string>();
+			const sharedLists = (data ?? []).filter((l) => {
+				if (l.owner_user_id === userId || seenIds.has(l.id)) {
+					return false;
+				}
+				seenIds.add(l.id);
+				return true;
+			});
 
 			// 4) Enrich each list with item counts
 			const enriched: ListWithProgress[] = await Promise.all(
@@ -159,7 +166,9 @@ export default function FamilyListsPage() {
 		return (
 			<main className="max-w-6xl mx-auto px-4 py-10 text-white">
 				<StarsBackground starColor="var(--stars-dim)" />
-				<h1 className="text-3xl sm:text-4xl font-bold mb-4">Shared Lists</h1>
+				<h1 className="heading-festive text-3xl sm:text-4xl font-bold mb-4">
+					Shared Lists
+				</h1>
 				<p>Something went wrong loading your shared lists.</p>
 			</main>
 		);
@@ -184,7 +193,7 @@ export default function FamilyListsPage() {
 						duration: 0.5,
 						ease: [0.4, 0.0, 0.2, 1],
 					}}
-					className="text-2xl px-4 md:text-4xl lg:text-5xl font-bold text-neutral-700 dark:text-white max-w-4xl leading-relaxed lg:leading-snug text-center mx-auto "
+					className="heading-festive text-2xl px-4 md:text-4xl lg:text-5xl font-bold text-neutral-700 dark:text-white max-w-4xl leading-relaxed lg:leading-snug text-center mx-auto "
 				>
 					<Highlight className="text-black dark:text-white">Browse</Highlight>{" "}
 					wish lists from your
@@ -214,9 +223,9 @@ export default function FamilyListsPage() {
 					initial="hidden"
 					animate="show"
 				>
-					{lists.map((list) => (
+					{lists.map((list, index) => (
 						<motion.div key={list.id} variants={cardVariants}>
-							<ListCard list={list} hideManageButton showOwner />
+							<ListCard list={list} index={index} hideManageButton showOwner />
 						</motion.div>
 					))}
 				</motion.section>

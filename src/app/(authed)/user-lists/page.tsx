@@ -229,20 +229,22 @@ export default function UserListsPage() {
 				<CountdownBanner initialNow={Date.now()} />
 				<header className="relative mx-auto w-full max-w-5xl">
 					{/* title */}
-					<div className="text-center my-7">
+					<div className="text-center my-7 flex flex-col gap-3">
 						<motion.h1
 							initial={{ opacity: 0, y: 6 }}
 							animate={{ opacity: 1, y: 0 }}
 							transition={{ duration: 0.25 }}
-							className="text-4xl mb-2"
+							className="heading-festive text-4xl mb-2"
 						>
 							Your Lists
 						</motion.h1>
-						<CreateListButton
-							onCreated={(newList) =>
-								setLists((prev) => [newList, ...(prev ?? [])])
-							}
-						/>
+						<div>
+							<CreateListButton
+								onCreated={(newList) =>
+									setLists((prev) => [newList, ...(prev ?? [])])
+								}
+							/>
+						</div>
 					</div>
 				</header>
 				{rows.length === 0 ? (
@@ -263,10 +265,11 @@ export default function UserListsPage() {
 								: "grid-cols-1 place-items-center max-w-3xl mx-auto"
 						}`}
 					>
-						{rows.map((l) => (
+						{rows.map((l, index) => (
 							<ListCard
 								key={l.id}
 								list={l}
+								index={index}
 								onManage={(id, title) => {
 									setManageList({ id, title });
 									setNewTitle(title);

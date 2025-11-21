@@ -173,7 +173,9 @@ export default function PurchasedItemsPage() {
 			<main className="max-w-6xl mx-auto px-4 py-10 text-white">
 				<StarsBackground starColor="var(--stars-dim)" />
 				<Snowfall />
-				<h1 className="text-3xl sm:text-4xl font-bold mb-4">Purchased Gifts</h1>
+				<h1 className="heading-festive text-3xl sm:text-4xl font-bold mb-4">
+					Purchased Gifts
+				</h1>
 				<p className="text-red-600">Error loading purchased items: {error}</p>
 			</main>
 		);
@@ -197,12 +199,13 @@ export default function PurchasedItemsPage() {
 					initial={{ opacity: 0, y: 20 }}
 					animate={{ opacity: 1, y: [20, -5, 0] }}
 					transition={{ duration: 0.5, ease: [0.4, 0.0, 0.2, 1] }}
-					className="text-2xl px-4 md:text-4xl lg:text-5xl font-bold text-neutral-700 dark:text-white max-w-4xl leading-relaxed lg:leading-snug text-center mx-auto"
+					className="heading-festive text-2xl px-4 md:text-4xl lg:text-5xl font-bold text-neutral-700 dark:text-white max-w-4xl leading-relaxed lg:leading-snug text-center mx-auto"
 				>
 					<br />
 					Keep track of all the gifts{" "}
-					<Highlight className="text-black dark:text-white">you</Highlight>{" "}
-					have{" "}
+					<Highlight className="text-black dark:text-white">
+						you
+					</Highlight> have{" "}
 					<Highlight className="text-black dark:text-white">
 						purchased
 					</Highlight>
@@ -230,62 +233,75 @@ export default function PurchasedItemsPage() {
 					initial="hidden"
 					animate="show"
 				>
-					{items.map((item) => (
-						<motion.div
-							key={item.id}
-							variants={cardVariants}
-							className={items.length === 1 ? "w-full max-w-xl" : ""}
-						>
-							<div className="relative h-full min-h-80 overflow-hidden rounded-xl border border-white/10 bg-linear-to-br from-white/5 to-white/2 p-8 backdrop-blur-sm transition-all hover:border-emerald-700/50 hover:shadow-lg hover:shadow-emerald-700/20">
-								{/* Item Title */}
-								<h3 className="text-2xl font-semibold mb-4 text-white">
-									{item.title}
-								</h3>
+					{items.map((item, index) => {
+						const isGreen = index % 2 === 0;
+						return (
+							<motion.div
+								key={item.id}
+								variants={cardVariants}
+								className={items.length === 1 ? "w-full max-w-xl" : ""}
+							>
+								<div
+									className={`relative h-full min-h-80 overflow-hidden rounded-xl border p-8 backdrop-blur-sm transition-all ${
+										isGreen
+											? "border-emerald-700/20 bg-linear-to-br from-emerald-900/30 to-emerald-950/20 hover:border-red-600/70 hover:shadow-lg hover:shadow-red-600/20"
+											: "border-red-700/20 bg-linear-to-br from-red-900/30 to-red-950/20 hover:border-emerald-600/70 hover:shadow-lg hover:shadow-emerald-600/20"
+									}`}
+								>
+									{/* Item Title */}
+									<h3 className="text-2xl font-semibold mb-4 text-white">
+										{item.title}
+									</h3>
 
-								{/* List and Owner Info */}
-								<div className="mb-4 space-y-1">
-									<p className="text-sm text-white/60">
-										From:{" "}
-										<span className="text-white/90">
-											{item.list_owner_name}
-										</span>
-									</p>
-									<p className="text-sm text-white/60">
-										List:{" "}
-										<span className="text-white/90">{item.list_title}</span>
-									</p>
-								</div>
-
-								{/* Price */}
-								{typeof item.price_cents === "number" && (
-									<p className="text-2xl font-bold text-emerald-700 mb-3">
-										{usd.format(item.price_cents / 100)}
-									</p>
-								)}
-
-								{/* Notes */}
-								{item.notes && (
-									<div className="mb-4 p-3 rounded-lg bg-white/5 border border-white/5">
-										<p className="text-sm text-white/70 italic">
-											&ldquo;{item.notes}&rdquo;
+									{/* List and Owner Info */}
+									<div className="mb-4 space-y-1">
+										<p className="text-sm text-white/60">
+											From:{" "}
+											<span className="text-white/90">
+												{item.list_owner_name}
+											</span>
+										</p>
+										<p className="text-sm text-white/60">
+											List:{" "}
+											<span className="text-white/90">{item.list_title}</span>
 										</p>
 									</div>
-								)}
 
-								{/* Link */}
-								{item.link && (
-									<a
-										href={item.link}
-										target="_blank"
-										rel="noreferrer"
-										className="inline-block px-4 py-2 bg-emerald-700/80 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium transition-colors"
-									>
-										View Item
-									</a>
-								)}
-							</div>
-						</motion.div>
-					))}
+									{/* Price */}
+									{typeof item.price_cents === "number" && (
+										<p className="text-2xl font-bold text-emerald-700 mb-3">
+											{usd.format(item.price_cents / 100)}
+										</p>
+									)}
+
+									{/* Notes */}
+									{item.notes && (
+										<div className="mb-4 p-3 rounded-lg bg-white/5 border border-white/5">
+											<p className="text-sm text-white/70 italic">
+												&ldquo;{item.notes}&rdquo;
+											</p>
+										</div>
+									)}
+
+									{/* Link */}
+									{item.link && (
+										<a
+											href={item.link}
+											target="_blank"
+											rel="noreferrer"
+											className={`inline-block px-4 py-2 text-white rounded-lg text-sm font-medium transition-colors ${
+												isGreen
+													? "bg-red-700/80 hover:bg-red-700"
+													: "bg-emerald-700/80 hover:bg-emerald-700"
+											}`}
+										>
+											View Item
+										</a>
+									)}
+								</div>
+							</motion.div>
+						);
+					})}
 				</motion.section>
 			)}
 		</main>

@@ -62,7 +62,7 @@ export default function ListDetailPage() {
 				error: userErr,
 			} = await supabase.auth.getUser();
 			if (userErr || !user) {
-				router.push("/signin");
+				router.push("/login");
 				return;
 			}
 
@@ -371,7 +371,8 @@ export default function ListDetailPage() {
 				{isOwner && newPurchaseCount > 0 && (
 					<div className="mb-4 p-3 rounded-lg bg-emerald-700/20 text-emerald-300 border border-emerald-500/40">
 						🎁 {newPurchaseCount} gift
-						{newPurchaseCount > 1 ? "s" : ""} were purchased since your last visit!
+						{newPurchaseCount > 1 ? "s were" : " was"} purchased since your last
+						visit!
 					</div>
 				)}
 				{/* Header */}
@@ -380,7 +381,7 @@ export default function ListDetailPage() {
 						initial={{ opacity: 0, y: 6 }}
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ duration: 0.25 }}
-						className="text-4xl mb-2"
+						className="heading-festive text-4xl mb-2"
 					>
 						{list.title}
 					</motion.h1>
@@ -408,8 +409,8 @@ export default function ListDetailPage() {
 							</button>
 						</div>
 					)}
-				{/* Toggle button shown when the form is collapsed */}
-				{!formOpen ? (
+				{/* Toggle button shown when the form is collapsed - only for owner */}
+				{isOwner && !formOpen ? (
 					<div className="py-4">
 						<button
 							type="button"
@@ -422,7 +423,7 @@ export default function ListDetailPage() {
 						</button>
 					</div>
 				) : null}
-				{formOpen && (
+				{isOwner && formOpen && (
 					<AddItemForm
 						open={formOpen}
 						onOpenChange={setFormOpen}

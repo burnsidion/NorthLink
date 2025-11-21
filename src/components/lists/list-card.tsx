@@ -9,6 +9,7 @@ export type ListWithProgress = {
 	id: string;
 	title: string;
 	owner_display_name?: string;
+	owner_avatar_url?: string;
 	created_at: string;
 	total?: number;
 	purchased?: number;
@@ -19,23 +20,49 @@ type Props = {
 	onManage?: (id: string, title: string) => void;
 	showOwner?: boolean;
 	hideManageButton?: boolean;
+	index?: number;
 };
 
-export default function ListCard({ list: l, onManage, showOwner = false, hideManageButton = false }: Props) {
+export default function ListCard({
+	list: l,
+	onManage,
+	showOwner = false,
+	hideManageButton = false,
+	index = 0,
+}: Props) {
 	const purchased = l.purchased ?? 0;
 	const total = l.total ?? 0;
 	const pct = ((purchased / Math.max(total, 1)) * 100).toFixed(1);
+	const isGreen = index % 2 === 0;
 
 	return (
-		<GlareCard containerClassName="h-64 sm:h-72 lg:h-80">
-			<div className="relative flex flex-col justify-between h-full w-full p-4">
+		<GlareCard
+			containerClassName="h-64 sm:h-72 lg:h-80"
+			color={isGreen ? "emerald" : "red"}
+		>
+			<div
+				className={`relative flex flex-col justify-between h-full w-full p-4 rounded-xl ${
+					isGreen
+						? "bg-linear-to-br from-emerald-900/40 to-emerald-950/30"
+						: "bg-linear-to-br from-red-700/50 to-red-900/40"
+				}`}
+			>
 				{/* Title + manage */}
 				<div className="flex flex-col items-center">
-					<h2 className="text-3xl font-semibold text-white wrap-break-word">
+					<h2 className="heading-festive text-3xl font-semibold text-white wrap-break-word">
 						{l.title}
 					</h2>
 					{showOwner && l.owner_display_name && (
-						<p className="mt-1 text-sm text-white/70">By {l.owner_display_name}</p>
+						<div className="mt-2 flex items-center gap-2">
+							{l.owner_avatar_url && (
+								<img
+									src={l.owner_avatar_url}
+									alt={l.owner_display_name}
+									className="w-6 h-6 rounded-full"
+								/>
+							)}
+							<p className="text-sm text-white/70">By {l.owner_display_name}</p>
+						</div>
 					)}
 					{!hideManageButton && onManage && (
 						<button
@@ -47,7 +74,6 @@ export default function ListCard({ list: l, onManage, showOwner = false, hideMan
 						</button>
 					)}
 				</div>
-
 				{/* Meta row */}
 				<div className="flex items-center gap-4 my-6">
 					<div className="flex items-center gap-2 text-white/70">
@@ -61,7 +87,6 @@ export default function ListCard({ list: l, onManage, showOwner = false, hideMan
 						<span aria-label="Total items">{total} items</span>
 					</div>
 				</div>
-
 				{/* Progress */}
 				<div className="flex items-center justify-between">
 					<p className="text-sm text-white/70 mb-2">Progress</p>
@@ -75,20 +100,27 @@ export default function ListCard({ list: l, onManage, showOwner = false, hideMan
 					aria-valuemin={0}
 					aria-valuemax={total}
 					aria-valuenow={purchased}
-					className="w-full h-2 bg-white/10 rounded-full overflow-hidden"
+					className="w-full h-2 bg-white/10 rounded-full overflow-hidden shadow-[0_0_8px_rgba(220,38,38,0.4)]"
 				>
 					<div
-						className="h-full bg-red-600 transition-all duration-300"
-						style={{ width: `${pct}%` }}
+						className="h-full transition-all duration-300 animate-candy-cane shadow-[0_0_6px_rgba(255,255,255,0.6)]"
+						style={{
+							width: `${pct}%`,
+							background:
+								"repeating-linear-gradient(90deg, white 0px, white 8px, #dc2626 8px, #dc2626 16px)",
+						}}
 					/>
-				</div>
-
+				</div>{" "}
 				{/* CTA */}
 				<div className="mt-auto">
 					<Link
 						href={`/lists/${l.id}`}
 						aria-label={`View list ${l.title}`}
-						className="block w-full text-center px-3 py-2 rounded-lg bg-red-600 hover:bg-red-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black text-sm font-medium"
+						className={`block w-full text-center px-3 py-2 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black text-sm font-medium ${
+							isGreen
+								? "bg-red-600/80 hover:bg-red-600"
+								: "bg-emerald-600/80 hover:bg-emerald-600"
+						}`}
 					>
 						View List
 					</Link>
