@@ -16,6 +16,10 @@ export default function LoginPage() {
 		const {
 			data: { subscription },
 		} = sb.auth.onAuthStateChange((evt, session) => {
+			if (evt === "SIGNED_OUT") {
+				// Stay on login page when signed out
+				return;
+			}
 			if (session && (evt === "SIGNED_IN" || evt === "TOKEN_REFRESHED")) {
 				window.location.replace("/landing");
 			}
