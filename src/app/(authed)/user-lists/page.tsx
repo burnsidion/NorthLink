@@ -229,7 +229,7 @@ export default function UserListsPage() {
 							initial={{ opacity: 0, y: 6 }}
 							animate={{ opacity: 1, y: 0 }}
 							transition={{ duration: 0.25 }}
-							className="heading-festive text-4xl mb-2"
+							className="heading-festive text-6xl mb-2"
 						>
 							Your Lists
 						</motion.h1>

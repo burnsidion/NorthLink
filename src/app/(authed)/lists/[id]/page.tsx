@@ -368,7 +368,7 @@ export default function ListDetailPage() {
 					</div>
 				)}
 				{/* Header */}
-				<header className="space-y-1">
+				<header className="space-y-1 text-center mb-2">
 					<motion.h1
 						initial={{ opacity: 0, y: 6 }}
 						animate={{ opacity: 1, y: 0 }}
