@@ -1,0 +1,14 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+	title: "My Lists – NorthLink",
+	description: "Create and manage your personal gift lists.",
+};
+
+export default function UserListsLayout({
+	children,
+}: {
+	children: React.ReactNode;
+}) {
+	return <>{children}</>;
+}
