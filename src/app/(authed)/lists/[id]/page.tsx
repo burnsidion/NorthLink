@@ -7,6 +7,7 @@ import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { links } from "@/config/nav-links";
 import { Snowflake } from "lucide-react";
+import { Button as StatefulButton } from "@/components/ui/stateful-button";
 
 //Ui components
 import { FestiveGlow } from "@/components/ui/festive-glow";
@@ -393,18 +394,13 @@ export default function ListDetailPage() {
 					userId === (list as any).owner_user_id &&
 					familyGroupId && (
 						<div className="py-2">
-							<button
-								type="button"
+							<StatefulButton
 								onClick={handleShareToggle}
 								disabled={shareLoading}
-								className="px-4 py-2 bg-emerald-700/80 text-white rounded-lg text-sm font-medium border border-emerald-700/50 hover:bg-emerald-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700/60 disabled:opacity-50 transition-colors"
+								className="px-4 py-2 bg-emerald-700/80 text-white rounded-lg text-sm font-medium border border-emerald-700/50 hover:ring-emerald-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700/60 disabled:opacity-50 transition-colors min-w-[180px]"
 							>
-								{shareLoading
-									? "..."
-									: isShared
-									? "Unshare from Family"
-									: "Share to Family"}
-							</button>
+								{isShared ? "Unshare from Family" : "Share to Family"}
+							</StatefulButton>
 						</div>
 					)}
 				{/* Toggle button shown when the form is collapsed - only for owner */}
