@@ -48,6 +48,7 @@ export default function ListDetailPage() {
 	const [isShared, setIsShared] = useState(false);
 	const [shareLoading, setShareLoading] = useState(false);
 	const [newPurchaseCount, setNewPurchaseCount] = useState<number>(0);
+	const [showPurchaseModal, setShowPurchaseModal] = useState(false);
 	const [sortBy, setSortBy] = useState<"default" | "price-asc" | "price-desc">(
 		"default"
 	);
@@ -129,15 +130,16 @@ export default function ListDetailPage() {
 								new Date(theList.last_viewed_at as string)
 					).length;
 					setNewPurchaseCount(count);
+					if (count > 0) {
+						setShowPurchaseModal(true);
+					}
 				} else {
 					setNewPurchaseCount(0);
 				}
 			} catch (e) {
 				console.warn("Error computing newPurchaseCount:", e);
 				setNewPurchaseCount(0);
-			}
-
-			// Update last_viewed_at for the list when the owner views it (best-effort)
+			} // Update last_viewed_at for the list when the owner views it (best-effort)
 			try {
 				const { error: lastViewedError } = await supabase
 					.from("lists")
@@ -386,12 +388,56 @@ export default function ListDetailPage() {
 			<Snowfall count={70} speed={40} wind={0.18} />
 			<PageFade>
 				<CountdownBanner initialNow={now0} />
-				{isOwner && newPurchaseCount > 0 && (
-					<div className="mb-4 p-3 rounded-lg bg-emerald-700/20 text-emerald-300 border border-emerald-500/40">
-						🎁 {newPurchaseCount} gift
-						{newPurchaseCount > 1 ? "s were" : " was"} purchased since your last
-						visit!
-					</div>
+				{/* Purchase Notification Modal */}
+				{isOwner && showPurchaseModal && newPurchaseCount > 0 && (
+					<>
+						{/* Backdrop */}
+						<motion.div
+							initial={{ opacity: 0 }}
+							animate={{ opacity: 1 }}
+							exit={{ opacity: 0 }}
+							className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+							onClick={() => setShowPurchaseModal(false)}
+						/>
+						{/* Modal */}
+						<motion.div
+							initial={{ opacity: 0, scale: 0.8, y: 20 }}
+							animate={{ opacity: 1, scale: 1, y: 0 }}
+							exit={{ opacity: 0, scale: 0.8, y: 20 }}
+							transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+							className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md"
+							onAnimationComplete={() => {
+								// Trigger confetti after modal appears
+								confetti({
+									particleCount: 150,
+									spread: 100,
+									origin: { y: 0.5 },
+									colors: ["#dc2626", "#ffffff", "#16a34a"],
+									startVelocity: 45,
+									gravity: 1.2,
+								});
+								// Auto-dismiss after 3 seconds
+								setTimeout(() => {
+									setShowPurchaseModal(false);
+								}, 3000);
+							}}
+						>
+							<div className="mx-4 p-8 rounded-xl bg-gradient-to-br from-emerald-900/90 to-emerald-950/90 border-2 border-emerald-500/50 shadow-2xl shadow-emerald-500/20 backdrop-blur-md">
+								<div className="text-center space-y-4">
+									<div className="text-6xl">🎁</div>
+									<h2 className="text-3xl font-bold text-white">Good News!</h2>
+									<p className="text-xl text-emerald-200">
+										<span className="font-bold text-2xl text-white">
+											{newPurchaseCount}
+										</span>{" "}
+										gift{newPurchaseCount > 1 ? "s were" : " was"} purchased
+										<br />
+										since your last visit!
+									</p>
+								</div>
+							</div>
+						</motion.div>
+					</>
 				)}
 				{/* Header */}
 				<header className="space-y-1 text-center mb-2">
@@ -404,7 +450,7 @@ export default function ListDetailPage() {
 						{list.title}
 					</motion.h1>
 					<p className="text-sm text-white/60">
-						Created at: {new Date(list.created_at).toLocaleString()}
+						Created at: {new Date(list.created_at).toLocaleDateString()}
 					</p>
 				</header>
 				{/* Share button - only show for owner */}

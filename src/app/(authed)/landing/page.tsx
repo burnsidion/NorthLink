@@ -43,6 +43,9 @@ export default function ListsPage() {
 	const [email, setEmail] = useState<string | null>(null);
 	const [displayName, setDisplayName] = useState<string | null>(null);
 	const [activityCount, setActivityCount] = useState<number>(0);
+	const [listsWithActivity, setListsWithActivity] = useState<
+		Array<{ id: string; title: string }>
+	>([]);
 	const [loading, setLoading] = useState(true);
 
 	useEffect(() => {
@@ -70,7 +73,7 @@ export default function ListsPage() {
 			try {
 				const { data: ownedLists, error: listsErr } = await sb
 					.from("lists")
-					.select("id,last_viewed_at,items(id,purchased,purchased_at)")
+					.select("id,title,last_viewed_at,items(id,purchased,purchased_at)")
 					.eq("owner_user_id", session.user.id);
 				if (listsErr) {
 					console.error(
@@ -78,16 +81,20 @@ export default function ListsPage() {
 						listsErr
 					);
 				} else if (Array.isArray(ownedLists)) {
-					const count = ownedLists.filter((lst: any) => {
-						if (!lst.last_viewed_at || !Array.isArray(lst.items)) return false;
-						return lst.items.some(
-							(it: any) =>
-								it.purchased === true &&
-								it.purchased_at &&
-								new Date(it.purchased_at) > new Date(lst.last_viewed_at)
-						);
-					}).length;
-					setActivityCount(count);
+					const activeLists = ownedLists
+						.filter((lst: any) => {
+							if (!lst.last_viewed_at || !Array.isArray(lst.items))
+								return false;
+							return lst.items.some(
+								(it: any) =>
+									it.purchased === true &&
+									it.purchased_at &&
+									new Date(it.purchased_at) > new Date(lst.last_viewed_at)
+							);
+						})
+						.map((lst: any) => ({ id: lst.id, title: lst.title }));
+					setActivityCount(activeLists.length);
+					setListsWithActivity(activeLists);
 				}
 			} catch (e) {
 				console.error("Error computing activity tab:", e);
@@ -160,10 +167,22 @@ export default function ListsPage() {
 						<div className="transform translate-x-0 hover:translate-x-0 transition">
 							<div className="rounded-l-lg bg-black/70 border border-white/10 px-4 py-3 shadow-lg text-sm text-white/90 flex items-center gap-3">
 								<span className="text-lg">🎁</span>
-								<span>
-									You have activity on <strong>{activityCount}</strong> list
-									{activityCount > 1 ? "s" : ""} since your last visit.
-								</span>
+								<div>
+									You have activity on{" "}
+									{listsWithActivity.map((list, idx) => (
+										<span key={list.id}>
+											<Link
+												href={`/lists/${list.id}`}
+												className="font-bold underline decoration-emerald-400 underline-offset-2 hover:decoration-2 transition-all"
+											>
+												{list.title}
+											</Link>
+											{idx < listsWithActivity.length - 1 &&
+												(idx === listsWithActivity.length - 2 ? " and " : ", ")}
+										</span>
+									))}{" "}
+									since your last visit.
+								</div>
 							</div>
 						</div>
 					</div>
