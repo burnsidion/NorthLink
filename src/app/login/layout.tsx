@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-	title: "Login – NorthLink",
-	description: "Sign into your NorthLink account.",
+	title: "Login – CyberSanta",
+	description: "Sign into your CyberSanta account.",
 };
 
 export default function LoginLayout({

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-	title: "Family Lists – NorthLink",
+	title: "Family Lists – CyberSanta",
 	description: "Browse and interact with lists shared in your family group.",
 };
 

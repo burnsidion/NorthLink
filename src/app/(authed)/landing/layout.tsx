@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-	title: "Landing – NorthLink",
+	title: "Landing – CyberSanta",
 	description: "View your lists, notifications, and family status.",
 };
 

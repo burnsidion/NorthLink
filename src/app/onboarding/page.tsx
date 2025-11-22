@@ -75,7 +75,7 @@ export default function OnboardingPage() {
 			</div>
 			<div className="w-full max-w-md space-y-4 rounded-lg border p-6 shadow-sm">
 				<h1 className="heading-festive text-2xl font-semibold text-center">
-					Welcome to NorthLink!
+					Welcome to CyberSanta!
 				</h1>
 				<h4 className="text-center text-sm text-muted-foreground">
 					Please enter your details to get started.

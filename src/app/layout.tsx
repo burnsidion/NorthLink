@@ -11,17 +11,17 @@ const fredoka = Fredoka({
 
 export const metadata: Metadata = {
 	metadataBase: new URL("https://north-link-swart.vercel.app"),
-	title: "NorthLink – Shared Family Gift Lists",
+	title: "CyberSanta – Shared Family Gift Lists",
 	description:
 		"Create, share, and track family Christmas lists with zero spoilers.",
 	icons: {
 		icon: "/favicon.ico",
 	},
 	openGraph: {
-		title: "NorthLink – Shared Family Gift Lists",
+		title: "CyberSanta – Shared Family Gift Lists",
 		description: "Keep surprises secret while sharing your holiday gift ideas.",
 		url: "https://north-link-swart.vercel.app",
-		siteName: "NorthLink",
+		siteName: "CyberSanta",
 		images: [
 			{
 				url: "/og-image.png",
