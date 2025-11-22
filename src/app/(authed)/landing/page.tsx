@@ -165,7 +165,7 @@ export default function ListsPage() {
 				{activityCount > 0 && (
 					<div className="fixed right-4 top-1/3 z-50 pointer-events-auto">
 						<div className="transform translate-x-0 hover:translate-x-0 transition">
-							<div className="rounded-l-lg bg-black/70 border border-white/10 px-4 py-3 shadow-lg text-sm text-white/90 flex items-center gap-3">
+							<div className="rounded-l-lg bg-red-900/80 border border-red-600/50 px-4 py-3 shadow-lg text-sm text-white flex items-center gap-3">
 								<span className="text-lg">🎁</span>
 								<div>
 									You have activity on{" "}
