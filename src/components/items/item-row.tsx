@@ -7,6 +7,164 @@ import { LinkPreview } from "@/components/ui/link-preview";
 import { Snowflake } from "lucide-react";
 import { StatefulCheckbox } from "@/components/ui/stateful-checkbox";
 import { Button as StatefulButton } from "@/components/ui/stateful-button";
+import { motion, useAnimate } from "motion/react";
+import { cn } from "@/lib/utils";
+
+/** Stateful On Sale Toggle Button */
+function OnSaleToggle({
+	isOnSale,
+	onClick,
+}: {
+	isOnSale: boolean;
+	onClick: () => Promise<void>;
+}) {
+	const [scope, animate] = useAnimate();
+
+	const animateLoading = async () => {
+		await animate(
+			".loader",
+			{
+				width: "12px",
+				scale: 1,
+				display: "block",
+			},
+			{
+				duration: 0.15,
+			}
+		);
+	};
+
+	const animateSuccess = async () => {
+		await animate(
+			".loader",
+			{
+				width: "0px",
+				scale: 0,
+				display: "none",
+			},
+			{
+				duration: 0.15,
+			}
+		);
+		await animate(
+			".check",
+			{
+				width: "12px",
+				scale: 1,
+				display: "block",
+			},
+			{
+				duration: 0.15,
+			}
+		);
+
+		await animate(
+			".check",
+			{
+				width: "0px",
+				scale: 0,
+				display: "none",
+			},
+			{
+				delay: 1.5,
+				duration: 0.15,
+			}
+		);
+	};
+
+	const handleClick = async () => {
+		await animateLoading();
+		await onClick();
+		await animateSuccess();
+	};
+
+	return (
+		<motion.button
+			layout
+			ref={scope}
+			onClick={handleClick}
+			className={cn(
+				"flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium transition-all duration-200",
+				isOnSale
+					? "bg-orange-600/90 text-white ring-1 ring-orange-500/50 hover:ring-2 hover:ring-orange-500"
+					: "bg-white/5 text-white/60 ring-1 ring-white/10 hover:ring-white/20 hover:text-white/80"
+			)}
+		>
+			<motion.div layout className="flex items-center gap-1.5">
+				<Loader />
+				<CheckIcon />
+				<motion.span layout>On Sale</motion.span>
+			</motion.div>
+		</motion.button>
+	);
+}
+
+const Loader = () => {
+	return (
+		<motion.svg
+			animate={{
+				rotate: [0, 360],
+			}}
+			initial={{
+				scale: 0,
+				width: 0,
+				display: "none",
+			}}
+			style={{
+				scale: 0.5,
+				display: "none",
+			}}
+			transition={{
+				duration: 0.3,
+				repeat: Infinity,
+				ease: "linear",
+			}}
+			xmlns="http://www.w3.org/2000/svg"
+			width="16"
+			height="16"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			strokeWidth="2"
+			strokeLinecap="round"
+			strokeLinejoin="round"
+			className="loader text-white"
+		>
+			<path stroke="none" d="M0 0h24v24H0z" fill="none" />
+			<path d="M12 3a9 9 0 1 0 9 9" />
+		</motion.svg>
+	);
+};
+
+const CheckIcon = () => {
+	return (
+		<motion.svg
+			initial={{
+				scale: 0,
+				width: 0,
+				display: "none",
+			}}
+			style={{
+				scale: 0.5,
+				display: "none",
+			}}
+			xmlns="http://www.w3.org/2000/svg"
+			width="16"
+			height="16"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			strokeWidth="2"
+			strokeLinecap="round"
+			strokeLinejoin="round"
+			className="check text-white"
+		>
+			<path stroke="none" d="M0 0h24v24H0z" fill="none" />
+			<path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
+			<path d="M9 12l2 2l4 -4" />
+		</motion.svg>
+	);
+};
 
 type Props = {
 	item: ItemRow;
@@ -15,7 +173,10 @@ type Props = {
 	onUpdate: (
 		id: string,
 		patch: Partial<
-			Pick<ItemRow, "title" | "price_cents" | "link" | "notes" | "most_wanted">
+			Pick<
+				ItemRow,
+				"title" | "price_cents" | "link" | "notes" | "most_wanted" | "on_sale"
+			>
 		>
 	) => Promise<void> | void;
 	isOwner?: boolean;
@@ -71,7 +232,14 @@ export default function ItemRow({
 	};
 
 	return (
-		<li className="flex items-start gap-3 rounded-lg border border-white/10 bg-white/2 px-3 py-2">
+		<li
+			className={cn(
+				"flex items-start gap-3 rounded-lg border px-3 py-2 transition-all duration-300",
+				item.on_sale
+					? "border-orange-500/60 bg-orange-950/10 shadow-lg shadow-orange-500/20 animate-pulse"
+					: "border-white/10 bg-white/2"
+			)}
+		>
 			<StatefulCheckbox
 				checked={item.purchased ?? false}
 				onChange={() => onToggle(item.id, !item.purchased)}
@@ -140,26 +308,51 @@ export default function ItemRow({
 										aria-label="Most Wanted"
 									/>
 								)}
+								{!isOwner && item.on_sale && (
+									<span
+										className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-orange-600/90 text-white text-xs font-medium ring-1 ring-orange-500/50"
+										aria-label="On Sale"
+									>
+										🏷️ On Sale
+									</span>
+								)}
 							</div>
 							<div className="flex gap-4 items-center">
 								{isOwner && (
-									<div className="flex items-center gap-1.5">
-										<label className="text-xs text-white/60">Most Wanted</label>
-										<input
-											type="checkbox"
-											checked={item.most_wanted ?? false}
-											onChange={async (e) => {
-												const newValue = e.target.checked;
-												console.log("Most Wanted checkbox clicked:", {
+									<div className="flex items-center gap-3">
+										<OnSaleToggle
+											isOnSale={item.on_sale ?? false}
+											onClick={async () => {
+												const newValue = !item.on_sale;
+												console.log("On Sale toggle clicked:", {
 													itemId: item.id,
 													itemTitle: item.title,
 													newValue,
-													currentValue: item.most_wanted,
+													currentValue: item.on_sale,
 												});
-												await onUpdate(item.id, { most_wanted: newValue });
+												await onUpdate(item.id, { on_sale: newValue });
 											}}
-											className="h-4 w-4 rounded border-white/20 bg-transparent checked:bg-amber-500 checked:border-amber-500 cursor-pointer"
 										/>
+										<div className="flex items-center gap-1.5">
+											<label className="text-xs text-white/60">
+												Most Wanted
+											</label>
+											<input
+												type="checkbox"
+												checked={item.most_wanted ?? false}
+												onChange={async (e) => {
+													const newValue = e.target.checked;
+													console.log("Most Wanted checkbox clicked:", {
+														itemId: item.id,
+														itemTitle: item.title,
+														newValue,
+														currentValue: item.most_wanted,
+													});
+													await onUpdate(item.id, { most_wanted: newValue });
+												}}
+												className="h-4 w-4 rounded border-white/20 bg-transparent checked:bg-amber-500 checked:border-amber-500 cursor-pointer"
+											/>
+										</div>
 									</div>
 								)}
 								{typeof item.price_cents === "number" && (

@@ -9,4 +9,5 @@ export type ItemRow = {
 	link: string | null;
 	notes: string | null;
 	most_wanted?: boolean;
+	on_sale?: boolean;
 };

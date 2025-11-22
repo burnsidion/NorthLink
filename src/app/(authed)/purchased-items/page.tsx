@@ -76,6 +76,7 @@ export default function PurchasedItemsPage() {
 						link,
 						notes,
 						most_wanted,
+						on_sale,
 						list_id,
 						lists!inner (
 							id,
