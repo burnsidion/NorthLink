@@ -44,6 +44,9 @@ export default function ListDetailPage() {
 	const [isShared, setIsShared] = useState(false);
 	const [shareLoading, setShareLoading] = useState(false);
 	const [newPurchaseCount, setNewPurchaseCount] = useState<number>(0);
+	const [sortBy, setSortBy] = useState<"default" | "price-asc" | "price-desc">(
+		"default"
+	);
 
 	// form state
 	const [adding, setAdding] = useState(false);
@@ -433,19 +436,55 @@ export default function ListDetailPage() {
 				)}
 				{/* Error message */}
 				{error && <p className="text-red-600 text-sm">{error}</p>}
+				{/* Sort dropdown */}
+				{items.length > 0 && (
+					<div className="flex justify-end mb-4">
+						<select
+							value={sortBy}
+							onChange={(e) =>
+								setSortBy(
+									e.target.value as "default" | "price-asc" | "price-desc"
+								)
+							}
+							className="px-3 py-2 bg-black/60 text-white/90 text-sm rounded-lg border border-emerald-700/50 hover:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/60 transition-all cursor-pointer backdrop-blur-sm"
+						>
+							<option value="default">Sort: Default</option>
+							<option value="price-asc">Price: Low to High</option>
+							<option value="price-desc">Price: High to Low</option>
+						</select>
+					</div>
+				)}
 				{/* Items list */}
 				<FestiveGlow>
 					<ul className="space-y-2">
-						{items.map((it) => (
-							<ItemRowCard
-								key={it.id}
-								item={it}
-								onToggle={handleToggle}
-								onDelete={handleDelete}
-								onUpdate={handleUpdate}
-								isOwner={userId === (list as any).owner_user_id}
-							/>
-						))}
+						{(() => {
+							let sorted = [...items];
+
+							if (sortBy === "price-asc") {
+								sorted.sort((a, b) => {
+									const aPrice = a.price_cents ?? Infinity;
+									const bPrice = b.price_cents ?? Infinity;
+									return aPrice - bPrice;
+								});
+							} else if (sortBy === "price-desc") {
+								sorted.sort((a, b) => {
+									const aPrice = a.price_cents ?? -Infinity;
+									const bPrice = b.price_cents ?? -Infinity;
+									return bPrice - aPrice;
+								});
+							}
+
+							return sorted.map((it) => (
+								<ItemRowCard
+									key={it.id}
+									item={it}
+									onToggle={handleToggle}
+									onDelete={handleDelete}
+									onUpdate={handleUpdate}
+									isOwner={userId === (list as any).owner_user_id}
+								/>
+							));
+						})()}
 					</ul>
 				</FestiveGlow>
 			</PageFade>
