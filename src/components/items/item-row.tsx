@@ -5,6 +5,7 @@ import type { ItemRow } from "@/types/db";
 import { toCents, normalizeUrl, usd } from "@/lib/format";
 import { LinkPreview } from "@/components/ui/link-preview";
 import { Snowflake } from "lucide-react";
+import { StatefulCheckbox } from "@/components/ui/stateful-checkbox";
 
 type Props = {
 	item: ItemRow;
@@ -70,15 +71,10 @@ export default function ItemRow({
 
 	return (
 		<li className="flex items-start gap-3 rounded-lg border border-white/10 bg-white/2 px-3 py-2">
-			<button
-				type="button"
-				aria-label={item.purchased ? "Mark unpurchased" : "Mark purchased"}
-				onClick={() => onToggle(item.id, !item.purchased)}
-				className={`mt-1 h-5 w-5 rounded border ${
-					item.purchased
-						? "bg-emerald-700/80 border-emerald-700"
-						: "border-white/20"
-				}`}
+			<StatefulCheckbox
+				checked={item.purchased ?? false}
+				onChange={() => onToggle(item.id, !item.purchased)}
+				ariaLabel={item.purchased ? "Mark unpurchased" : "Mark purchased"}
 			/>
 
 			<div className="flex-1">

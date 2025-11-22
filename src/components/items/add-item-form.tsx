@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { ShinyButton } from "@/components/ui/shiny-button";
+import { Button as StatefulButton } from "@/components/ui/stateful-button";
 
 type Props = {
 	/** collapsed/expanded */
@@ -71,12 +72,13 @@ export default function AddItemForm({
 					className="flex-1 min-w-0 rounded-lg bg-neutral-800 border border-white/10 px-3 py-2 text-base outline-none focus:ring-2 focus:ring-emerald-700/40"
 				/>
 
-				<ShinyButton
+				<StatefulButton
+					type="submit"
 					disabled={!!submitting}
-					className="w-full sm:w-auto h-11 hover:bg-emerald-700/60"
+					className="w-full sm:w-auto h-11 bg-emerald-700 hover:ring-emerald-700"
 				>
-					{submitting ? "Adding…" : "Save"}
-				</ShinyButton>
+					Save
+				</StatefulButton>
 				<ShinyButton
 					className="w-full sm:w-auto h-11 hover:bg-red-700/60"
 					type="button"
@@ -85,8 +87,7 @@ export default function AddItemForm({
 					{" "}
 					Cancel
 				</ShinyButton>
-			</div>
-
+			</div>{" "}
 			<div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
 				<input
 					name="price"
