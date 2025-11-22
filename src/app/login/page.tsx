@@ -38,7 +38,7 @@ export default function LoginPage() {
 			{/* Auth Card */}
 			<div className="w-full max-w-md rounded-lg border p-6 shadow-sm">
 				<h1 className="heading-festive mb-4 text-2xl font-semibold text-center">
-					🎁 🎄 Sign in to NorthLink 🎄 🎁
+					🎁 🎄 Sign in to CyberSanta 🎄 🎁
 				</h1>
 				<Auth
 					supabaseClient={sb}
