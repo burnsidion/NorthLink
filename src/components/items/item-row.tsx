@@ -295,8 +295,8 @@ export default function ItemRow({
 					</div>
 				) : (
 					<div>
-						<div className="flex items-center gap-2 justify-between">
-							<div className="flex items-center gap-2">
+						<div className="flex items-start gap-2 justify-between flex-wrap">
+							<div className="flex items-center gap-2 flex-wrap">
 								<span
 									className={item.purchased ? "line-through text-white/50" : ""}
 								>
@@ -317,9 +317,9 @@ export default function ItemRow({
 									</span>
 								)}
 							</div>
-							<div className="flex gap-4 items-center">
+							<div className="flex gap-2 sm:gap-4 items-center flex-wrap">
 								{isOwner && (
-									<div className="flex items-center gap-3">
+									<div className="flex items-center gap-2 flex-wrap">
 										<OnSaleToggle
 											isOnSale={item.on_sale ?? false}
 											onClick={async () => {
@@ -334,8 +334,14 @@ export default function ItemRow({
 											}}
 										/>
 										<div className="flex items-center gap-1.5">
-											<label className="text-xs text-white/60">
+											<label className="text-xs text-white/60 hidden sm:inline">
 												Most Wanted
+											</label>
+											<label
+												className="text-xs text-white/60 sm:hidden"
+												title="Most Wanted"
+											>
+												❄️
 											</label>
 											<input
 												type="checkbox"
@@ -356,14 +362,14 @@ export default function ItemRow({
 									</div>
 								)}
 								{typeof item.price_cents === "number" && (
-									<span className="text-xs text-white/60">
+									<span className="text-xs text-white/60 whitespace-nowrap">
 										· {usd.format(item.price_cents / 100)}
 									</span>
 								)}
 								{item.link && (
 									<LinkPreview
 										url={item.link}
-										className="underline hover:text-white text-sm"
+										className="underline hover:text-white text-sm whitespace-nowrap"
 									>
 										View
 									</LinkPreview>
