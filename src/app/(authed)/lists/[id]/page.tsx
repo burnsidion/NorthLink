@@ -6,6 +6,7 @@ import { motion } from "motion/react";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { links } from "@/config/nav-links";
+import { Snowflake } from "lucide-react";
 
 //Ui components
 import { FestiveGlow } from "@/components/ui/festive-glow";
@@ -44,9 +45,10 @@ export default function ListDetailPage() {
 	const [isShared, setIsShared] = useState(false);
 	const [shareLoading, setShareLoading] = useState(false);
 	const [newPurchaseCount, setNewPurchaseCount] = useState<number>(0);
-	const [sortBy, setSortBy] = useState<
-		"default" | "price-asc" | "price-desc" | "most-wanted"
-	>("default");
+	const [sortBy, setSortBy] = useState<"default" | "price-asc" | "price-desc">(
+		"default"
+	);
+	const [showMostWantedOnly, setShowMostWantedOnly] = useState(false);
 
 	// form state
 	const [adding, setAdding] = useState(false);
@@ -437,9 +439,23 @@ export default function ListDetailPage() {
 				)}
 				{/* Error message */}
 				{error && <p className="text-red-600 text-sm">{error}</p>}
-				{/* Sort dropdown */}
+				{/* Filter and Sort controls */}
 				{items.length > 0 && (
-					<div className="flex justify-end mb-4">
+					<div className="flex flex-wrap gap-3 justify-end mb-4">
+						{/* Most Wanted toggle */}
+						<button
+							type="button"
+							onClick={() => setShowMostWantedOnly(!showMostWantedOnly)}
+							className={`flex items-center gap-2 px-3 py-2 text-sm rounded-lg border transition-all ${
+								showMostWantedOnly
+									? "bg-emerald-700/20 text-emerald-300 border-emerald-700/50 hover:bg-emerald-700/30"
+									: "bg-black/60 text-white/90 border-white/20 hover:border-white/40"
+							}`}
+						>
+							<Snowflake className="h-4 w-4" />
+							Most Wanted Only
+						</button>
+						{/* Sort dropdown */}
 						<select
 							value={sortBy}
 							onChange={(e) =>
@@ -462,9 +478,12 @@ export default function ListDetailPage() {
 							let sorted = [...items];
 
 							// Filter for most-wanted only
-							if (sortBy === "most-wanted") {
+							if (showMostWantedOnly) {
 								sorted = sorted.filter((item) => item.most_wanted === true);
-							} else if (sortBy === "price-asc") {
+							}
+
+							// Apply sorting
+							if (sortBy === "price-asc") {
 								sorted.sort((a, b) => {
 									const aPrice = a.price_cents ?? Infinity;
 									const bPrice = b.price_cents ?? Infinity;
