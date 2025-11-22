@@ -6,6 +6,7 @@ import { toCents, normalizeUrl, usd } from "@/lib/format";
 import { LinkPreview } from "@/components/ui/link-preview";
 import { Snowflake } from "lucide-react";
 import { StatefulCheckbox } from "@/components/ui/stateful-checkbox";
+import { Button as StatefulButton } from "@/components/ui/stateful-button";
 
 type Props = {
 	item: ItemRow;
@@ -109,13 +110,13 @@ export default function ItemRow({
 						</div>
 
 						<div className="flex gap-2">
-							<button
+							<StatefulButton
 								onClick={saveEdit}
 								disabled={saving}
-								className="rounded-lg bg-emerald-700 px-3 py-1.5 text-sm hover:bg-emerald-700 disabled:opacity-60"
+								className="rounded-lg bg-emerald-700 px-3 py-1.5 text-sm hover:ring-emerald-700 disabled:opacity-60 min-w-[80px]"
 							>
-								{saving ? "Saving…" : "Save"}
-							</button>
+								Save
+							</StatefulButton>
 							<button
 								onClick={cancelEdit}
 								className="rounded-lg border border-white/10 bg-red-600 px-3 py-1.5 text-sm hover:bg-red-600"
