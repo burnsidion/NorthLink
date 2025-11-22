@@ -1,13 +1,15 @@
 "use client";
 
 //React
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { motion } from "motion/react";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { links } from "@/config/nav-links";
 import { Snowflake } from "lucide-react";
 import { Button as StatefulButton } from "@/components/ui/stateful-button";
+import { Confetti, type ConfettiRef } from "@/components/ui/confetti";
+import confetti from "canvas-confetti";
 
 //Ui components
 import { FestiveGlow } from "@/components/ui/festive-glow";
@@ -246,6 +248,23 @@ export default function ListDetailPage() {
 		);
 		try {
 			await togglePurchased(idToToggle, nextPurchased);
+
+			// Trigger confetti when marking an item as purchased
+			if (nextPurchased) {
+				confetti({
+					particleCount: 100,
+					spread: 70,
+					origin: { y: 0.6 },
+					colors: [
+						"#26ccff",
+						"#a25afd",
+						"#ff5e7e",
+						"#88ff5a",
+						"#fcff42",
+						"#ffa62d",
+					],
+				});
+			}
 		} catch (e: any) {
 			setItems(prev); // revert
 			setError(e?.message ?? String(e));
