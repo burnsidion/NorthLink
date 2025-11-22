@@ -59,7 +59,7 @@ export default function LoginPage() {
 					view="sign_in"
 					redirectTo={
 						typeof window !== "undefined"
-							? `${window.location.origin}/`
+							? `${window.location.origin}/api/auth/callback`
 							: undefined
 					}
 				/>
