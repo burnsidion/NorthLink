@@ -8,4 +8,5 @@ export type ItemRow = {
 	price_cents: number | null;
 	link: string | null;
 	notes: string | null;
+	most_wanted?: boolean;
 };

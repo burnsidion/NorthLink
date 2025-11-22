@@ -24,7 +24,9 @@ export async function addItem(
 			link: normalizeUrl(link ?? ""),
 			notes: (notes ?? "").trim() || null,
 		})
-		.select()
+		.select(
+			"id,list_id,title,purchased,created_at,price_cents,link,notes,most_wanted"
+		)
 		.single();
 
 	if (error) throw error;
@@ -39,7 +41,7 @@ type PatchByUI = {
 	notes?: string | null;
 };
 type PatchByDB = Partial<
-	Pick<ItemRow, "title" | "price_cents" | "link" | "notes">
+	Pick<ItemRow, "title" | "price_cents" | "link" | "notes" | "most_wanted">
 >;
 
 export async function updateItem(
@@ -81,10 +83,24 @@ export async function updateItem(
 		mapped.notes = typeof v === "string" ? v.trim() || null : v ?? null;
 	}
 
+	// most_wanted
+	if ("most_wanted" in patch) {
+		mapped.most_wanted = patch.most_wanted;
+		console.log("updateItem: most_wanted patch:", patch.most_wanted);
+	}
+
 	// Remove undefined keys to avoid overwriting with undefined
+	// Note: we need to keep false values for boolean fields like most_wanted
 	const payload = Object.fromEntries(
-		Object.entries(mapped).filter(([, v]) => v !== undefined)
+		Object.entries(mapped).filter(([key, v]) => {
+			// Keep boolean fields even if false
+			if (key === "most_wanted") return v !== undefined;
+			// For other fields, filter out undefined
+			return v !== undefined;
+		})
 	) as PatchByDB;
+
+	console.log("updateItem: final payload:", payload);
 
 	const { error } = await supabase
 		.from("items")
@@ -131,7 +147,7 @@ export async function deleteItem(itemId: string): Promise<void> {
 export async function getListProgress(listId: string) {
 	const { data, error } = await supabase
 		.from("items")
-		.select("purchased", { count: "exact" })
+		.select("purchased,most_wanted", { count: "exact" })
 		.eq("list_id", listId);
 
 	if (error) throw error;

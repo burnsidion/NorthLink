@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { ItemRow } from "@/types/db";
 import { toCents, normalizeUrl, usd } from "@/lib/format";
 import { LinkPreview } from "@/components/ui/link-preview";
+import { Snowflake } from "lucide-react";
 
 type Props = {
 	item: ItemRow;
@@ -11,7 +12,9 @@ type Props = {
 	onDelete: (id: string) => Promise<void> | void;
 	onUpdate: (
 		id: string,
-		patch: Partial<Pick<ItemRow, "title" | "price_cents" | "link" | "notes">>
+		patch: Partial<
+			Pick<ItemRow, "title" | "price_cents" | "link" | "notes" | "most_wanted">
+		>
 	) => Promise<void> | void;
 	isOwner?: boolean;
 };
@@ -128,12 +131,40 @@ export default function ItemRow({
 				) : (
 					<div>
 						<div className="flex items-center gap-2 justify-between">
-							<span
-								className={item.purchased ? "line-through text-white/50" : ""}
-							>
-								{item.title}
-							</span>
+							<div className="flex items-center gap-2">
+								<span
+									className={item.purchased ? "line-through text-white/50" : ""}
+								>
+									{item.title}
+								</span>
+								{!isOwner && item.most_wanted && (
+									<Snowflake
+										className="h-4 w-4 text-cyan-400"
+										aria-label="Most Wanted"
+									/>
+								)}
+							</div>
 							<div className="flex gap-4 items-center">
+								{isOwner && (
+									<div className="flex items-center gap-1.5">
+										<label className="text-xs text-white/60">Most Wanted</label>
+										<input
+											type="checkbox"
+											checked={item.most_wanted ?? false}
+											onChange={async (e) => {
+												const newValue = e.target.checked;
+												console.log("Most Wanted checkbox clicked:", {
+													itemId: item.id,
+													itemTitle: item.title,
+													newValue,
+													currentValue: item.most_wanted,
+												});
+												await onUpdate(item.id, { most_wanted: newValue });
+											}}
+											className="h-4 w-4 rounded border-white/20 bg-transparent checked:bg-amber-500 checked:border-amber-500 cursor-pointer"
+										/>
+									</div>
+								)}
 								{typeof item.price_cents === "number" && (
 									<span className="text-xs text-white/60">
 										· {usd.format(item.price_cents / 100)}
