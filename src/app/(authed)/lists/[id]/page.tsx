@@ -53,6 +53,7 @@ export default function ListDetailPage() {
 		"default"
 	);
 	const [showMostWantedOnly, setShowMostWantedOnly] = useState(false);
+	const [showOnSaleOnly, setShowOnSaleOnly] = useState(false);
 
 	// form state
 	const [adding, setAdding] = useState(false);
@@ -101,7 +102,7 @@ export default function ListDetailPage() {
 				supabase
 					.from("items")
 					.select(
-						"id,list_id,title,purchased,purchased_at,created_at,price_cents,link,notes,most_wanted"
+						"id,list_id,title,purchased,purchased_at,created_at,price_cents,link,notes,most_wanted,on_sale"
 					)
 					.eq("list_id", id)
 					.order("created_at", { ascending: true }),
@@ -205,7 +206,7 @@ export default function ListDetailPage() {
 		const { data, error } = await supabase
 			.from("items")
 			.select(
-				"id,list_id,title,purchased,created_at,price_cents,link,notes,most_wanted"
+				"id,list_id,title,purchased,created_at,price_cents,link,notes,most_wanted,on_sale"
 			)
 			.eq("list_id", id)
 			.order("created_at", { ascending: true });
@@ -503,6 +504,18 @@ export default function ListDetailPage() {
 				{/* Filter and Sort controls */}
 				{items.length > 0 && (
 					<div className="flex flex-wrap gap-3 justify-end mb-4">
+						{/* On Sale Only toggle */}
+						<button
+							type="button"
+							onClick={() => setShowOnSaleOnly(!showOnSaleOnly)}
+							className={`flex items-center gap-2 px-3 py-2 text-sm rounded-lg border transition-all ${
+								showOnSaleOnly
+									? "bg-red-700/20 text-red-300 border-red-700/50 hover:bg-red-700/30 shadow-lg shadow-red-500/20 animate-pulse"
+									: "bg-black/60 text-white/90 border-red-700/50 hover:border-red-700"
+							}`}
+						>
+							🏷️ On Sale Only
+						</button>
 						{/* Most Wanted toggle */}
 						<button
 							type="button"
@@ -538,8 +551,15 @@ export default function ListDetailPage() {
 						{(() => {
 							let sorted = [...items];
 
-							// Filter for most-wanted only
-							if (showMostWantedOnly) {
+							// Filter logic: if both filters active, show items matching EITHER condition (OR)
+							// If only one filter active, show items matching that condition
+							if (showOnSaleOnly && showMostWantedOnly) {
+								sorted = sorted.filter(
+									(item) => item.on_sale === true || item.most_wanted === true
+								);
+							} else if (showOnSaleOnly) {
+								sorted = sorted.filter((item) => item.on_sale === true);
+							} else if (showMostWantedOnly) {
 								sorted = sorted.filter((item) => item.most_wanted === true);
 							}
 

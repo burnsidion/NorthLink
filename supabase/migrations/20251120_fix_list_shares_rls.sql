@@ -89,3 +89,10 @@ DROP POLICY IF EXISTS "items_by_list_owner_select" ON public.items;
 DROP POLICY IF EXISTS "items_by_list_owner_update" ON public.items;
 DROP POLICY IF EXISTS "items_cud_through_list" ON public.items;
 DROP POLICY IF EXISTS "items_select_through_list" ON public.items;
+
+-- Add most_wanted and on_sale flags to items table
+ALTER TABLE public.items
+ADD COLUMN IF NOT EXISTS most_wanted boolean NOT NULL DEFAULT false;
+
+ALTER TABLE public.items
+ADD COLUMN IF NOT EXISTS on_sale boolean NOT NULL DEFAULT false;

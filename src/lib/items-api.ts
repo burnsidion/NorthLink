@@ -25,7 +25,7 @@ export async function addItem(
 			notes: (notes ?? "").trim() || null,
 		})
 		.select(
-			"id,list_id,title,purchased,created_at,price_cents,link,notes,most_wanted"
+			"id,list_id,title,purchased,created_at,price_cents,link,notes,most_wanted,on_sale"
 		)
 		.single();
 
@@ -41,7 +41,10 @@ type PatchByUI = {
 	notes?: string | null;
 };
 type PatchByDB = Partial<
-	Pick<ItemRow, "title" | "price_cents" | "link" | "notes" | "most_wanted">
+	Pick<
+		ItemRow,
+		"title" | "price_cents" | "link" | "notes" | "most_wanted" | "on_sale"
+	>
 >;
 
 export async function updateItem(
@@ -89,12 +92,18 @@ export async function updateItem(
 		console.log("updateItem: most_wanted patch:", patch.most_wanted);
 	}
 
+	// on_sale
+	if ("on_sale" in patch) {
+		mapped.on_sale = patch.on_sale;
+		console.log("updateItem: on_sale patch:", patch.on_sale);
+	}
+
 	// Remove undefined keys to avoid overwriting with undefined
 	// Note: we need to keep false values for boolean fields like most_wanted
 	const payload = Object.fromEntries(
 		Object.entries(mapped).filter(([key, v]) => {
 			// Keep boolean fields even if false
-			if (key === "most_wanted") return v !== undefined;
+			if (key === "most_wanted" || key === "on_sale") return v !== undefined;
 			// For other fields, filter out undefined
 			return v !== undefined;
 		})
@@ -147,7 +156,7 @@ export async function deleteItem(itemId: string): Promise<void> {
 export async function getListProgress(listId: string) {
 	const { data, error } = await supabase
 		.from("items")
-		.select("purchased,most_wanted", { count: "exact" })
+		.select("purchased,most_wanted,on_sale", { count: "exact" })
 		.eq("list_id", listId);
 
 	if (error) throw error;
