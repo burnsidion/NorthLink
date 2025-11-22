@@ -22,6 +22,7 @@ type PurchasedItem = {
 	price_cents: number | null;
 	link: string | null;
 	notes: string | null;
+	most_wanted?: boolean;
 	list_title: string;
 	list_owner_name: string;
 };
@@ -74,6 +75,7 @@ export default function PurchasedItemsPage() {
 						price_cents,
 						link,
 						notes,
+						most_wanted,
 						list_id,
 						lists!inner (
 							id,

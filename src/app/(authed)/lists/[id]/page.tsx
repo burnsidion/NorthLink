@@ -44,9 +44,9 @@ export default function ListDetailPage() {
 	const [isShared, setIsShared] = useState(false);
 	const [shareLoading, setShareLoading] = useState(false);
 	const [newPurchaseCount, setNewPurchaseCount] = useState<number>(0);
-	const [sortBy, setSortBy] = useState<"default" | "price-asc" | "price-desc">(
-		"default"
-	);
+	const [sortBy, setSortBy] = useState<
+		"default" | "price-asc" | "price-desc" | "most-wanted"
+	>("default");
 
 	// form state
 	const [adding, setAdding] = useState(false);
@@ -95,14 +95,13 @@ export default function ListDetailPage() {
 				supabase
 					.from("items")
 					.select(
-						"id,list_id,title,purchased,purchased_at,created_at,price_cents,link,notes"
+						"id,list_id,title,purchased,purchased_at,created_at,price_cents,link,notes,most_wanted"
 					)
 					.eq("list_id", id)
 					.order("created_at", { ascending: true }),
 			]);
 
 			if (!alive) return;
-
 			if (listErr || !theList) {
 				setError(listErr?.message ?? "List not found.");
 				setLoading(false);
@@ -198,7 +197,9 @@ export default function ListDetailPage() {
 	async function refreshItems() {
 		const { data, error } = await supabase
 			.from("items")
-			.select("id,list_id,title,purchased,created_at,price_cents,link,notes")
+			.select(
+				"id,list_id,title,purchased,created_at,price_cents,link,notes,most_wanted"
+			)
 			.eq("list_id", id)
 			.order("created_at", { ascending: true });
 
@@ -460,7 +461,10 @@ export default function ListDetailPage() {
 						{(() => {
 							let sorted = [...items];
 
-							if (sortBy === "price-asc") {
+							// Filter for most-wanted only
+							if (sortBy === "most-wanted") {
+								sorted = sorted.filter((item) => item.most_wanted === true);
+							} else if (sortBy === "price-asc") {
 								sorted.sort((a, b) => {
 									const aPrice = a.price_cents ?? Infinity;
 									const bPrice = b.price_cents ?? Infinity;
