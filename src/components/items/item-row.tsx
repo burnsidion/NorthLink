@@ -244,6 +244,7 @@ export default function ItemRow({
 				checked={item.purchased ?? false}
 				onChange={() => onToggle(item.id, !item.purchased)}
 				ariaLabel={item.purchased ? "Mark unpurchased" : "Mark purchased"}
+				showMultiStepLoader={!isOwner}
 			/>
 
 			<div className="flex-1">

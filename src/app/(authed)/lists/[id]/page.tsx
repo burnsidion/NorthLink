@@ -453,12 +453,12 @@ export default function ListDetailPage() {
 					</>
 				)}
 				{/* Header */}
-				<header className="space-y-1 text-center mb-2">
+				<header className="space-y-1 text-center my-8">
 					<motion.h1
 						initial={{ opacity: 0, y: 6 }}
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ duration: 0.25 }}
-						className="heading-festive text-4xl mb-2"
+						className="heading-festive text-6xl mb-2"
 					>
 						{list.title}
 					</motion.h1>
@@ -515,7 +515,7 @@ export default function ListDetailPage() {
 				{error && <p className="text-red-600 text-sm">{error}</p>}
 				{/* Filter and Sort controls */}
 				{items.length > 0 && (
-					<div className="flex flex-wrap gap-3 justify-end mb-4">
+					<div className="flex flex-wrap gap-3 justify-center mb-4">
 						{/* On Sale Only toggle */}
 						<button
 							type="button"
