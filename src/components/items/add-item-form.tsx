@@ -62,32 +62,15 @@ export default function AddItemForm({
 	// Expanded form
 	return (
 		<form id="add-item-form" onSubmit={onSubmit} className="space-y-3">
-			<div className="flex flex-col sm:flex-row gap-2">
-				<input
-					name="title"
-					placeholder="Item Name"
-					maxLength={120}
-					value={title}
-					onChange={(e) => setTitle(e.target.value)}
-					className="flex-1 min-w-0 rounded-lg bg-neutral-800 border border-white/10 px-3 py-2 text-base outline-none focus:ring-2 focus:ring-emerald-700/40"
-				/>
+			<input
+				name="title"
+				placeholder="Item Name"
+				maxLength={120}
+				value={title}
+				onChange={(e) => setTitle(e.target.value)}
+				className="w-full rounded-lg bg-neutral-800 border border-white/10 px-3 py-2 text-base outline-none focus:ring-2 focus:ring-emerald-700/40"
+			/>
 
-				<StatefulButton
-					type="submit"
-					disabled={!!submitting}
-					className="w-full sm:w-auto h-11 bg-emerald-700 hover:ring-emerald-700"
-				>
-					Save
-				</StatefulButton>
-				<ShinyButton
-					className="w-full sm:w-auto h-11 hover:bg-red-700/60"
-					type="button"
-					onClick={() => onOpenChange(false)}
-				>
-					{" "}
-					Cancel
-				</ShinyButton>
-			</div>{" "}
 			<div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
 				<input
 					name="price"
@@ -111,6 +94,23 @@ export default function AddItemForm({
 					onChange={(e) => setNotes(e.target.value)}
 					className="rounded-lg bg-neutral-800 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-700/40"
 				/>
+			</div>
+
+			<div className="flex flex-col sm:flex-row gap-2">
+				<StatefulButton
+					type="submit"
+					disabled={!!submitting}
+					className="w-full sm:w-auto h-11 bg-emerald-700 hover:ring-emerald-700"
+				>
+					Save
+				</StatefulButton>
+				<ShinyButton
+					className="w-full sm:w-auto h-11 hover:bg-red-700/60"
+					type="button"
+					onClick={() => onOpenChange(false)}
+				>
+					Cancel
+				</ShinyButton>
 			</div>
 		</form>
 	);

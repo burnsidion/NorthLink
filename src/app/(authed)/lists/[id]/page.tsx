@@ -413,55 +413,57 @@ export default function ListDetailPage() {
 					</p>
 				</header>
 				{/* Share button - only show for owner */}
-				{userId &&
-					list &&
-					userId === (list as any).owner_user_id &&
-					familyGroupId && (
-						<div className="py-2">
-							<StatefulButton
-								onClick={handleShareToggle}
-								disabled={shareLoading}
-								className="px-4 py-2 bg-emerald-700/80 text-white rounded-lg text-sm font-medium border border-emerald-700/50 hover:ring-emerald-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700/60 disabled:opacity-50 transition-colors min-w-[180px]"
+				<div className="flex justify-between items-center flex-col">
+					{userId &&
+						list &&
+						userId === (list as any).owner_user_id &&
+						familyGroupId && (
+							<div className="py-2">
+								<StatefulButton
+									onClick={handleShareToggle}
+									disabled={shareLoading}
+									className="px-4 py-2 bg-emerald-700/80 text-white rounded-lg text-sm font-medium border border-emerald-700/50 hover:ring-emerald-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700/60 disabled:opacity-50 transition-colors min-w-[180px]"
+								>
+									{isShared ? "Unshare from Family" : "Share to Family"}
+								</StatefulButton>
+							</div>
+						)}
+					{/* Toggle button shown when the form is collapsed - only for owner */}
+					{isOwner && !formOpen ? (
+						<div className="py-4">
+							<button
+								type="button"
+								onClick={() => setFormOpen(true)}
+								aria-expanded={formOpen}
+								aria-controls="add-item-form"
+								className="px-6 py-2 bg-black/70 text-white rounded-lg font-semibold border border-white/10 hover:bg-emerald-700/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black z-30"
 							>
-								{isShared ? "Unshare from Family" : "Share to Family"}
-							</StatefulButton>
+								Add item
+							</button>
 						</div>
+					) : null}
+					{isOwner && formOpen && (
+						<AddItemForm
+							open={formOpen}
+							onOpenChange={setFormOpen}
+							title={newTitle}
+							setTitle={setNewTitle}
+							price={newPrice}
+							setPrice={setNewPrice}
+							link={newLink}
+							setLink={setNewLink}
+							notes={newNotes}
+							setNotes={setNewNotes}
+							onSubmit={handleAdd}
+							submitting={adding}
+						/>
 					)}
-				{/* Toggle button shown when the form is collapsed - only for owner */}
-				{isOwner && !formOpen ? (
-					<div className="py-4">
-						<button
-							type="button"
-							onClick={() => setFormOpen(true)}
-							aria-expanded={formOpen}
-							aria-controls="add-item-form"
-							className="px-6 py-2 bg-black/70 text-white rounded-lg font-semibold border border-white/10 hover:bg-emerald-700/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black z-30"
-						>
-							Add item
-						</button>
-					</div>
-				) : null}
-				{isOwner && formOpen && (
-					<AddItemForm
-						open={formOpen}
-						onOpenChange={setFormOpen}
-						title={newTitle}
-						setTitle={setNewTitle}
-						price={newPrice}
-						setPrice={setNewPrice}
-						link={newLink}
-						setLink={setNewLink}
-						notes={newNotes}
-						setNotes={setNewNotes}
-						onSubmit={handleAdd}
-						submitting={adding}
-					/>
-				)}
+				</div>
 				{/* Error message */}
 				{error && <p className="text-red-600 text-sm">{error}</p>}
 				{/* Filter and Sort controls */}
 				{items.length > 0 && (
-					<div className="flex flex-wrap gap-3 justify-center mb-4">
+					<div className="flex flex-wrap gap-3 justify-center my-4">
 						{/* On Sale Only toggle */}
 						<button
 							type="button"
