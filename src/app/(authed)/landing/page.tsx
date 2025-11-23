@@ -108,7 +108,13 @@ export default function ListsPage() {
 			<PageFade>
 				<StarsBackground />
 				<div className="pointer-events-none fixed inset-0 z-9999">
-					<Snowfall count={70} speed={40} wind={0.18} />
+					<Snowfall
+						count={70}
+						speed={40}
+						wind={0.18}
+						enableMeteors={true}
+						meteorCount={3}
+					/>
 				</div>
 				<CountdownBanner initialNow={Date.now()} />
 				{/* Hero Section */}

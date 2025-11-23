@@ -184,7 +184,13 @@ export default function UserListsPage() {
 			<main className="relative min-h-screen px-6 py-8 space-y-6 overflow-hidden">
 				<PageFade>
 					<StarsBackground />
-					<Snowfall count={70} speed={40} wind={0.18} />
+					<Snowfall
+						count={70}
+						speed={40}
+						wind={0.18}
+						enableMeteors={true}
+						meteorCount={3}
+					/>
 					<CountdownBanner initialNow={Date.now()} />
 					{/* header skeleton */}
 					<header className="mx-auto w-full max-w-5xl">

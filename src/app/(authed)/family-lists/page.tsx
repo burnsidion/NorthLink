@@ -187,7 +187,7 @@ export default function FamilyListsPage() {
 		return (
 			<main className="max-w-6xl mx-auto px-4 py-10 text-white">
 				<StarsBackground />
-				<Snowfall />
+				<Snowfall enableMeteors={true} meteorCount={3} />
 				<HeroHighlight className="bg-none mb-12">
 					<motion.h1
 						initial={{
@@ -236,7 +236,7 @@ export default function FamilyListsPage() {
 	return (
 		<main className="max-w-6xl mx-auto px-4 py-10 text-white">
 			<StarsBackground />
-			<Snowfall />
+			<Snowfall enableMeteors={true} meteorCount={3} />
 			<CountdownBanner initialNow={Date.now()} />
 			<HeroHighlight className="bg-none mb-12">
 				<motion.h1

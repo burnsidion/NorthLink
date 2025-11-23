@@ -346,7 +346,13 @@ export default function ListDetailPage() {
 			<main className="relative min-h-screen px-6 py-8 space-y-6 overflow-hidden">
 				<PageFade>
 					<StarsBackground />
-					<Snowfall count={70} speed={40} wind={0.18} />
+					<Snowfall
+						count={70}
+						speed={40}
+						wind={0.18}
+						enableMeteors={true}
+						meteorCount={3}
+					/>
 					<CountdownBanner initialNow={Date.now()} />
 					{/* header skeleton */}
 					<header className="mx-auto w-full max-w-5xl">
@@ -386,7 +392,13 @@ export default function ListDetailPage() {
 	return (
 		<main className="px-6 py-8 max-w-2xl mx-auto space-y-6">
 			<StarsBackground className="pointer-events-none fixed inset-0 z-0" />
-			<Snowfall count={70} speed={40} wind={0.18} />
+			<Snowfall
+				count={70}
+				speed={40}
+				wind={0.18}
+				enableMeteors={true}
+				meteorCount={3}
+			/>
 			<PageFade>
 				<CountdownBanner initialNow={now0} />
 				{/* Purchase Notification Modal */}

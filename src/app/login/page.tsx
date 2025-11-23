@@ -32,7 +32,13 @@ export default function LoginPage() {
 			{/* backgrounds behind everything */}
 			<div className="pointer-events-none fixed inset-0 -z-10">
 				<StarsBackground />
-				<Snowfall count={70} speed={40} wind={0.18} />
+				<Snowfall
+					count={70}
+					speed={40}
+					wind={0.18}
+					enableMeteors={true}
+					meteorCount={3}
+				/>
 			</div>
 
 			{/* Auth Card */}

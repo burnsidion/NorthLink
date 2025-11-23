@@ -147,8 +147,8 @@ export default function PurchasedItemsPage() {
 		return (
 			<main className="max-w-6xl mx-auto px-4 py-10 text-white">
 				<StarsBackground />
-				<Snowfall />
-				<HeroHighlight className="bg-none mb-12">
+				<Snowfall enableMeteors={true} meteorCount={3} />
+				<HeroHighlight className="bg-none mb-12">>
 					<motion.h1
 						initial={{ opacity: 0, y: 20 }}
 						animate={{ opacity: 1, y: [20, -5, 0] }}

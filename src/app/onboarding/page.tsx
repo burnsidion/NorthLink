@@ -71,7 +71,13 @@ export default function OnboardingPage() {
 		<main className="min-h-dvh grid place-items-center p-6">
 			<div className="pointer-events-none fixed inset-0 -z-10">
 				<StarsBackground />
-				<Snowfall count={70} speed={40} wind={0.18} />
+				<Snowfall
+					count={70}
+					speed={40}
+					wind={0.18}
+					enableMeteors={true}
+					meteorCount={3}
+				/>
 			</div>
 			<div className="w-full max-w-md space-y-4 rounded-lg border p-6 shadow-sm">
 				<h1 className="heading-festive text-2xl font-semibold text-center">
