@@ -26,7 +26,11 @@ export async function getUserGroupMembership(
 	}
 
 	if (data && data.groups) {
-		const groups = data.groups as { name: string; invite_code: string };
+		// Supabase returns groups as a single object, not an array
+		const groups = data.groups as unknown as {
+			name: string;
+			invite_code: string;
+		};
 		return {
 			group_id: data.group_id,
 			group_name: groups.name,
