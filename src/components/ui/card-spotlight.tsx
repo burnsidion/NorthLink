@@ -10,11 +10,13 @@ export const CardSpotlight = ({
 	radius = 350,
 	color = "#3b0f0f",
 	className,
+	bgGradient,
 	...props
 }: {
 	radius?: number;
 	color?: string;
 	children: React.ReactNode;
+	bgGradient?: string;
 } & React.HTMLAttributes<HTMLDivElement>) => {
 	const mouseX = useMotionValue(0);
 	const mouseY = useMotionValue(0);
@@ -35,7 +37,8 @@ export const CardSpotlight = ({
 	return (
 		<div
 			className={cn(
-				"group/spotlight p-10 rounded-md relative border border-neutral-800 bg-black dark:border-neutral-800",
+				"group/spotlight p-10 rounded-md relative border border-neutral-800 dark:border-neutral-800",
+				bgGradient ? `bg-gradient-to-br ${bgGradient} sm:bg-black` : "bg-black",
 				className
 			)}
 			onMouseMove={handleMouseMove}

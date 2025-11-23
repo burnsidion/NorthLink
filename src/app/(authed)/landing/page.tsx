@@ -214,6 +214,7 @@ export default function ListsPage() {
 								<FestiveGlow>
 									<CardSpotlight
 										color="#3b0f0f"
+										bgGradient="from-red-950/40 to-red-900/20"
 										className="relative w-full max-w-md h-96 text-center"
 									>
 										<div className="relative z-20 flex flex-col items-center justify-center h-full">
@@ -244,6 +245,7 @@ export default function ListsPage() {
 								<FestiveGlow>
 									<CardSpotlight
 										color="#0f3b17"
+										bgGradient="from-emerald-950/40 to-emerald-900/20"
 										className="relative w-full max-w-md h-96 text-center"
 									>
 										<div className="relative z-20 flex flex-col items-center justify-center h-full">
@@ -273,6 +275,7 @@ export default function ListsPage() {
 								<FestiveGlow>
 									<CardSpotlight
 										color="#3b0f0f"
+										bgGradient="from-red-950/40 to-red-900/20"
 										className="relative w-full max-w-md h-96 text-center"
 									>
 										<div className="relative z-20 flex flex-col items-center justify-center h-full">
