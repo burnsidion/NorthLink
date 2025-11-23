@@ -115,7 +115,7 @@ export default function ListCard({
 					aria-valuemin={0}
 					aria-valuemax={total}
 					aria-valuenow={purchased}
-					className="w-full h-2 bg-white/10 rounded-full overflow-hidden shadow-[0_0_8px_rgba(220,38,38,0.4)]"
+					className="w-full h-2 bg-white/10 rounded-full overflow-hidden shadow-[0_0_8px_rgba(220,38,38,0.4)] mb-2"
 				>
 					<div
 						className="h-full transition-all duration-300 animate-candy-cane shadow-[0_0_6px_rgba(255,255,255,0.6)]"
