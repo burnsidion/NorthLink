@@ -84,12 +84,12 @@ export default function CountdownBanner({
 			role="region"
 			aria-label="Countdown to Christmas"
 		>
-			<div className="mx-auto max-w-6xl px-4 py-2 flex flex-wrap md:flex-nowrap items-center justify-center gap-x-4 gap-y-2 text-sm text-white">
-				<span className="font-bold text-xl tracking-normal md:tracking-wide shrink-0">
+			<div className="mx-auto max-w-6xl px-4 py-2 flex flex-wrap md:flex-nowrap justify-center gap-x-4 gap-y-2 text-xl text-white">
+				<span className="font-bold text-2xl tracking-normal md:tracking-wide shrink-0">
 					{" "}
 					<ColourfulText text="Christmas Countdown!!!" /> :
 				</span>
-				<div className="flex items-center gap-2">
+				<div className="flex items-center gap-2 text-5xl">
 					<TimePill label="Days" value={left.d} />
 					<Separator />
 					<TimePill label="Hours" value={left.h} />
