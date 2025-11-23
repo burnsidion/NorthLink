@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useTheme } from "next-themes";
+import { getCurrentSession } from "@/lib/auth-helpers";
+import { calculateNewPurchases } from "@/lib/list-helpers";
 
 // UI Components
 import { CardSpotlight } from "@/components/ui/card-spotlight";
@@ -50,9 +52,7 @@ export default function ListsPage() {
 
 	useEffect(() => {
 		(async () => {
-			const {
-				data: { session },
-			} = await sb.auth.getSession();
+			const session = await getCurrentSession();
 			if (!session) {
 				router.replace("/login");
 				return;
@@ -85,12 +85,8 @@ export default function ListsPage() {
 						.filter((lst: any) => {
 							if (!lst.last_viewed_at || !Array.isArray(lst.items))
 								return false;
-							return lst.items.some(
-								(it: any) =>
-									it.purchased === true &&
-									it.purchased_at &&
-									new Date(it.purchased_at) > new Date(lst.last_viewed_at)
-							);
+							// Use helper to check if there are new purchases
+							return calculateNewPurchases(lst.items, lst.last_viewed_at) > 0;
 						})
 						.map((lst: any) => ({ id: lst.id, title: lst.title }));
 					setActivityCount(activeLists.length);

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import AppDock from "./app-dock";
+import { getCurrentUser } from "@/lib/auth-helpers";
 
 export default function AppDockGate() {
 	const [show, setShow] = useState(false);
@@ -11,9 +12,7 @@ export default function AppDockGate() {
 		let alive = true;
 
 		(async () => {
-			const {
-				data: { user },
-			} = await supabase.auth.getUser();
+			const user = await getCurrentUser();
 			if (!alive) return;
 			setShow(!!user);
 		})();

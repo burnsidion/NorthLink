@@ -4,6 +4,7 @@ export type ItemRow = {
 	list_id: string;
 	title: string;
 	purchased: boolean;
+	purchased_at?: string | null;
 	created_at: string;
 	price_cents: number | null;
 	link: string | null;

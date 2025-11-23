@@ -7,6 +7,7 @@ import { AVATARS } from "@/lib/avatars";
 import { StarsBackground } from "@/components/ui/stars-background";
 import Snowfall from "@/components/ui/snowfall";
 import { cn } from "@/lib/utils";
+import { getCurrentSession, getUserProfile } from "@/lib/auth-helpers";
 
 export default function OnboardingPage() {
 	const sb = supabase;
@@ -17,20 +18,14 @@ export default function OnboardingPage() {
 
 	useEffect(() => {
 		(async () => {
-			const {
-				data: { session },
-			} = await sb.auth.getSession();
+			const session = await getCurrentSession();
 			if (!session) {
 				router.replace("/login");
 				return;
 			}
 
 			// Prefill if profile exists
-			const { data: prof } = await sb
-				.from("profiles")
-				.select("display_name, avatar_url")
-				.eq("id", session.user.id)
-				.maybeSingle();
+			const prof = await getUserProfile(session.user.id);
 
 			if (prof?.display_name) setDisplayName(prof.display_name);
 			if (prof?.avatar_url) setAvatar(prof.avatar_url);
