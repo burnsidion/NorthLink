@@ -362,7 +362,7 @@ export default function ItemRow({
 									</div>
 								)}
 								{typeof item.price_cents === "number" && (
-									<span className="text-xs text-white/60 whitespace-nowrap">
+									<span className="text-sm text-emerald-400 font-medium whitespace-nowrap">
 										· {usd.format(item.price_cents / 100)}
 									</span>
 								)}
