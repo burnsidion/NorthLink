@@ -4,6 +4,11 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import {
+	getCurrentSession,
+	getUserProfile,
+	isProfileComplete,
+} from "@/lib/auth-helpers";
 
 function GateSpinner() {
 	return (
@@ -40,28 +45,16 @@ export default function HomeGate() {
 
 		(async () => {
 			try {
-				const {
-					data: { session },
-					error: sessionErr,
-				} = await supabase.auth.getSession();
-
-				if (sessionErr) throw sessionErr;
+				const session = await getCurrentSession();
 
 				if (!session) {
 					if (!cancelled) router.replace("/login");
 					return;
 				}
 
-				const { data: profile, error: profErr } = await supabase
-					.from("profiles")
-					.select("display_name, avatar_url")
-					.eq("id", session.user.id)
-					.maybeSingle();
+				const profile = await getUserProfile(session.user.id);
 
-				if (profErr) throw profErr;
-
-				const incomplete =
-					!profile || !profile.display_name || !profile.avatar_url;
+				const incomplete = !isProfileComplete(profile);
 				if (!cancelled) router.replace(incomplete ? "/onboarding" : "/landing");
 			} catch (err: any) {
 				toast.error(

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import AppDockGate from "@/components/nav/app-dock-gate";
+import { getCurrentUser } from "@/lib/auth-helpers";
 
 export default function AuthedLayout({ children }: { children: ReactNode }) {
 	const router = useRouter();
@@ -12,9 +13,7 @@ export default function AuthedLayout({ children }: { children: ReactNode }) {
 
 	useEffect(() => {
 		const checkAuth = async () => {
-			const {
-				data: { user },
-			} = await supabase.auth.getUser();
+			const user = await getCurrentUser();
 
 			if (!user) {
 				router.replace("/login");

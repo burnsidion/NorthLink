@@ -12,12 +12,14 @@ import {
 	ChevronDown,
 	ChevronUp,
 } from "lucide-react";
-
-type GroupMembership = {
-	group_id: string;
-	group_name: string;
-	role: string;
-};
+import { getCurrentUser } from "@/lib/auth-helpers";
+import {
+	type GroupMembership,
+	getUserGroupMembership,
+	createFamilyGroup,
+	joinFamilyGroup,
+	copyInviteCode,
+} from "@/lib/family-group-helpers";
 
 export default function FamilyGroupPanel() {
 	const [loading, setLoading] = useState(true);
@@ -39,12 +41,9 @@ export default function FamilyGroupPanel() {
 
 	async function fetchMembership() {
 		try {
-			const {
-				data: { user },
-				error: userErr,
-			} = await supabase.auth.getUser();
+			const user = await getCurrentUser();
 
-			if (userErr || !user) {
+			if (!user) {
 				setLoading(false);
 				return;
 			}
@@ -52,22 +51,8 @@ export default function FamilyGroupPanel() {
 			setUserId(user.id);
 
 			// Query group_members with join to groups
-			const { data, error } = await supabase
-				.from("group_members")
-				.select("group_id, role, groups(name, invite_code)")
-				.eq("user_id", user.id)
-				.limit(1)
-				.maybeSingle();
-
-			if (error) {
-				console.error("Error fetching group membership:", error);
-			} else if (data && data.groups) {
-				setMembership({
-					group_id: data.group_id,
-					group_name: (data.groups as any).name,
-					role: data.role,
-				});
-			}
+			const membership = await getUserGroupMembership(user.id);
+			setMembership(membership);
 		} catch (err) {
 			console.error("Failed to fetch membership:", err);
 		} finally {
@@ -82,14 +67,7 @@ export default function FamilyGroupPanel() {
 		setCreating(true);
 
 		try {
-			// Use RPC function to create group with invite code
-			const { data: newGroup, error: groupErr } = await supabase.rpc(
-				"create_group_with_code",
-				{ p_name: name }
-			);
-
-			if (groupErr) throw groupErr;
-
+			await createFamilyGroup(name);
 			toast.success("Family group created!");
 			setGroupName("");
 			await fetchMembership();
@@ -113,14 +91,7 @@ export default function FamilyGroupPanel() {
 		setJoining(true);
 
 		try {
-			const { error } = await supabase.from("group_members").insert({
-				group_id: code,
-				user_id: userId,
-				role: "member",
-			});
-
-			if (error) throw error;
-
+			await joinFamilyGroup(code, userId);
 			toast.success("Joined family group!");
 			setInviteCode("");
 			await fetchMembership();
@@ -135,10 +106,10 @@ export default function FamilyGroupPanel() {
 	async function handleCopyInviteCode() {
 		if (!membership) return;
 
-		try {
-			await navigator.clipboard.writeText(membership.group_id);
+		const success = await copyInviteCode(membership.group_id);
+		if (success) {
 			toast.success("Invite code copied to clipboard!");
-		} catch (err) {
+		} else {
 			toast.error("Failed to copy invite code");
 		}
 	}

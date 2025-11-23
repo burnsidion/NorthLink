@@ -24,6 +24,20 @@ import { SkeletonCard } from "@/components/ui/skeleton-card";
 //Utils
 import { toCents, normalizeUrl, usd } from "@/lib/format";
 import type { ListRow, ItemRow as ItemRowType } from "@/types/db";
+import { getCurrentUser } from "@/lib/auth-helpers";
+import {
+	getListWithItems,
+	getUserFamilyGroup,
+	isListShared,
+	updateListLastViewed,
+	calculateNewPurchases,
+	filterItems,
+	sortItems,
+} from "@/lib/list-helpers";
+import {
+	triggerPurchaseConfetti,
+	triggerNotificationConfetti,
+} from "@/lib/confetti-helpers";
 
 // API
 import {
@@ -67,11 +81,8 @@ export default function ListDetailPage() {
 		let alive = true;
 
 		(async () => {
-			const {
-				data: { user },
-				error: userErr,
-			} = await supabase.auth.getUser();
-			if (userErr || !user) {
+			const user = await getCurrentUser();
+			if (!user) {
 				router.push("/login");
 				return;
 			}
@@ -79,95 +90,49 @@ export default function ListDetailPage() {
 			setUserId(user.id);
 
 			// Fetch user's family group
-			const { data: familyGroup } = await supabase
-				.from("group_members")
-				.select("group_id")
-				.eq("user_id", user.id)
-				.maybeSingle();
-
-			if (familyGroup?.group_id) {
-				setFamilyGroupId(familyGroup.group_id);
+			const familyGroupId = await getUserFamilyGroup(user.id);
+			if (familyGroupId) {
+				setFamilyGroupId(familyGroupId);
 			}
 
-			// Load list + items (including last_viewed_at and purchased_at)
-			const [
-				{ data: theList, error: listErr },
-				{ data: theItems, error: itemsErr },
-			] = await Promise.all([
-				supabase
-					.from("lists")
-					.select("id,title,created_at,owner_user_id,last_viewed_at")
-					.eq("id", id)
-					.single(),
-				supabase
-					.from("items")
-					.select(
-						"id,list_id,title,purchased,purchased_at,created_at,price_cents,link,notes,most_wanted,on_sale"
-					)
-					.eq("list_id", id)
-					.order("created_at", { ascending: true }),
-			]);
+			// Load list + items
+			const {
+				list: theList,
+				items: theItems,
+				listError,
+				itemsError,
+			} = await getListWithItems(id);
 
 			if (!alive) return;
-			if (listErr || !theList) {
-				setError(listErr?.message ?? "List not found.");
+
+			if (listError || !theList) {
+				setError(listError?.message ?? "List not found.");
 				setLoading(false);
 				return;
 			}
 
-			if (itemsErr) setError(itemsErr.message ?? null);
+			if (itemsError) setError(itemsError.message ?? null);
 
 			setList(theList);
-			setItems(theItems ?? []);
+			setItems(theItems);
 
 			// Compute new purchases since last_viewed_at (owner-only banner)
-			try {
-				if (theList.last_viewed_at && Array.isArray(theItems)) {
-					const count = (theItems ?? []).filter(
-						(it: any) =>
-							it.purchased === true &&
-							it.purchased_at &&
-							new Date(it.purchased_at) >
-								new Date(theList.last_viewed_at as string)
-					).length;
-					setNewPurchaseCount(count);
-					if (count > 0) {
-						setShowPurchaseModal(true);
-					}
-				} else {
-					setNewPurchaseCount(0);
-				}
-			} catch (e) {
-				console.warn("Error computing newPurchaseCount:", e);
-				setNewPurchaseCount(0);
-			} // Update last_viewed_at for the list when the owner views it (best-effort)
-			try {
-				const { error: lastViewedError } = await supabase
-					.from("lists")
-					.update({ last_viewed_at: new Date().toISOString() })
-					.eq("id", id)
-					.eq("owner_user_id", user.id);
-
-				if (lastViewedError) {
-					console.warn(
-						"Failed to update last_viewed_at:",
-						lastViewedError.message
-					);
-				}
-			} catch (e) {
-				console.warn("Error updating last_viewed_at:", e);
+			const newPurchases = calculateNewPurchases(
+				theItems,
+				theList.last_viewed_at
+			);
+			setNewPurchaseCount(newPurchases);
+			if (newPurchases > 0) {
+				setShowPurchaseModal(true);
 			}
 
-			// Check if this list is shared to the user's family group
-			if (familyGroup?.group_id) {
-				const { data: shareRow } = await supabase
-					.from("list_shares")
-					.select("*")
-					.eq("list_id", id)
-					.eq("group_id", familyGroup.group_id)
-					.maybeSingle();
+			// Update last_viewed_at for the list when the owner views it (best-effort)
+			await updateListLastViewed(id, user.id);
 
-				setIsShared(!!shareRow);
+			// Check if this list is shared to the user's family group
+			if (familyGroupId) {
+				const shared = await isListShared(id, familyGroupId);
+				setIsShared(shared);
 			}
 
 			setLoading(false);
@@ -254,19 +219,7 @@ export default function ListDetailPage() {
 
 			// Trigger confetti when marking an item as purchased
 			if (nextPurchased) {
-				confetti({
-					particleCount: 100,
-					spread: 70,
-					origin: { y: 0.6 },
-					colors: [
-						"#26ccff",
-						"#a25afd",
-						"#ff5e7e",
-						"#88ff5a",
-						"#fcff42",
-						"#ffa62d",
-					],
-				});
+				triggerPurchaseConfetti();
 			}
 		} catch (e: any) {
 			setItems(prev); // revert
@@ -421,14 +374,7 @@ export default function ListDetailPage() {
 							className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md"
 							onAnimationComplete={() => {
 								// Trigger confetti after modal appears
-								confetti({
-									particleCount: 150,
-									spread: 100,
-									origin: { y: 0.5 },
-									colors: ["#dc2626", "#ffffff", "#16a34a"],
-									startVelocity: 45,
-									gravity: 1.2,
-								});
+								triggerNotificationConfetti();
 								// Auto-dismiss after 3 seconds
 								setTimeout(() => {
 									setShowPurchaseModal(false);
@@ -561,34 +507,13 @@ export default function ListDetailPage() {
 				<FestiveGlow>
 					<ul className="space-y-2">
 						{(() => {
-							let sorted = [...items];
-
-							// Filter logic: if both filters active, show items matching EITHER condition (OR)
-							// If only one filter active, show items matching that condition
-							if (showOnSaleOnly && showMostWantedOnly) {
-								sorted = sorted.filter(
-									(item) => item.on_sale === true || item.most_wanted === true
-								);
-							} else if (showOnSaleOnly) {
-								sorted = sorted.filter((item) => item.on_sale === true);
-							} else if (showMostWantedOnly) {
-								sorted = sorted.filter((item) => item.most_wanted === true);
-							}
-
-							// Apply sorting
-							if (sortBy === "price-asc") {
-								sorted.sort((a, b) => {
-									const aPrice = a.price_cents ?? Infinity;
-									const bPrice = b.price_cents ?? Infinity;
-									return aPrice - bPrice;
-								});
-							} else if (sortBy === "price-desc") {
-								sorted.sort((a, b) => {
-									const aPrice = a.price_cents ?? -Infinity;
-									const bPrice = b.price_cents ?? -Infinity;
-									return bPrice - aPrice;
-								});
-							}
+							// Apply filters and sorting using helper functions
+							const filtered = filterItems(
+								items,
+								showOnSaleOnly,
+								showMostWantedOnly
+							);
+							const sorted = sortItems(filtered, sortBy);
 
 							return sorted.map((it) => (
 								<ItemRowCard
