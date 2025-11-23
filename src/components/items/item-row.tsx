@@ -281,7 +281,7 @@ export default function ItemRow({
 							<StatefulButton
 								onClick={saveEdit}
 								disabled={saving}
-								className="rounded-lg bg-emerald-700 px-3 py-1.5 text-sm hover:ring-emerald-700 disabled:opacity-60 min-w-[80px]"
+								className="rounded-lg bg-emerald-700 px-3 py-1.5 text-sm hover:ring-emerald-700 disabled:opacity-60 min-w-20"
 							>
 								Save
 							</StatefulButton>
@@ -296,12 +296,12 @@ export default function ItemRow({
 				) : (
 					<div>
 						<div className="flex items-start gap-2 justify-between flex-wrap">
-							<div className="flex items-center gap-2 flex-wrap">
-								<span
-									className={item.purchased ? "line-through text-white/50" : ""}
-								>
-									{item.title}
-								</span>
+							<span
+								className={item.purchased ? "line-through text-white/50" : ""}
+							>
+								{item.title}
+							</span>
+							<div className="flex items-center gap-2 flex-wrap justify-between">
 								{!isOwner && item.most_wanted && (
 									<Snowflake
 										className="h-4 w-4 text-cyan-400"
@@ -317,7 +317,7 @@ export default function ItemRow({
 									</span>
 								)}
 							</div>
-							<div className="flex gap-2 sm:gap-4 items-center flex-wrap">
+							<div className="flex gap-2 sm:gap-4 items-center flex-wrap w-full justify-between">
 								{isOwner && (
 									<div className="flex items-center gap-2 flex-wrap">
 										<OnSaleToggle
@@ -362,7 +362,7 @@ export default function ItemRow({
 									</div>
 								)}
 								{typeof item.price_cents === "number" && (
-									<span className="text-xs text-white/60 whitespace-nowrap">
+									<span className="text-sm text-emerald-400 font-medium whitespace-nowrap">
 										· {usd.format(item.price_cents / 100)}
 									</span>
 								)}
