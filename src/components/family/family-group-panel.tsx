@@ -3,8 +3,15 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import { motion } from "motion/react";
-import { Users, Copy, UserPlus, Plus } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+import {
+	Users,
+	Copy,
+	UserPlus,
+	Plus,
+	ChevronDown,
+	ChevronUp,
+} from "lucide-react";
 
 type GroupMembership = {
 	group_id: string;
@@ -16,6 +23,7 @@ export default function FamilyGroupPanel() {
 	const [loading, setLoading] = useState(true);
 	const [membership, setMembership] = useState<GroupMembership | null>(null);
 	const [userId, setUserId] = useState<string | null>(null);
+	const [isExpanded, setIsExpanded] = useState(false);
 
 	// Create group state
 	const [groupName, setGroupName] = useState("");
@@ -157,37 +165,67 @@ export default function FamilyGroupPanel() {
 				transition={{ duration: 0.3 }}
 				className="w-full max-w-2xl mx-auto mb-8"
 			>
-				<div className="rounded-xl bg-gradient-to-br from-emerald-900/20 to-emerald-950/10 border border-emerald-700/30 p-6 backdrop-blur-sm">
-					<div className="flex items-start gap-4">
-						<div className="flex-shrink-0 p-3 bg-emerald-700/20 rounded-lg">
-							<Users className="w-6 h-6 text-emerald-400" />
-						</div>
-						<div className="flex-1 min-w-0">
-							<h3 className="text-lg font-semibold text-white mb-1">
-								Family Group
-							</h3>
-							<p className="text-2xl font-bold text-emerald-300 mb-3">
-								{membership.group_name}
-							</p>
-							<div className="space-y-2">
-								<p className="text-sm text-white/60">
-									Share this code with your family so they can join your group:
+				<div className="rounded-xl bg-gradient-to-br from-emerald-900/20 to-emerald-950/10 border border-emerald-700/30 backdrop-blur-sm overflow-hidden">
+					{/* Collapsible Header */}
+					<button
+						onClick={() => setIsExpanded(!isExpanded)}
+						className="w-full p-4 flex items-center justify-between hover:bg-emerald-700/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-inset"
+					>
+						<div className="flex items-center gap-3">
+							<div className="flex-shrink-0 p-2 bg-emerald-700/20 rounded-lg">
+								<Users className="w-5 h-5 text-emerald-400" />
+							</div>
+							<div className="text-left">
+								<h3 className="text-sm font-semibold text-white">
+									Family Group
+								</h3>
+								<p className="text-lg font-bold text-emerald-300">
+									{membership.group_name}
 								</p>
-								<div className="flex items-center gap-2">
-									<code className="flex-1 px-3 py-2 bg-black/30 rounded border border-white/10 text-xs font-mono text-white/80 break-all">
-										{membership.group_id}
-									</code>
-									<button
-										onClick={handleCopyInviteCode}
-										className="flex-shrink-0 p-2 bg-emerald-700/60 hover:bg-emerald-700 rounded border border-emerald-600/50 text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
-										title="Copy invite code"
-									>
-										<Copy className="w-4 h-4" />
-									</button>
-								</div>
 							</div>
 						</div>
-					</div>
+						<div className="flex-shrink-0">
+							{isExpanded ? (
+								<ChevronUp className="w-5 h-5 text-emerald-400" />
+							) : (
+								<ChevronDown className="w-5 h-5 text-emerald-400" />
+							)}
+						</div>
+					</button>
+
+					{/* Expandable Content */}
+					<AnimatePresence>
+						{isExpanded && (
+							<motion.div
+								initial={{ height: 0, opacity: 0 }}
+								animate={{ height: "auto", opacity: 1 }}
+								exit={{ height: 0, opacity: 0 }}
+								transition={{ duration: 0.2 }}
+								className="overflow-hidden"
+							>
+								<div className="px-6 pb-6 pt-2 border-t border-emerald-700/20">
+									<div className="space-y-2">
+										<p className="text-sm text-white/60">
+											Share this code with your family so they can join your
+											group:
+										</p>
+										<div className="flex items-center gap-2">
+											<code className="flex-1 px-3 py-2 bg-black/30 rounded border border-white/10 text-xs font-mono text-white/80 break-all">
+												{membership.group_id}
+											</code>
+											<button
+												onClick={handleCopyInviteCode}
+												className="flex-shrink-0 p-2 bg-emerald-700/60 hover:bg-emerald-700 rounded border border-emerald-600/50 text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+												title="Copy invite code"
+											>
+												<Copy className="w-4 h-4" />
+											</button>
+										</div>
+									</div>
+								</div>
+							</motion.div>
+						)}
+					</AnimatePresence>
 				</div>
 			</motion.div>
 		);
