@@ -112,6 +112,12 @@
 			boxshadow: 0 0 0 8px var(--pulse-color);
 		}
 	}
+	--animate-border-beam: border-beam calc(var(--duration) * 1s) infinite linear;
+	@keyframes border-beam {
+		100% {
+			offset-distance: 100%;
+		}
+	}
 }
 
 :root {

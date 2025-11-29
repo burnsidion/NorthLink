@@ -4,10 +4,12 @@ import { useEffect } from "react";
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/lib/supabase";
+import { motion } from "motion/react";
 
 //UI components
 import { StarsBackground } from "@/components/ui/stars-background";
 import Snowfall from "@/components/ui/snowfall";
+import { BorderBeam } from "@/components/ui/border-beam";
 
 export default function LoginPage() {
 	const sb = supabase;
@@ -42,8 +44,15 @@ export default function LoginPage() {
 			</div>
 
 			{/* Auth Card */}
-			<div className="w-full max-w-md rounded-lg border p-6 shadow-sm">
-				<h1 className="heading-festive mb-4 text-2xl font-semibold text-center">
+			<motion.div
+				initial={{ opacity: 0, y: 20 }}
+				animate={{ opacity: 1, y: 0 }}
+				transition={{ duration: 0.5 }}
+				className="relative w-full max-w-md rounded-lg border border-white/10 bg-black/40 backdrop-blur-sm p-6 sm:p-8 shadow-2xl"
+			>
+				<BorderBeam size={250} duration={12} delay={9} />
+
+				<h1 className="heading-festive mb-6 text-xl font-semibold text-center text-white">
 					🎁 🎄 Sign in to CyberSanta 🎄 🎁
 				</h1>
 				<Auth
@@ -69,7 +78,7 @@ export default function LoginPage() {
 							: undefined
 					}
 				/>
-			</div>
+			</motion.div>
 		</main>
 	);
 }
