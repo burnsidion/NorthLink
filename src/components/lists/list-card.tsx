@@ -64,7 +64,7 @@ export default function ListCard({
 								<img
 									src={l.owner_avatar_url}
 									alt={l.owner_display_name}
-									className="w-6 h-6 rounded-full"
+									className="w-9 h-9 rounded-full"
 								/>
 							)}
 							<p className="text-sm text-white/70">By {l.owner_display_name}</p>
