@@ -81,7 +81,6 @@ export default function OnboardingPage() {
 				<h4 className="text-center text-sm text-muted-foreground">
 					Please enter your details to get started.
 				</h4>
-
 				<label className="block text-sm font-medium">Your name</label>
 				<input
 					className="w-full rounded border px-3 py-2 bg-black/10"
@@ -89,9 +88,8 @@ export default function OnboardingPage() {
 					onChange={(e) => setDisplayName(e.target.value)}
 					placeholder="e.g., Ian"
 				/>
-
 				<label className="block text-sm font-medium">Choose an avatar</label>
-				<div className="grid grid-cols-6 gap-4">
+				<div className="grid grid-cols-6 gap-4 max-h-[400px] overflow-y-auto">
 					{AVATARS.map((avatarUrl) => (
 						<button
 							key={avatarUrl}
@@ -107,11 +105,16 @@ export default function OnboardingPage() {
 							)}
 							aria-pressed={avatar === avatarUrl}
 						>
-							<img src={avatarUrl} alt="Avatar option" className="h-9 w-9" />
+							<img
+								src={avatarUrl}
+								alt="Avatar option"
+								className="h-9 w-9 object-cover"
+								loading="lazy"
+								decoding="async"
+							/>
 						</button>
 					))}
-				</div>
-
+				</div>{" "}
 				<button
 					onClick={save}
 					disabled={!displayName.trim()}
