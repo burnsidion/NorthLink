@@ -30,4 +30,16 @@ export const AVATARS = [
 	"https://robohash.org/prancer.png?set=set2&size=120x120",
 	"https://robohash.org/festive.png?set=set3&size=120x120",
 	"https://robohash.org/sparkle.png?set=set1&size=120x120",
+	// Animated avatars
+	"https://uvbutyqndjjrtvvmifoi.supabase.co/storage/v1/object/public/animated-avatars/goku.gif",
+	"https://uvbutyqndjjrtvvmifoi.supabase.co/storage/v1/object/public/animated-avatars/SS3.gif",
+	"https://uvbutyqndjjrtvvmifoi.supabase.co/storage/v1/object/public/animated-avatars/SS4.gif",
+	"https://uvbutyqndjjrtvvmifoi.supabase.co/storage/v1/object/public/animated-avatars/SSW.gif",
+	"https://uvbutyqndjjrtvvmifoi.supabase.co/storage/v1/object/public/animated-avatars/injured.gif",
+	"https://uvbutyqndjjrtvvmifoi.supabase.co/storage/v1/object/public/animated-avatars/jumping-kirby.gif",
+	"https://uvbutyqndjjrtvvmifoi.supabase.co/storage/v1/object/public/animated-avatars/kirby-inhale.gif",
+	"https://uvbutyqndjjrtvvmifoi.supabase.co/storage/v1/object/public/animated-avatars/kirby-run.gif",
+	"https://uvbutyqndjjrtvvmifoi.supabase.co/storage/v1/object/public/animated-avatars/looking-kirb.gif",
+	"https://uvbutyqndjjrtvvmifoi.supabase.co/storage/v1/object/public/animated-avatars/snorlax.gif",
+	"https://uvbutyqndjjrtvvmifoi.supabase.co/storage/v1/object/public/animated-avatars/finn-sword.gif"
 ];
