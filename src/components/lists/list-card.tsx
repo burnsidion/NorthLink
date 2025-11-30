@@ -61,11 +61,13 @@ export default function ListCard({
 					{showOwner && l.owner_display_name && (
 						<div className="mt-2 flex items-center gap-2">
 							{l.owner_avatar_url && (
-								<img
-									src={l.owner_avatar_url}
-									alt={l.owner_display_name}
-									className="w-9 h-9 rounded-full"
-								/>
+								<div className="w-9 h-9 rounded-full bg-white/10 p-0.5 ring-1 ring-white/20">
+									<img
+										src={l.owner_avatar_url}
+										alt={l.owner_display_name}
+										className="w-full h-full rounded-full object-cover"
+									/>
+								</div>
 							)}
 							<p className="text-sm text-white/70">By {l.owner_display_name}</p>
 						</div>
