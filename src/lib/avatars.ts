@@ -42,5 +42,17 @@ export const AVATARS = [
 	"https://uvbutyqndjjrtvvmifoi.supabase.co/storage/v1/object/public/animated-avatars/looking-kirb.gif",
 	"https://uvbutyqndjjrtvvmifoi.supabase.co/storage/v1/object/public/animated-avatars/snorlax.gif",
 	"https://uvbutyqndjjrtvvmifoi.supabase.co/storage/v1/object/public/animated-avatars/finn-sword.gif",
-	"https://uvbutyqndjjrtvvmifoi.supabase.co/storage/v1/object/public/animated-avatars/Marceline_Bass.gif"
+	"https://uvbutyqndjjrtvvmifoi.supabase.co/storage/v1/object/public/animated-avatars/Marceline_Bass.gif",
+	"https://uvbutyqndjjrtvvmifoi.supabase.co/storage/v1/object/public/animated-avatars/dancing-finn.gif",
+	"https://uvbutyqndjjrtvvmifoi.supabase.co/storage/v1/object/public/animated-avatars/finnhagt.gif",
+	"https://uvbutyqndjjrtvvmifoi.supabase.co/storage/v1/object/public/animated-avatars/marcie-brella.gif",
+	"https://uvbutyqndjjrtvvmifoi.supabase.co/storage/v1/object/public/animated-avatars/nose-pick.gif",
+	"https://uvbutyqndjjrtvvmifoi.supabase.co/storage/v1/object/public/animated-avatars/pocket-jake.gif",
+	"https://uvbutyqndjjrtvvmifoi.supabase.co/storage/v1/object/public/animated-avatars/reading.gif",
+	"https://uvbutyqndjjrtvvmifoi.supabase.co/storage/v1/object/public/animated-avatars/walking.gif"
+
+
+
+
+
 ];
