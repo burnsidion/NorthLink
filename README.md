@@ -131,7 +131,10 @@ The app requires the following Supabase tables:
 - `list_shares` - Shared lists (list_id, group_id)
 - `items` - List items (title, price_cents, link, notes, purchased, purchased_by, purchased_at, most_wanted, on_sale)
 
-See `supabase/migrations/` for the complete schema.
+The migrations folder contains historical patches, not a complete database
+bootstrap. Do not apply all migrations blindly to a new or hosted project.
+For the scoped access-control snapshot, isolated test instructions, and pending
+OWL-55 migration, see [the review notes](supabase/review/OWL-55.md).
 
 ## 🎨 Key Features Explained
 
