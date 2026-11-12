@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
-import { toast } from "sonner";
 import { motion, AnimatePresence } from "motion/react";
 import {
 	Users,
@@ -21,6 +19,11 @@ import {
 	copyInviteCode,
 } from "@/lib/family-group-helpers";
 
+function errorMessage(error: unknown, fallback: string) {
+	return typeof error === "object" && error !== null && "message" in error &&
+		typeof error.message === "string" ? error.message : fallback;
+}
+
 export default function FamilyGroupPanel() {
 	const [loading, setLoading] = useState(true);
 	const [membership, setMembership] = useState<GroupMembership | null>(null);
@@ -34,6 +37,7 @@ export default function FamilyGroupPanel() {
 	// Join group state
 	const [inviteCode, setInviteCode] = useState("");
 	const [joining, setJoining] = useState(false);
+	const [feedback, setFeedback] = useState<string | null>(null);
 
 	useEffect(() => {
 		fetchMembership();
@@ -54,7 +58,7 @@ export default function FamilyGroupPanel() {
 			const membership = await getUserGroupMembership(user.id);
 			setMembership(membership);
 		} catch (err) {
-			console.error("Failed to fetch membership:", err);
+			setFeedback(errorMessage(err, "Could not load your family group. Please refresh and try again."));
 		} finally {
 			setLoading(false);
 		}
@@ -65,15 +69,15 @@ export default function FamilyGroupPanel() {
 
 		const name = groupName.trim() || "My Family";
 		setCreating(true);
+		setFeedback(null);
 
 		try {
 			await createFamilyGroup(name);
-			toast.success("Family group created!");
+			setFeedback("Family group created!");
 			setGroupName("");
 			await fetchMembership();
-		} catch (err: any) {
-			console.error("Error creating group:", err);
-			toast.error(err?.message || "Failed to create group");
+		} catch (err: unknown) {
+			setFeedback(errorMessage(err, "Failed to create group"));
 		} finally {
 			setCreating(false);
 		}
@@ -84,33 +88,33 @@ export default function FamilyGroupPanel() {
 
 		const code = inviteCode.trim();
 		if (!code) {
-			toast.error("Please enter an invite code");
+			setFeedback("Please enter an invite code");
 			return;
 		}
 
 		setJoining(true);
+		setFeedback(null);
 
 		try {
-			await joinFamilyGroup(code, userId);
-			toast.success("Joined family group!");
+			await joinFamilyGroup(code);
+			setFeedback("Joined family group!");
 			setInviteCode("");
 			await fetchMembership();
-		} catch (err: any) {
-			console.error("Error joining group:", err);
-			toast.error(err?.message || "Invalid invite code or already a member");
+		} catch (err: unknown) {
+			setFeedback(errorMessage(err, "Could not join the family group. Please try again."));
 		} finally {
 			setJoining(false);
 		}
 	}
 
 	async function handleCopyInviteCode() {
-		if (!membership) return;
+		if (!membership?.invite_code) return;
 
-		const success = await copyInviteCode(membership.group_id);
+		const success = await copyInviteCode(membership.invite_code);
 		if (success) {
-			toast.success("Invite code copied to clipboard!");
+			setFeedback("Invite code copied to clipboard!");
 		} else {
-			toast.error("Failed to copy invite code");
+			setFeedback("Could not copy the code. You can select and copy it manually.");
 		}
 	}
 
@@ -137,6 +141,7 @@ export default function FamilyGroupPanel() {
 				className="w-full max-w-2xl mx-auto mb-8"
 			>
 				<div className="rounded-xl bg-gradient-to-br from-emerald-900/20 to-emerald-950/10 border border-emerald-700/30 backdrop-blur-sm overflow-hidden">
+					{feedback && <p role="status" className="px-4 pt-4 text-sm text-white">{feedback}</p>}
 					{/* Collapsible Header */}
 					<button
 						onClick={() => setIsExpanded(!isExpanded)}
@@ -182,10 +187,11 @@ export default function FamilyGroupPanel() {
 										</p>
 										<div className="flex items-center gap-2">
 											<code className="flex-1 px-3 py-2 bg-black/30 rounded border border-white/10 text-xs font-mono text-white/80 break-all">
-												{membership.group_id}
+												{membership.invite_code ?? "Invite code unavailable"}
 											</code>
 											<button
 												onClick={handleCopyInviteCode}
+												disabled={!membership.invite_code}
 												className="flex-shrink-0 p-2 bg-emerald-700/60 hover:bg-emerald-700 rounded border border-emerald-600/50 text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
 												title="Copy invite code"
 											>
@@ -211,6 +217,7 @@ export default function FamilyGroupPanel() {
 			className="w-full max-w-2xl mx-auto mb-8"
 		>
 			<div className="rounded-xl bg-gradient-to-br from-red-900/20 to-red-950/10 border border-red-700/30 p-6 backdrop-blur-sm">
+				{feedback && <p role="status" className="mb-4 text-sm text-white">{feedback}</p>}
 				<div className="flex items-start gap-4 mb-6">
 					<div className="flex-shrink-0 p-3 bg-red-700/20 rounded-lg">
 						<Users className="w-6 h-6 text-red-400" />
@@ -257,7 +264,11 @@ export default function FamilyGroupPanel() {
 						</div>
 						<input
 							type="text"
-							placeholder="Enter invite code"
+							placeholder="8-character invite code"
+							aria-label="Family invite code"
+							autoCapitalize="characters"
+							autoCorrect="off"
+							spellCheck={false}
 							value={inviteCode}
 							onChange={(e) => setInviteCode(e.target.value)}
 							className="w-full px-3 py-2 bg-black/30 border border-white/10 rounded text-white placeholder:text-white/40 focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/50 text-sm font-mono"

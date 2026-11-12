@@ -5,6 +5,7 @@ export type GroupMembership = {
 	group_id: string;
 	group_name: string;
 	role: string;
+	invite_code: string | null;
 };
 
 /**
@@ -21,20 +22,26 @@ export async function getUserGroupMembership(
 		.maybeSingle();
 
 	if (error) {
-		console.error("Error fetching group membership:", error);
-		return null;
+		throw error;
 	}
 
 	if (data && data.groups) {
-		// Supabase returns groups as a single object, not an array
-		const groups = data.groups as unknown as {
-			name: string;
-			invite_code: string;
-		};
+		const groups: unknown = data.groups;
+		if (
+			typeof groups !== "object" ||
+			groups === null ||
+			!("name" in groups) ||
+			typeof groups.name !== "string" ||
+			!("invite_code" in groups) ||
+			(groups.invite_code !== null && typeof groups.invite_code !== "string")
+		) {
+			throw new Error("Could not read your family group. Please refresh and try again.");
+		}
 		return {
 			group_id: data.group_id,
 			group_name: groups.name,
 			role: data.role,
+			invite_code: groups.invite_code ?? null,
 		};
 	}
 
@@ -57,14 +64,20 @@ export async function createFamilyGroup(name: string) {
 /**
  * Join a family group using invite code
  */
-export async function joinFamilyGroup(inviteCode: string, userId: string) {
-	const { error } = await supabase.from("group_members").insert({
-		group_id: inviteCode,
-		user_id: userId,
-		role: "member",
+export async function joinFamilyGroup(inviteCode: string): Promise<string> {
+	const code = inviteCode.trim().toUpperCase();
+	if (!/^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{8}$/.test(code)) {
+		throw new Error("Enter the 8-character invite code shared by your family.");
+	}
+	const { data, error } = await supabase.rpc("join_group_by_invite_code", {
+		p_invite_code: code,
 	});
 
 	if (error) throw error;
+	if (typeof data !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data)) {
+		throw new Error("Could not confirm your family membership. Please refresh and try again.");
+	}
+	return data;
 }
 
 /**
