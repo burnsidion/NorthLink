@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { getCurrentUser } from "@/lib/auth-helpers";
-import { getMyPurchases, type PurchasedItem } from "@/lib/purchases-api";
+import { useState } from "react";
+import { getMyPurchases } from "@/lib/purchases-api";
+import { useRefreshingData } from "@/lib/use-refreshing-data";
+import { RefreshNotice } from "@/components/ui/refresh-notice";
 import { motion } from "motion/react";
 
 // Components
@@ -32,36 +32,9 @@ const cardVariants = {
 };
 
 export default function PurchasedItemsPage() {
-	const router = useRouter();
-	const [items, setItems] = useState<PurchasedItem[]>([]);
-	const [loading, setLoading] = useState(true);
-	const [error, setError] = useState<string | null>(null);
-
-	useEffect(() => {
-		let alive = true;
-
-		(async () => {
-			try {
-				const user = await getCurrentUser();
-				if (!alive) return;
-				if (!user) {
-					router.push("/login");
-					return;
-				}
-				const purchases = await getMyPurchases();
-				if (alive) setItems(purchases);
-			} catch (err: unknown) {
-				if (alive) setError(typeof err === "object" && err !== null && "message" in err &&
-					typeof err.message === "string" ? err.message : "Could not load your purchases. Please try again.");
-			} finally {
-				if (alive) setLoading(false);
-			}
-		})();
-
-		return () => {
-			alive = false;
-		};
-	}, [router]);
+	const [initialNow] = useState(() => Date.now());
+	const { data, error, loading, retry } = useRefreshingData(getMyPurchases, "my-purchases-progress");
+	const items = data ?? [];
 
 	if (loading) {
 		return (
@@ -91,7 +64,7 @@ export default function PurchasedItemsPage() {
 		);
 	}
 
-	if (error) {
+	if (error && data === null) {
 		return (
 			<main className="max-w-6xl mx-auto px-4 py-10 text-white">
 				<StarsBackground />
@@ -99,7 +72,7 @@ export default function PurchasedItemsPage() {
 				<h1 className="heading-festive text-3xl sm:text-4xl font-bold mb-4">
 					Purchased Gifts
 				</h1>
-				<p className="text-red-600">Error loading purchased items: {error}</p>
+				<RefreshNotice message={error} onRetry={retry} />
 			</main>
 		);
 	}
@@ -108,7 +81,8 @@ export default function PurchasedItemsPage() {
 		<main className="max-w-6xl mx-auto px-4 py-10 text-white">
 			<StarsBackground />
 			<Snowfall />
-			<CountdownBanner initialNow={Date.now()} />
+			{error && <RefreshNotice message={error} onRetry={retry} />}
+			<CountdownBanner initialNow={initialNow} />
 			<TextAnimate
 				className="text-3xl text-center sm:text-4xl font-bold mt-5"
 				animation="blurInUp"

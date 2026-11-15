@@ -57,6 +57,9 @@ function screen({rename=async () => 'Saved name',remove=async () => {}}={}) {
   const channel={on(){return channel;},subscribe(){return channel;}};
   const modules={react:hooks,'react/jsx-runtime':{jsx,jsxs:jsx},'next/navigation':{useRouter:() => ({push(){}})},
     '@/lib/supabase':{supabase:{auth:{getUser:async () => ({data:{user:{id:'owner'}},error:null})},from:() => query,channel:() => channel,removeChannel(){}}},
+    '@/lib/list-progress':{getListsWithProgress:async () => []},
+    '@/components/ui/refresh-notice':{RefreshNotice:'RefreshNotice'},
+    '@/lib/use-refreshing-data':{useRefreshingData:() => {const [data,updateData]=hooks.useState([{id:'list',title:'Original',created_at:'2026-11-14'}]);return {data,updateData,error:null,loading:false,retry(){}};}},
     '@/lib/lists-api':{renameList:rename,deleteList:remove},sonner:{toast:{success:message => messages.push(['success',message]),error:message => messages.push(['error',message])}},
     'motion/react':{motion:new Proxy({},{get:(_,key) => 'motion.'+key})},
     '@/components/lists/list-card':{default:'ListCard'},'@/components/ui/manage-list-modal':{ManageListModal:'ManageListModal'},
