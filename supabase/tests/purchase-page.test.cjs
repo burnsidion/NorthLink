@@ -17,9 +17,9 @@ const flush = async () => { for (let n = 0; n < 8; n++) await new Promise(setImm
 
 // Exercise the actual page handlers and JSX with deterministic hooks/transport.
 // A route key creates a fresh harness, just as React remounts keyed content.
-function page(id, { save, refresh, update, remove, add } = {}) {
+function page(id, { save, refresh, update, remove, add, share, group, shared } = {}) {
   let index = 0;
-  const slots = [], effects = [], cleanups = [], writes = [];
+  const slots = [], effects = [], cleanups = [], writes = [], messages = [];
   let realtime, refreshes = 0;
   const router = { push() {} };
   const gift = { id: "gift-" + id, list_id: id, title: "Gift", purchased: false };
@@ -57,13 +57,16 @@ function page(id, { save, refresh, update, remove, add } = {}) {
     "@/lib/supabase": { supabase: { channel: () => channel, removeChannel() {}, from: () => query } },
     "@/lib/auth-helpers": { getCurrentUser: async () => ({ id: "owner" }) },
     "@/lib/list-helpers": {
-      getUserFamilyGroup: async () => null,
+      getUserFamilyGroup: async () => group ?? null,
+      isListShared: async () => shared ?? false,
       getListWithItems: async () => ({ list: { id, title: "List", owner_user_id: "owner", last_viewed_at: null },
         items: [gift], listError: null, itemsError: null }),
       calculateNewPurchases: () => 0, updateListLastViewed: async () => {},
       filterItems: items => items, sortItems: items => items,
     },
     "@/lib/items-api": { addItem: add ?? (async () => ({ ...gift, id: "added" })), updateItem: update ?? (async () => {}), deleteItem: remove ?? (async () => {}), togglePurchased: save ?? (async () => ({ purchased: true, purchased_at: "2026-11-15T01:00:00Z" })) },
+    "sonner": { toast: { success: message => messages.push(["success", message]), error: message => messages.push(["error", message]) } },
+    "@/lib/lists-api": { setListShared: share ?? (async () => {}) },
     "@/components/items/item-row": { default: "ItemRowCard" },
   };
   const exports = {};
@@ -84,7 +87,8 @@ function page(id, { save, refresh, update, remove, add } = {}) {
   const all = () => [...nodes(render())];
   render();
   return {
-    key: route.key, gift, writes,
+    key: route.key, gift, writes, messages,
+    shareButton: () => all().find(node => node.type === "button" && ["Share to Family", "Unshare from Family", "Saving…"].includes(node.props.children)),
     openAdd: () => all().find(node => node.type === "button" && node.props.children === "Add item").props.onClick(),
     form: () => all().find(node => typeof node.props.onSubmit === "function")?.props,
     item: () => all().find(node => node.type === "ItemRowCard")?.props.item,
@@ -216,4 +220,33 @@ test("add failures preserve the form and block duplicate submissions while pendi
   pending.reject(new Error('offline')); await request;
   assert.equal(screen.form().title,'New gift'); assert.equal(screen.form().price,'12.50'); assert.equal(screen.form().submitting,false);
   assert.ok(screen.error()); screen.unmount();
+});
+
+test("sharing reports success only after confirmation and blocks duplicate clicks", async () => {
+  const pending = deferred(); let calls = 0;
+  const screen = page('A', { group: 'group', share: async (id, group, next) => {
+    calls++; assert.equal(id, 'A'); assert.equal(group, 'group'); assert.equal(next, true); return pending.promise;
+  } });
+  await flush(); const click = screen.shareButton().props.onClick; const request = click(); await click();
+  assert.equal(calls, 1); assert.deepEqual(screen.messages, []); assert.equal(screen.shareButton().props.disabled, true);
+  pending.resolve(); await request;
+  assert.equal(screen.shareButton().props.children, 'Unshare from Family'); assert.equal(screen.messages[0][0], 'success'); screen.unmount();
+});
+test("failed unsharing keeps its current state, shows an error, and allows retry", async () => {
+  let calls = 0;
+  const screen = page('A', { group: 'group', shared: true, share: async (_id, _group, next) => {
+    assert.equal(next, false); if (++calls === 1) throw new Error('No rows');
+  } });
+  await flush(); await screen.shareButton().props.onClick();
+  assert.equal(screen.shareButton().props.children, 'Unshare from Family'); assert.equal(screen.messages[0][0], 'error');
+  await screen.shareButton().props.onClick(); assert.equal(screen.shareButton().props.children, 'Share to Family');
+  assert.equal(screen.error(), undefined); assert.equal(screen.messages.at(-1)[0], 'success'); screen.unmount();
+});
+test("late sharing completions after leaving cannot change state or display messages", async () => {
+  for (const failed of [false, true]) {
+    const pending = deferred(); const screen = page('A', { group: 'group', share: () => pending.promise });
+    await flush(); const request = screen.shareButton().props.onClick(); screen.unmount(); const count = screen.writes.length;
+    if (failed) pending.reject(new Error('offline')); else pending.resolve(); await request;
+    assert.equal(screen.writes.length, count); assert.deepEqual(screen.messages, []);
+  }
 });

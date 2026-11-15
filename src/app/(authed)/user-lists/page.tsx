@@ -1,9 +1,11 @@
 "use client";
 //Deps
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
+import { renameList, deleteList } from "@/lib/lists-api";
 
 //components
 import Link from "next/link";
@@ -61,6 +63,14 @@ export default function UserListsPage() {
 		id: string;
 		title: string;
 	} | null>(null);
+
+	const mounted = useRef(false);
+	const actionPending = useRef(false);
+	const [actionError, setActionError] = useState<string | null>(null);
+	useEffect(() => {
+		mounted.current = true;
+		return () => { mounted.current = false; };
+	}, []);
 
 	const [newTitle, setNewTitle] = useState("");
 	const [saving, setSaving] = useState(false);
@@ -130,52 +140,51 @@ export default function UserListsPage() {
 	}, [refreshLists]);
 
 	async function handleRename() {
-		if (!manageList) return;
+		if (!manageList || actionPending.current || !mounted.current) return;
+		if (!newTitle.trim()) { setActionError("Enter a list name."); return; }
+		actionPending.current = true;
+		setSaving(true);
+		setActionError(null);
+		const listId = manageList.id;
 		try {
-			setSaving(true);
-			const { error } = await supabase
-				.from("lists")
-				.update({ title: newTitle })
-				.eq("id", manageList.id);
-			if (error) throw error;
-
-			setLists((prev) =>
-				prev
-					? prev.map((it) =>
-							it.id === manageList.id ? { ...it, title: newTitle } : it
-					  )
-					: prev
-			);
-
+			const savedTitle = await renameList(listId, newTitle);
+			if (!mounted.current) return;
+			setLists(previous => previous?.map(list => list.id === listId ? { ...list, title: savedTitle } : list) ?? null);
 			setIsModalOpen(false);
 			setManageList(null);
-		} catch (err) {
-			console.error("Rename failed:", err);
+			toast.success("List renamed");
+		} catch {
+			if (!mounted.current) return;
+			const message = "We couldn’t confirm the rename. Your changes are still here. Refresh to check the list before trying again.";
+			setActionError(message);
+			toast.error(message);
 		} finally {
-			setSaving(false);
+			actionPending.current = false;
+			if (mounted.current) setSaving(false);
 		}
 	}
 
 	async function handleDelete() {
-		if (!manageList) return;
+		if (!manageList || actionPending.current || !mounted.current) return;
+		actionPending.current = true;
+		setDeleting(true);
+		setActionError(null);
+		const listId = manageList.id;
 		try {
-			setDeleting(true);
-			const { error } = await supabase
-				.from("lists")
-				.delete()
-				.eq("id", manageList.id);
-			if (error) throw error;
-
-			setLists((prev) =>
-				prev ? prev.filter((it) => it.id !== manageList.id) : prev
-			);
-
+			await deleteList(listId);
+			if (!mounted.current) return;
+			setLists(previous => previous?.filter(list => list.id !== listId) ?? null);
 			setIsModalOpen(false);
 			setManageList(null);
-		} catch (err) {
-			console.error("Delete failed:", err);
+			toast.success("List deleted");
+		} catch {
+			if (!mounted.current) return;
+			const message = "We couldn’t confirm this list was deleted. Refresh to check its current status before trying again.";
+			setActionError(message);
+			toast.error(message);
 		} finally {
-			setDeleting(false);
+			actionPending.current = false;
+			if (mounted.current) setDeleting(false);
 		}
 	}
 
@@ -272,29 +281,33 @@ export default function UserListsPage() {
 								list={l}
 								index={index}
 								onManage={(id, title) => {
+									if (actionPending.current) return;
+									setActionError(null);
 									setManageList({ id, title });
 									setNewTitle(title);
 									setIsModalOpen(true);
 								}}
 							/>
 						))}
-						{isModalOpen && (
-							<ManageListModal
-								open={isModalOpen}
-								list={manageList}
-								newTitle={newTitle}
-								setNewTitle={setNewTitle}
-								saving={saving}
-								deleting={deleting}
-								onRename={handleRename}
-								onDelete={handleDelete}
-								onClose={() => {
-									setIsModalOpen(false);
-									setManageList(null);
-								}}
-							/>
-						)}
 					</section>
+				)}
+				{isModalOpen && (
+					<ManageListModal
+						open={isModalOpen}
+						list={manageList}
+						newTitle={newTitle}
+						setNewTitle={setNewTitle}
+						saving={saving}
+						deleting={deleting}
+						error={actionError}
+						onRename={handleRename}
+						onDelete={handleDelete}
+						onClose={() => {
+							if (actionPending.current) return;
+							setIsModalOpen(false);
+							setManageList(null);
+						}}
+					/>
 				)}
 				<Snowfall count={70} speed={40} wind={0.18} />
 			</PageFade>

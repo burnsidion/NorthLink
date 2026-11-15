@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { toast } from "sonner";
 
 //components
 import ListCard, { ListWithProgress } from "@/components/lists/list-card";
@@ -158,30 +157,6 @@ export default function FamilyListsPage() {
 		};
 	}, []);
 
-	async function handleUnshare(listId: string, groupId: string) {
-		try {
-			const { error } = await supabase
-				.from("list_shares")
-				.delete()
-				.eq("list_id", listId)
-				.eq("group_id", groupId);
-
-			if (error) {
-				console.error("Error unsharing list:", error);
-				toast.error("Only the list owner can unshare this list.");
-				return;
-			}
-
-			toast.success("List unshared from family group");
-
-			// Re-fetch to get the updated list from the view
-			// This ensures all users see the change immediately
-			await fetchFamilyLists();
-		} catch (err) {
-			console.error("Failed to unshare list:", err);
-			toast.error("Failed to unshare list");
-		}
-	}
 
 	if (loading) {
 		return (
