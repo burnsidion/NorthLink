@@ -7,7 +7,8 @@ import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { links } from "@/config/nav-links";
 import { Snowflake } from "lucide-react";
-import { Button as StatefulButton } from "@/components/ui/stateful-button";
+import { toast } from "sonner";
+import { setListShared } from "@/lib/lists-api";
 import { Confetti, type ConfettiRef } from "@/components/ui/confetti";
 import confetti from "canvas-confetti";
 
@@ -56,6 +57,8 @@ function ListDetailContent({ id }: { id: string }) {
 	const router = useRouter();
 	const mounted = useRef(false);
 	const refreshVersion = useRef(0);
+	const addPending = useRef(false);
+	const sharePending = useRef(false);
 	useEffect(() => {
 		mounted.current = true;
 		return () => { mounted.current = false; };
@@ -203,10 +206,11 @@ function ListDetailContent({ id }: { id: string }) {
 
 	async function handleAdd(e: React.FormEvent) {
 		e.preventDefault();
-		if (!list) return;
+		if (!mounted.current || !list || addPending.current) return;
 		const title = newTitle.trim();
 		if (!title) return;
 
+		addPending.current = true;
 		setAdding(true);
 		setError(null);
 		try {
@@ -216,16 +220,19 @@ function ListDetailContent({ id }: { id: string }) {
 				link: newLink,
 				notes: newNotes,
 			});
-			setItems((prev) => [...prev, inserted]);
+			if (!mounted.current) return;
+			++refreshVersion.current;
+			setItems(prev => [...prev.filter(item => item.id !== inserted.id), inserted]);
 			setNewTitle("");
 			setNewPrice("");
 			setNewLink("");
 			setNewNotes("");
 			setFormOpen(false);
-		} catch (err: any) {
-			setError(err?.message ?? String(err));
+		} catch (err: unknown) {
+			if (mounted.current) setError(err instanceof Error ? err.message : "Could not confirm the gift was added. Check the list before trying again.");
 		} finally {
-			setAdding(false);
+			addPending.current = false;
+			if (mounted.current) setAdding(false);
 		}
 	}
 
@@ -260,68 +267,57 @@ function ListDetailContent({ id }: { id: string }) {
 		}
 	}
 
-	async function handleDelete(idToDelete: string) {
-		const prev = items;
-		setItems((p) => p.filter((it) => it.id !== idToDelete));
+	async function handleDelete(itemId: string): Promise<boolean> {
+		if (!mounted.current) return false;
+		setError(null);
 		try {
-			await deleteItem(idToDelete);
-		} catch (e: any) {
-			setItems(prev); // revert
-			setError(e?.message ?? String(e));
-		} finally {
-			await refreshItems();
+			await deleteItem(itemId);
+			if (!mounted.current) return false;
+			++refreshVersion.current;
+			setItems(current => current.filter(item => item.id !== itemId));
+			return true;
+		} catch {
+			if (mounted.current) setError("We couldn’t confirm this gift was deleted. Refresh to check its current status before trying again.");
+			return false;
 		}
 	}
 
-	async function handleUpdate(
-		itemId: string,
-		patch: Partial<
-			Pick<ItemRowType, "title" | "price_cents" | "link" | "notes">
-		>
-	) {
-		const prev = items;
-		setItems((p) =>
-			p.map((it) => (it.id === itemId ? { ...it, ...patch } : it))
-		);
+	async function handleUpdate(itemId: string, patch: Partial<Pick<ItemRowType,
+		"title" | "price_cents" | "link" | "notes" | "most_wanted" | "on_sale"
+	>>): Promise<boolean> {
+		if (!mounted.current) return false;
+		setError(null);
 		try {
 			await updateItem(itemId, patch);
-		} catch (e: any) {
-			setItems(prev); // revert
-			setError(e?.message ?? String(e));
-		} finally {
-			await refreshItems();
+			if (!mounted.current) return false;
+			++refreshVersion.current;
+			setItems(current => current.map(item => item.id === itemId ? { ...item, ...patch } : item));
+			return true;
+		} catch {
+			if (mounted.current) setError("We couldn’t confirm this gift was saved. Your edits are still here. Refresh to check its current status before trying again.");
+			return false;
 		}
 	}
 
 	async function handleShareToggle() {
-		if (!familyGroupId || !list) return;
-
+		if (!mounted.current || !familyGroupId || !list || sharePending.current) return;
+		sharePending.current = true;
 		setShareLoading(true);
 		setError(null);
-
+		const nextShared = !isShared;
 		try {
-			if (isShared) {
-				// Unshare
-				const { error } = await supabase
-					.from("list_shares")
-					.delete()
-					.match({ list_id: list.id, group_id: familyGroupId });
-
-				if (error) throw error;
-				setIsShared(false);
-			} else {
-				// Share
-				const { error } = await supabase
-					.from("list_shares")
-					.insert({ list_id: list.id, group_id: familyGroupId });
-
-				if (error) throw error;
-				setIsShared(true);
-			}
-		} catch (err: any) {
-			setError(err?.message ?? String(err));
+			await setListShared(list.id, familyGroupId, nextShared);
+			if (!mounted.current) return;
+			setIsShared(nextShared);
+			toast.success(nextShared ? "List shared with family" : "List unshared from family");
+		} catch {
+			if (!mounted.current) return;
+			const message = "We couldn’t confirm the sharing change. Refresh to check its current status before trying again.";
+			setError(message);
+			toast.error(message);
 		} finally {
-			setShareLoading(false);
+			sharePending.current = false;
+			if (mounted.current) setShareLoading(false);
 		}
 	}
 
@@ -452,13 +448,13 @@ function ListDetailContent({ id }: { id: string }) {
 						userId === (list as any).owner_user_id &&
 						familyGroupId && (
 							<div className="py-2">
-								<StatefulButton
+								<button
 									onClick={handleShareToggle}
 									disabled={shareLoading}
 									className="px-4 py-2 bg-emerald-700/80 text-white rounded-lg text-sm font-medium border border-emerald-700/50 hover:ring-emerald-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700/60 disabled:opacity-50 transition-colors min-w-[180px]"
 								>
-									{isShared ? "Unshare from Family" : "Share to Family"}
-								</StatefulButton>
+									{shareLoading ? "Saving…" : isShared ? "Unshare from Family" : "Share to Family"}
+								</button>
 							</div>
 						)}
 					{/* Toggle button shown when the form is collapsed - only for owner */}

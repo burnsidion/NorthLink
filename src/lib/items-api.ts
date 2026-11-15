@@ -1,6 +1,6 @@
 // src/lib/items-api.ts
 import { supabase } from "@/lib/supabase";
-import { toCents, normalizeUrl } from "@/lib/format";
+import { toCents, normalizeUrl, validatePriceCents } from "@/lib/format";
 import type { ItemRow } from "@/types/db";
 
 /** Create a new item on a list. Returns the inserted row. */
@@ -30,6 +30,7 @@ export async function addItem(
 		.single();
 
 	if (error) throw error;
+	if (!data || typeof data.id !== "string" || data.list_id !== listId) throw new Error("Could not confirm this gift was added. Refresh before trying again.");
 	return data as ItemRow;
 }
 
@@ -71,7 +72,7 @@ export async function updateItem(
 		const val = (patch as PatchByUI).price ?? "";
 		mapped.price_cents = toCents(val);
 	} else if ("price_cents" in patch) {
-		mapped.price_cents = (patch as PatchByDB).price_cents ?? null;
+		mapped.price_cents = validatePriceCents((patch as PatchByDB).price_cents ?? null);
 	}
 
 	// link
@@ -89,13 +90,11 @@ export async function updateItem(
 	// most_wanted
 	if ("most_wanted" in patch) {
 		mapped.most_wanted = patch.most_wanted;
-		console.log("updateItem: most_wanted patch:", patch.most_wanted);
 	}
 
 	// on_sale
 	if ("on_sale" in patch) {
 		mapped.on_sale = patch.on_sale;
-		console.log("updateItem: on_sale patch:", patch.on_sale);
 	}
 
 	// Remove undefined keys to avoid overwriting with undefined
@@ -109,13 +108,14 @@ export async function updateItem(
 		})
 	) as PatchByDB;
 
-	console.log("updateItem: final payload:", payload);
+	if (Object.keys(payload).length === 0) throw new Error("No gift changes to save.");
 
-	const { error } = await supabase
+	const { data, error } = await supabase
 		.from("items")
 		.update(payload)
-		.eq("id", itemId);
+		.eq("id", itemId).select("id").single();
 	if (error) throw error;
+	if (data?.id !== itemId) throw new Error("Could not confirm this gift was saved. Refresh before trying again.");
 }
 
 export type PurchaseState = { purchased: boolean; purchased_at: string | null };
@@ -142,8 +142,9 @@ export async function togglePurchased(
 
 /** Delete an item. */
 export async function deleteItem(itemId: string): Promise<void> {
-	const { error } = await supabase.from("items").delete().eq("id", itemId);
+	const { data, error } = await supabase.from("items").delete().eq("id", itemId).select("id").single();
 	if (error) throw error;
+	if (data?.id !== itemId) throw new Error("Could not confirm this gift was deleted. Refresh before trying again.");
 }
 
 export async function getListProgress(listId: string) {

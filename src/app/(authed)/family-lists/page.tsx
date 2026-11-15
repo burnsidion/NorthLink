@@ -1,12 +1,11 @@
 "use client";
 //Deps
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
-import { toast } from "sonner";
+import { getListsWithProgress } from "@/lib/list-progress";
+import { useRefreshingData } from "@/lib/use-refreshing-data";
+import { RefreshNotice } from "@/components/ui/refresh-notice";
 
 //components
-import ListCard, { ListWithProgress } from "@/components/lists/list-card";
+import ListCard from "@/components/lists/list-card";
 import Snowfall from "@/components/ui/snowfall";
 import { StarsBackground } from "@/components/ui/stars-background";
 import { HeroHighlight, Highlight } from "@/components/ui/hero-highlight";
@@ -31,157 +30,11 @@ const cardVariants = {
 	},
 };
 
-async function getListProgress(listId: string) {
-	const { count: total, error: totalErr } = await supabase
-		.from("items")
-		.select("id", { count: "exact", head: true })
-		.eq("list_id", listId);
-
-	const { count: purchased, error: purchasedErr } = await supabase
-		.from("items")
-		.select("id", { count: "exact", head: true })
-		.eq("list_id", listId)
-		.eq("purchased", true);
-
-	if (totalErr) throw totalErr;
-	if (purchasedErr) throw purchasedErr;
-
-	return {
-		total: total ?? 0,
-		purchased: purchased ?? 0,
-	};
-}
+const loadLists = () => getListsWithProgress(true);
 
 export default function FamilyListsPage() {
-	const router = useRouter();
-
-	const [lists, setLists] = useState<ListWithProgress[]>([]);
-	const [loading, setLoading] = useState(true);
-	const [error, setError] = useState<string | null>(null);
-	const [userId, setUserId] = useState<string | null>(null);
-	const [userGroupId, setUserGroupId] = useState<string | null>(null);
-
-	async function fetchFamilyLists() {
-		try {
-			// 1) Get the current user
-			const {
-				data: { user },
-				error: userError,
-			} = await supabase.auth.getUser();
-
-			if (userError || !user) {
-				console.error("Error fetching user:", userError);
-				router.push("/login");
-				return;
-			}
-
-			const currentUserId = user.id;
-			setUserId(currentUserId);
-
-			// 2) Get user's family group
-			const { data: memberData } = await supabase
-				.from("group_members")
-				.select("group_id")
-				.eq("user_id", currentUserId)
-				.limit(1)
-				.maybeSingle();
-
-			const groupId = memberData?.group_id;
-			setUserGroupId(groupId);
-
-			// 3) Fetch all accessible lists from the view
-			const { data, error } = await supabase
-				.from("v_user_accessible_lists")
-				.select(
-					"id,title,owner_user_id,owner_display_name,owner_avatar_url,created_at"
-				)
-				.eq("shared_user_id", currentUserId)
-				.order("created_at", { ascending: false });
-
-			if (error) {
-				console.error("Error fetching accessible lists:", error);
-				setError(error.message);
-				setLoading(false);
-				return;
-			}
-
-			// 4) Deduplicate by list ID and filter out lists owned by current user
-			const seenIds = new Set<string>();
-			const sharedLists = (data ?? []).filter((l) => {
-				if (seenIds.has(l.id)) {
-					return false;
-				}
-				if (l.owner_user_id === currentUserId) {
-					return false;
-				}
-				seenIds.add(l.id);
-				return true;
-			});
-
-			// 5) Enrich each list with item counts and group_id
-			const enriched: ListWithProgress[] = await Promise.all(
-				sharedLists.map(async (l) => {
-					const progress = await getListProgress(l.id);
-					return { ...l, ...progress, group_id: groupId };
-				})
-			);
-
-			console.log("family-lists enriched:", enriched);
-
-			setLists(enriched);
-			setLoading(false);
-		} catch (err) {
-			console.error("Failed to fetch family lists:", err);
-			setError("Failed to load family lists");
-			setLoading(false);
-		}
-	}
-
-	useEffect(() => {
-		fetchFamilyLists();
-
-		// Subscribe to realtime changes on list_shares table
-		const channel = supabase
-			.channel("family-lists-list_shares")
-			.on(
-				"postgres_changes",
-				{ event: "*", schema: "public", table: "list_shares" },
-				() => {
-					console.log("Realtime update → refetching");
-					fetchFamilyLists();
-				}
-			)
-			.subscribe();
-
-		return () => {
-			supabase.removeChannel(channel);
-		};
-	}, []);
-
-	async function handleUnshare(listId: string, groupId: string) {
-		try {
-			const { error } = await supabase
-				.from("list_shares")
-				.delete()
-				.eq("list_id", listId)
-				.eq("group_id", groupId);
-
-			if (error) {
-				console.error("Error unsharing list:", error);
-				toast.error("Only the list owner can unshare this list.");
-				return;
-			}
-
-			toast.success("List unshared from family group");
-
-			// Re-fetch to get the updated list from the view
-			// This ensures all users see the change immediately
-			await fetchFamilyLists();
-		} catch (err) {
-			console.error("Failed to unshare list:", err);
-			toast.error("Failed to unshare list");
-		}
-	}
+	const { data, error, loading, retry } = useRefreshingData(loadLists, "family-lists-progress");
+	const lists = data ?? [];
 
 	if (loading) {
 		return (
@@ -221,14 +74,14 @@ export default function FamilyListsPage() {
 		);
 	}
 
-	if (error) {
+	if (error && data === null) {
 		return (
 			<main className="max-w-6xl mx-auto px-4 py-10 text-white">
 				<StarsBackground />
 				<h1 className="heading-festive text-3xl sm:text-4xl font-bold mb-4">
 					Shared Lists
 				</h1>
-				<p>Something went wrong loading your shared lists.</p>
+				<RefreshNotice message={error} onRetry={retry} />
 			</main>
 		);
 	}
@@ -237,6 +90,7 @@ export default function FamilyListsPage() {
 		<main className="max-w-6xl mx-auto px-4 py-10 text-white">
 			<StarsBackground />
 			<Snowfall enableMeteors={true} meteorCount={3} />
+			{error && <RefreshNotice message={error} onRetry={retry} />}
 			<CountdownBanner initialNow={Date.now()} />
 			<HeroHighlight className="bg-none mb-12">
 				<motion.h1

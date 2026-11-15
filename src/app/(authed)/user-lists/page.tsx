@@ -1,9 +1,12 @@
 "use client";
 //Deps
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "motion/react";
-import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { getListsWithProgress } from "@/lib/list-progress";
+import { useRefreshingData } from "@/lib/use-refreshing-data";
+import { RefreshNotice } from "@/components/ui/refresh-notice";
+import { toast } from "sonner";
+import { renameList, deleteList } from "@/lib/lists-api";
 
 //components
 import Link from "next/link";
@@ -20,162 +23,74 @@ import CountdownBanner from "@/components/ui/countdown-banner";
 import { SkeletonCard } from "@/components/ui/skeleton-card";
 import PageFade from "@/components/ui/page-fade";
 
-// Helper to get progress for a list
-async function getListProgress(listId: string) {
-	const { count: total, error: totalErr } = await supabase
-		.from("items")
-		.select("id", { count: "exact", head: true })
-		.eq("list_id", listId);
-
-	const { count: purchased, error: purchasedErr } = await supabase
-		.from("items")
-		.select("id", { count: "exact", head: true })
-		.eq("list_id", listId)
-		.eq("purchased", true);
-
-	if (totalErr) throw totalErr;
-	if (purchasedErr) throw purchasedErr;
-
-	return {
-		total: total ?? 0,
-		purchased: purchased ?? 0,
-	};
-}
+const loadLists = () => getListsWithProgress(false);
 
 export default function UserListsPage() {
-	const router = useRouter();
-	const [lists, setLists] = useState<
-		| {
-				id: string;
-				title: string;
-				created_at: string;
-				total?: number;
-				purchased?: number;
-		  }[]
-		| null
-	>(null);
-	const [error, setError] = useState<string | null>(null);
-	const [loading, setLoading] = useState(true);
+	const { data: lists, error, loading, retry, updateData: setLists } = useRefreshingData(loadLists, "my-lists-progress");
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [manageList, setManageList] = useState<{
 		id: string;
 		title: string;
 	} | null>(null);
 
+	const mounted = useRef(false);
+	const actionPending = useRef(false);
+	const [actionError, setActionError] = useState<string | null>(null);
+	useEffect(() => {
+		mounted.current = true;
+		return () => { mounted.current = false; };
+	}, []);
+
 	const [newTitle, setNewTitle] = useState("");
 	const [saving, setSaving] = useState(false);
 	const [deleting, setDeleting] = useState(false);
 
-	// Refetch lists and recompute progress counts
-	const refreshLists = useCallback(async () => {
-		const {
-			data: { user },
-			error: userError,
-		} = await supabase.auth.getUser();
-
-		if (userError || !user) {
-			router.push("/login"); // or "/signin" if that's what you're using now
-			return;
-		}
-
-		const { data, error } = await supabase
-			.from("lists")
-			.select("id,title,created_at")
-			.eq("owner_user_id", user.id)
-			.order("created_at", { ascending: false });
-
-		if (error) {
-			setError(error.message);
-			setLoading(false);
-			return;
-		}
-
-		const enriched = await Promise.all(
-			(data ?? []).map(async (l) => {
-				const progress = await getListProgress(l.id);
-				return { ...l, ...progress };
-			})
-		);
-
-		setLists(enriched);
-		setLoading(false);
-	}, [router]);
-
-	useEffect(() => {
-		let channel: ReturnType<typeof supabase.channel> | null = null;
-
-		(async () => {
-			// initial load
-			await refreshLists();
-
-			// subscribe to realtime changes on lists to refresh the grid
-			channel = supabase
-				.channel("lists:self")
-				.on(
-					"postgres_changes",
-					{ event: "*", schema: "public", table: "lists" },
-					() => {
-						// refetch lists on insert/update/delete
-						refreshLists();
-					}
-				)
-				.subscribe();
-		})();
-
-		return () => {
-			if (channel) {
-				supabase.removeChannel(channel);
-			}
-		};
-	}, [refreshLists]);
-
 	async function handleRename() {
-		if (!manageList) return;
+		if (!manageList || actionPending.current || !mounted.current) return;
+		if (!newTitle.trim()) { setActionError("Enter a list name."); return; }
+		actionPending.current = true;
+		setSaving(true);
+		setActionError(null);
+		const listId = manageList.id;
 		try {
-			setSaving(true);
-			const { error } = await supabase
-				.from("lists")
-				.update({ title: newTitle })
-				.eq("id", manageList.id);
-			if (error) throw error;
-
-			setLists((prev) =>
-				prev
-					? prev.map((it) =>
-							it.id === manageList.id ? { ...it, title: newTitle } : it
-					  )
-					: prev
-			);
-
+			const savedTitle = await renameList(listId, newTitle);
+			if (!mounted.current) return;
+			setLists(previous => previous?.map(list => list.id === listId ? { ...list, title: savedTitle } : list) ?? null);
 			setIsModalOpen(false);
 			setManageList(null);
-		} catch (err) {
-			console.error("Rename failed:", err);
+			toast.success("List renamed");
+		} catch {
+			if (!mounted.current) return;
+			const message = "We couldn’t confirm the rename. Your changes are still here. Refresh to check the list before trying again.";
+			setActionError(message);
+			toast.error(message);
 		} finally {
-			setSaving(false);
+			actionPending.current = false;
+			if (mounted.current) setSaving(false);
 		}
 	}
 
 	async function handleDelete() {
-		if (!manageList) return;
+		if (!manageList || actionPending.current || !mounted.current) return;
+		actionPending.current = true;
+		setDeleting(true);
+		setActionError(null);
+		const listId = manageList.id;
 		try {
-			setDeleting(true);
-			const { error } = await supabase
-				.from("lists")
-				.delete()
-				.eq("id", manageList.id);
-			if (error) throw error;
-
-			setLists((prev) =>
-				prev ? prev.filter((it) => it.id !== manageList.id) : prev
-			);
-
+			await deleteList(listId);
+			if (!mounted.current) return;
+			setLists(previous => previous?.filter(list => list.id !== listId) ?? null);
 			setIsModalOpen(false);
 			setManageList(null);
-		} catch (err) {
-			console.error("Delete failed:", err);
+			toast.success("List deleted");
+		} catch {
+			if (!mounted.current) return;
+			const message = "We couldn’t confirm this list was deleted. Refresh to check its current status before trying again.";
+			setActionError(message);
+			toast.error(message);
 		} finally {
-			setDeleting(false);
+			actionPending.current = false;
+			if (mounted.current) setDeleting(false);
 		}
 	}
 
@@ -216,8 +131,8 @@ export default function UserListsPage() {
 		);
 	}
 
-	if (error) {
-		return <p className="text-red-600 px-6 py-8">Error: {error}</p>;
+	if (error && lists === null) {
+		return <main className="p-6"><RefreshNotice message={error} onRetry={retry} /></main>;
 	}
 
 	const rows = lists ?? [];
@@ -226,6 +141,7 @@ export default function UserListsPage() {
 	return (
 		<main className="relative min-h-screen px-6 py-8 space-y-6 overflow-hidden">
 			<PageFade>
+				{error && <RefreshNotice message={error} onRetry={retry} />}
 				<StarsBackground />
 				<CountdownBanner initialNow={Date.now()} />
 				<header className="relative mx-auto w-full max-w-5xl">
@@ -241,9 +157,10 @@ export default function UserListsPage() {
 						</motion.h1>
 						<div>
 							<CreateListButton
-								onCreated={(newList) =>
-									setLists((prev) => [newList, ...(prev ?? [])])
-								}
+								onCreated={(newList) => {
+									setLists(prev => [{ ...newList, total: 0, purchased: 0 }, ...(prev ?? [])]);
+									retry();
+								}}
 							/>
 						</div>
 					</div>
@@ -272,29 +189,33 @@ export default function UserListsPage() {
 								list={l}
 								index={index}
 								onManage={(id, title) => {
+									if (actionPending.current) return;
+									setActionError(null);
 									setManageList({ id, title });
 									setNewTitle(title);
 									setIsModalOpen(true);
 								}}
 							/>
 						))}
-						{isModalOpen && (
-							<ManageListModal
-								open={isModalOpen}
-								list={manageList}
-								newTitle={newTitle}
-								setNewTitle={setNewTitle}
-								saving={saving}
-								deleting={deleting}
-								onRename={handleRename}
-								onDelete={handleDelete}
-								onClose={() => {
-									setIsModalOpen(false);
-									setManageList(null);
-								}}
-							/>
-						)}
 					</section>
+				)}
+				{isModalOpen && (
+					<ManageListModal
+						open={isModalOpen}
+						list={manageList}
+						newTitle={newTitle}
+						setNewTitle={setNewTitle}
+						saving={saving}
+						deleting={deleting}
+						error={actionError}
+						onRename={handleRename}
+						onDelete={handleDelete}
+						onClose={() => {
+							if (actionPending.current) return;
+							setIsModalOpen(false);
+							setManageList(null);
+						}}
+					/>
 				)}
 				<Snowfall count={70} speed={40} wind={0.18} />
 			</PageFade>
