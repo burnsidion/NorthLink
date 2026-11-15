@@ -5,12 +5,7 @@ import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/lib/supabase";
 import { getProfileUser } from "@/lib/auth-helpers";
-import { motion } from "motion/react";
-
-//UI components
-import { StarsBackground } from "@/components/ui/stars-background";
-import Snowfall from "@/components/ui/snowfall";
-import { BorderBeam } from "@/components/ui/border-beam";
+import { CyberSantaBrand } from "@/components/brand/cybersanta-brand";
 
 export default function LoginPage() {
 	const sb = supabase;
@@ -43,31 +38,12 @@ export default function LoginPage() {
 	}, [attempt]);
 
 	return (
-		<main className="relative min-h-dvh grid place-items-center p-6">
-			{/* backgrounds behind everything */}
-			<div className="pointer-events-none fixed inset-0 -z-10">
-				<StarsBackground />
-				<Snowfall
-					count={70}
-					speed={40}
-					wind={0.18}
-					enableMeteors={true}
-					meteorCount={3}
-				/>
-			</div>
-
-			{/* Auth Card */}
-			<motion.div
-				initial={{ opacity: 0, y: 20 }}
-				animate={{ opacity: 1, y: 0 }}
-				transition={{ duration: 0.5 }}
-				className="relative w-full max-w-md rounded-lg border border-white/10 bg-black/40 backdrop-blur-sm p-6 sm:p-8 shadow-2xl"
-			>
-				<BorderBeam size={250} duration={12} delay={9} />
-
-				<h1 className="heading-festive mb-6 text-xl font-semibold text-center text-white">
-					🎁 🎄 Sign in to CyberSanta 🎄 🎁
-				</h1>
+		<main className="ledger-frame ledger-theme ledger-auth-shell">
+            <div className="ledger-paper ledger-auth-card">
+                <CyberSantaBrand />
+                <p className="ledger-eyebrow">The Christmas ledger</p>
+                <h1>Welcome to CyberSanta</h1>
+                <p className="ledger-muted">Sign in to gather wishes and keep surprises secret.</p>
 				{failedAttempt === attempt && (
 					<div className="mb-4 space-y-2">
 						<p role="alert">We couldn’t check your sign-in. Please try again.</p>
@@ -81,10 +57,16 @@ export default function LoginPage() {
 						variables: {
 							default: {
 								colors: {
-									brand: "oklch(0.60 0.118 184.704)",
-									inputText: "var(--foreground)",
-									inputLabelText: "var(--muted-foreground)",
-									inputPlaceholder: "var(--muted-foreground)",
+									brand: "#193f30",
+                                    brandAccent: "#24563f",
+                                    brandButtonText: "#fff8e8",
+                                    inputBackground: "#fff9e9",
+                                    inputBorder: "#bda47d",
+                                    anchorTextColor: "#193f30",
+                                    messageText: "#842d29",
+									inputText: "#39271e",
+									inputLabelText: "#6c5542",
+									inputPlaceholder: "#6c5542",
 								},
 							},
 						},
@@ -97,7 +79,7 @@ export default function LoginPage() {
 							: undefined
 					}
 				/>
-			</motion.div>
+			</div>
 		</main>
 	);
 }

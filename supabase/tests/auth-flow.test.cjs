@@ -102,7 +102,9 @@ function screen(path, { finish = async () => '/landing', logout = async () => {}
   const window={ location: { href: callback + '?next=/user-lists#error_description=private', replace: router.replace },
     history: { state: null, replaceState: (_state,_title,url) => history.push(url) } };
   const component=load(path, {
-    react: hooks, 'react/jsx-runtime': { jsx, jsxs: jsx }, 'next/navigation': { useRouter: () => router }, 'next/link': { default: 'Link' },
+    react: hooks, 'react/jsx-runtime': { jsx, jsxs: jsx },
+    '@/components/brand/cybersanta-brand': { CyberSantaBrand: 'Brand' },
+    '@/components/brand/profile-avatar': { ProfileAvatar: 'Avatar' }, 'next/navigation': { useRouter: () => router }, 'next/link': { default: 'Link' },
     '@/lib/auth-flow': { finishAuthCallback: finish, signOutBrowser: logout }, '@/lib/auth-helpers': { getProfileUser: user },
     '@/lib/supabase': { supabase: { auth: { onAuthStateChange(fn) { authCallback=fn; return { data: { subscription: { unsubscribe() {} } } }; } } } },
     '@supabase/auth-ui-react': { Auth: 'Auth' }, '@supabase/auth-ui-shared': { ThemeSupa: {} }, 'motion/react': { motion: { div: 'motion.div' } },

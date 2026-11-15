@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ProfileAvatar } from "@/components/brand/profile-avatar";
 import { useId, useState } from "react";
 
 export type ListWithProgress = {
@@ -38,7 +39,7 @@ export default function ListCard({ list, onManage, onUnshare, currentUserId,
 				<div className="scroll-heading">
 					<h2>{list.title}</h2>
 					{showOwner && list.owner_display_name && <div className="scroll-owner">
-						{list.owner_avatar_url && <img src={list.owner_avatar_url} width={28} height={28} alt="" />}
+						<ProfileAvatar src={list.owner_avatar_url} name={list.owner_display_name} size={32} />
 						<span>By {list.owner_display_name}</span>
 					</div>}
 					<p className="scroll-count">{purchased} of {total} purchased</p>

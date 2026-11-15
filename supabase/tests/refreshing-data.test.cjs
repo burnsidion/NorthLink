@@ -105,7 +105,7 @@ test('all three screens retain successful content beside a retry notice after re
   for(const path of ['user-lists','family-lists','purchased-items']){
     const component=load('src/app/(authed)/'+path+'/page.tsx',modules).default;
     const all=nodes(component());assert.ok(all.some(node=>node.type==='RefreshNotice'));
-    assert.ok(path==='purchased-items'?all.some(node=>node.type==='h3'&&node.props.children==='Still here'):all.some(node=>node.type==='ListCard'&&node.props.list.title==='Still here'));
+    assert.ok(path==='purchased-items'?all.some(node=>node.type==='h2'&&node.props.children==='Still here'):all.some(node=>node.type==='ListCard'&&node.props.list.title==='Still here'));
   }
 });
 

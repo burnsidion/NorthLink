@@ -3,46 +3,17 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { useTheme } from "next-themes";
 import { getCurrentSession } from "@/lib/auth-helpers";
 import { calculateNewPurchases } from "@/lib/list-helpers";
 
-// UI Components
-import { CardSpotlight } from "@/components/ui/card-spotlight";
-import { HeroHighlight, Highlight } from "@/components/ui/hero-highlight";
-import { FestiveGlow } from "@/components/ui/festive-glow";
-import { SkeletonCard } from "@/components/ui/skeleton-card";
-import { EditOutlined, TeamOutlined, GiftOutlined } from "@ant-design/icons";
 import CountdownBanner from "@/components/ui/countdown-banner";
-import Snowfall from "@/components/ui/snowfall";
-import { StarsBackground } from "@/components/ui/stars-background";
-import PageFade from "@/components/ui/page-fade";
 import FamilyGroupPanel from "@/components/family/family-group-panel";
-
-// Animation
-import { motion } from "motion/react";
 import Link from "next/link";
-import { ListTodo, UsersRound, Gift } from "lucide-react";
-
-const gridVariants = {
-	hidden: {},
-	show: { transition: { staggerChildren: 0.12 } },
-};
-
-const cardVariants = {
-	hidden: { opacity: 0, y: 12, filter: "blur(2px)" },
-	show: {
-		opacity: 1,
-		y: 0,
-		filter: "blur(0px)",
-		transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] as any },
-	},
-};
 
 export default function ListsPage() {
 	const sb = supabase;
 	const router = useRouter();
-	const [email, setEmail] = useState<string | null>(null);
+	const [initialNow] = useState(() => Date.now());
 	const [displayName, setDisplayName] = useState<string | null>(null);
 	const [activityCount, setActivityCount] = useState<number>(0);
 	const [listsWithActivity, setListsWithActivity] = useState<
@@ -57,7 +28,7 @@ export default function ListsPage() {
 				router.replace("/login");
 				return;
 			}
-			setEmail(session.user.email ?? null);
+
 			const { data: prof, error } = await sb
 				.from("profiles")
 				.select("display_name")
@@ -82,13 +53,13 @@ export default function ListsPage() {
 					);
 				} else if (Array.isArray(ownedLists)) {
 					const activeLists = ownedLists
-						.filter((lst: any) => {
+						.filter((lst) => {
 							if (!lst.last_viewed_at || !Array.isArray(lst.items))
 								return false;
 							// Use helper to check if there are new purchases
 							return calculateNewPurchases(lst.items, lst.last_viewed_at) > 0;
 						})
-						.map((lst: any) => ({ id: lst.id, title: lst.title }));
+						.map((lst) => ({ id: lst.id, title: lst.title }));
 					setActivityCount(activeLists.length);
 					setListsWithActivity(activeLists);
 				}
@@ -99,252 +70,14 @@ export default function ListsPage() {
 		})();
 	}, [router, sb]);
 
-	return (
-		<main className="relative mx-auto max-w-6xl min-h-dvh px-4 pb-24 pt-24 lg:pt-20">
-			<PageFade>
-				<StarsBackground />
-				<div className="pointer-events-none fixed inset-0 z-9999">
-					<Snowfall
-						count={70}
-						speed={40}
-						wind={0.18}
-						enableMeteors={true}
-						meteorCount={3}
-					/>
-				</div>
-				<CountdownBanner initialNow={Date.now()} />
-				{/* Hero Section */}
-				<HeroHighlight className="bg-none mt-12">
-					<motion.h1
-						initial={{
-							opacity: 0,
-							y: 20,
-						}}
-						animate={{
-							opacity: 1,
-							y: [20, -5, 0],
-						}}
-						transition={{
-							duration: 0.5,
-							ease: [0.4, 0.0, 0.2, 1] as any,
-						}}
-						className="heading-festive text-2xl px-4 md:text-4xl lg:text-5xl font-bold text-neutral-700 dark:text-white max-w-4xl leading-relaxed lg:leading-snug text-center mx-auto "
-					>
-						Welcome {displayName !== null ? displayName : "shopper"}!
-						<br />
-						<Highlight className="text-black dark:text-white">
-							Create
-						</Highlight>{" "}
-						your own lists.
-						<br />
-						<Highlight className="text-black dark:text-white">
-							Browse
-						</Highlight>{" "}
-						Family Lists.
-						<br />
-						Keep{" "}
-						<Highlight className="text-black dark:text-white">
-							surprises
-						</Highlight>{" "}
-						secret!
-					</motion.h1>
-				</HeroHighlight>
-
-				{/* Edit profile button*/}
-				<div className="flex justify-center my-6">
-					<button
-						onClick={() => router.push("/onboarding")}
-						className="rounded-md border border-white/10 px-4 py-2 text-sm font-medium bg-emerald-700/80 hover:bg-emerald-700 text-white"
-					>
-						Edit profile
-					</button>
-				</div>
-
-				{/* Family Group Panel */}
-				<FamilyGroupPanel />
-
-				{/* Activity tab (owner notifications) */}
-				{activityCount > 0 && (
-					<div className="fixed right-4 top-1/3 z-50 pointer-events-auto">
-						<div className="transform translate-x-0 hover:translate-x-0 transition">
-							<div className="rounded-l-lg bg-red-900/80 border border-red-600/50 px-4 py-3 shadow-lg text-sm text-white flex items-center gap-3">
-								<span className="text-lg">🎁</span>
-								<div>
-									You have activity on{" "}
-									{listsWithActivity.map((list, idx) => (
-										<span key={list.id}>
-											<Link
-												href={`/lists/${list.id}`}
-												className="font-bold underline decoration-emerald-400 underline-offset-2 hover:decoration-2 transition-all"
-											>
-												{list.title}
-											</Link>
-											{idx < listsWithActivity.length - 1 &&
-												(idx === listsWithActivity.length - 2 ? " and " : ", ")}
-										</span>
-									))}{" "}
-									since your last visit.
-								</div>
-							</div>
-						</div>
-					</div>
-				)}
-				{/* Card Container */}
-				<motion.div
-					className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center"
-					variants={gridVariants}
-					initial="hidden"
-					animate="show"
-				>
-					{loading ? (
-						// Loading Skeletons
-						<>
-							<motion.div variants={cardVariants}>
-								<SkeletonCard />
-							</motion.div>
-							<motion.div variants={cardVariants}>
-								<SkeletonCard />
-							</motion.div>
-							<motion.div variants={cardVariants}>
-								<SkeletonCard />
-							</motion.div>
-						</>
-					) : (
-						<>
-							{/* User Card */}
-							<motion.div variants={cardVariants}>
-								<FestiveGlow>
-									<CardSpotlight
-										color="#3b0f0f"
-										bgGradient="from-red-950/40 to-red-900/20"
-										className="relative w-full max-w-md h-96 text-center"
-									>
-										<div className="relative z-20 flex flex-col items-center justify-center h-full">
-											<ListTodo
-												className="h-6 w-6 text-red-600"
-												strokeWidth={1.75}
-												aria-hidden
-											/>
-											<span className="sr-only">My Lists</span>
-											<h1 className="heading-festive text-xl font-bold text-white">
-												My Lists
-											</h1>
-											<p className="text-neutral-300 mt-4 text-sm">
-												Once it’s ready, your lists will appear here for easy
-												access.
-											</p>
-											<Link href="/user-lists" className="mt-6">
-												<button className="rounded-md border border-white/10 px-5 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 bg-red-600/80 hover:bg-red-600 text-white">
-													View My Lists
-												</button>
-											</Link>
-										</div>
-									</CardSpotlight>
-								</FestiveGlow>
-							</motion.div>
-							{/* Family Card */}
-							<motion.div variants={cardVariants}>
-								<FestiveGlow>
-									<CardSpotlight
-										color="#0f3b17"
-										bgGradient="from-emerald-950/40 to-emerald-900/20"
-										className="relative w-full max-w-md h-96 text-center"
-									>
-										<div className="relative z-20 flex flex-col items-center justify-center h-full">
-											<UsersRound
-												className="h-6 w-6 text-emerald-700"
-												strokeWidth={1.75}
-												aria-hidden
-											/>
-											<span className="sr-only">Family Lists</span>
-											<h1 className="heading-festive text-xl font-bold text-white">
-												Family Lists
-											</h1>
-											<p className="text-neutral-300 mt-4 text-sm">
-												Here is where you can view lists others have created
-											</p>
-											<Link href="/family-lists" className="mt-6">
-												<button className="rounded-md border border-white/10 px-5 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 bg-emerald-700/80 hover:bg-emerald-700 text-white">
-													View Family Lists
-												</button>
-											</Link>
-										</div>
-									</CardSpotlight>
-								</FestiveGlow>
-							</motion.div>
-							{/* Purchases Card */}
-							<motion.div variants={cardVariants}>
-								<FestiveGlow>
-									<CardSpotlight
-										color="#3b0f0f"
-										bgGradient="from-red-950/40 to-red-900/20"
-										className="relative w-full max-w-md h-96 text-center"
-									>
-										<div className="relative z-20 flex flex-col items-center justify-center h-full">
-											<Gift
-												className="h-6 w-6 text-red-600"
-												strokeWidth={1.75}
-												aria-hidden
-											/>
-											<span className="sr-only">My Purchases</span>
-											<h1 className="heading-festive text-xl font-bold text-white">
-												My Purchases
-											</h1>
-											<p className="text-neutral-300 mt-4 text-sm">
-												View the gifts you've purchased for others
-											</p>
-											<Link href="/purchased-items" className="mt-6">
-												<button className="rounded-md border border-white/10 px-5 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 bg-red-600/80 hover:bg-red-600 text-white">
-													View My Purchases
-												</button>
-											</Link>
-										</div>
-									</CardSpotlight>
-								</FestiveGlow>
-							</motion.div>
-						</>
-					)}
-				</motion.div>
-				{/* How It Works Section */}
-				<div className="relative mt-24">
-					<div
-						aria-hidden="true"
-						className="pointer-events-none absolute -inset-0.5 rounded-2xl opacity-30 blur-xl"
-						style={{
-							background:
-								"conic-gradient(from 0deg at 50% 50%, rgba(239,68,68,0.6), rgba(34,197,94,0.6), rgba(239,68,68,0.6))",
-						}}
-					/>
-					<div className="relative rounded-2xl bg-black/50 p-8 text-center ring-1 ring-white/10 text-white">
-						<h2 className="heading-festive text-2xl font-bold mb-8 text-white">
-							How It Works
-						</h2>
-						<div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-							<div>
-								<EditOutlined />
-								<h3 className="text-lg font-semibold">Create Your List</h3>
-								<p className="mt-2 text-sm text-neutral-300">
-									Add all the items you’re wishing for this Christmas.
-								</p>
-							</div>
-							<div>
-								<TeamOutlined />
-								<h3 className="text-lg font-semibold">Share With Others</h3>
-								<p className="mt-2 text-sm text-neutral-300">
-									Let friends and family see your wish list.
-								</p>
-							</div>
-							<div>
-								<GiftOutlined />
-								<h3 className="text-lg font-semibold">Track Purchases</h3>
-								<p className="mt-2 text-sm text-neutral-300">
-									Items are marked when claimed to avoid duplicates.
-								</p>
-							</div>
-						</div>
-					</div>
-				</div>
-			</PageFade>
-		</main>
-	);
+ return <main className="ledger-theme ledger-paper ledger-page">
+  <header className="ledger-page-heading"><div><p className="ledger-eyebrow">The Christmas ledger</p><h1 className="ledger-title">Welcome, {displayName ?? "shopper"}!</h1><p>Christmas wishes, thoughtful gifts, and well-kept secrets.</p></div><CountdownBanner initialNow={initialNow} appearance="ledger" /></header>
+  <Link href="/onboarding" className="ledger-secondary">Edit profile</Link>
+  <div className="ledger-home-family"><FamilyGroupPanel /></div>
+  {activityCount > 0 && <aside className="ledger-notice" aria-label="New gift activity">You have activity on {listsWithActivity.map((list, idx) => <span key={list.id}><Link href={`/lists/${list.id}`}>{list.title}</Link>{idx < listsWithActivity.length - 1 ? ", " : ""}</span>)} since your last visit.</aside>}
+  {loading ? <p role="status" className="ledger-empty">Opening your ledger…</p> : <section className="ledger-home-grid" aria-label="Your Christmas plans">
+   {[{title:"My Lists",text:"Gather your wishes in one place.",href:"/user-lists",action:"View My Lists"},{title:"Family Lists",text:"Find something they will love.",href:"/family-lists",action:"View Family Lists"},{title:"Purchased Gifts",text:"Keep track of the gifts you have claimed.",href:"/purchased-items",action:"View My Purchases"}].map(card => <article key={card.href} className="ledger-home-card"><p className="ledger-eyebrow">CyberSanta</p><h2>{card.title}</h2><p>{card.text}</p><Link href={card.href} className="ledger-button">{card.action}</Link></article>)}
+  </section>}
+  <section className="ledger-how"><h2>How it works</h2><p>Create your wish list, share it with your family, and mark gifts as purchased on their lists. They can see that a gift is claimed, while the buyer stays a secret.</p></section>
+ </main>;
 }

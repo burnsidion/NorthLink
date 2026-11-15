@@ -10,6 +10,7 @@ function card({ showOwner = false, hideManageButton = false, currentUserId = 'ow
   const modules = {
     react: { useId: () => 'scroll-details-test', useState: () => [expanded, value => { expanded = typeof value === 'function' ? value(expanded) : value; }] },
     'react/jsx-runtime': { jsx, jsxs: jsx }, 'next/link': { default: 'Link' },
+    '@/components/brand/profile-avatar': { ProfileAvatar: 'Avatar' },
   };
   const exports = {};
   vm.runInNewContext(ts.transpileModule(fs.readFileSync('src/components/lists/list-card.tsx', 'utf8'), {

@@ -408,3 +408,41 @@
 	.scroll-details, .scroll-toggle span, .scroll-progress > div { transition: none; }
 }
 .ledger-detail .ledger-loading-card { min-height: 100px; margin-top: 16px; }
+
+/* Remaining Ledger screens and resilient profile images. */
+.ledger-muted { color: var(--ledger-muted); }
+.ledger-purchased-row { padding: 26px 0; border-top: 1px solid var(--ledger-line); overflow-wrap: anywhere; }
+.ledger-purchased-row h2, .ledger-home-card h2, .ledger-how h2 { font: 700 26px/1.25 Georgia, serif; }
+.ledger-purchased-row > p { margin: 12px 0; }
+.ledger-home-family { margin: 28px 0; }
+.ledger-family-panel { width: 100%; margin: 0 auto 24px; }
+.ledger-family-box { border: 1px solid var(--ledger-line); border-radius: 8px; background: #e6d2ab45; overflow: hidden; }
+.ledger-family-box code { background: #fff8e2; color: var(--ledger-ink); border-color: var(--ledger-line); }
+.ledger-family-box button { min-height: 44px; }
+.ledger-family-box input { min-width: 0; }
+.ledger-notice { border: 1px solid var(--ledger-line); padding: 18px; margin: 24px 0; border-radius: 6px; }
+.ledger-notice a { text-decoration: underline; }
+.ledger-home-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 20px; margin: 32px 0; }
+.ledger-home-card { border: 1px solid var(--ledger-line); border-radius: 6px; padding: 26px; display: flex; align-items: flex-start; flex-direction: column; gap: 16px; background: #fff9e333; }
+.ledger-home-card .ledger-button { margin-top: auto; }
+.ledger-how { border-top: 1px solid var(--ledger-line); padding-top: 24px; }
+.ledger-how p { margin-top: 12px; max-width: 75ch; line-height: 1.7; }
+.ledger-auth-shell { align-items: center; justify-content: center; }
+.ledger-auth-card { width: 100%; max-width: 560px; padding: clamp(24px,5vw,44px); border-radius: 12px; }
+.ledger-auth-card > .ledger-brand { margin-bottom: 24px; }
+.ledger-auth-card h1 { font: 700 clamp(28px,4vw,36px)/1.15 Georgia, serif; margin-bottom: 12px; }
+.ledger-auth-card input { min-height: 44px; }
+.ledger-avatar { flex: none; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; overflow: hidden; background: #ddc9a3; color: #513b28; font-weight: 700; vertical-align: middle; }
+.ledger-avatar img { width: 100%; height: 100%; object-fit: contain; }
+.ledger-avatar-preview { display: flex; gap: 16px; align-items: center; color: var(--ledger-muted); }
+.ledger-avatar-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(52px,1fr)); gap: 10px; max-height: 320px; overflow-y: auto; padding: 6px; }
+.ledger-avatar-option { min-width: 52px; min-height: 52px; border-radius: 8px; border: 2px solid var(--ledger-line); background: #fff7df; display: grid; place-items: center; }
+.ledger-avatar-option[aria-pressed="true"] { border-color: var(--ledger-green); background: #b7c5a5; box-shadow: 0 0 0 2px var(--ledger-green); }
+.ledger-theme [role="alert"] { background: #f2dfb8; color: #6b2721; border-color: #b18e61; }
+@media (max-width: 800px) { .ledger-home-grid { grid-template-columns: 1fr; } }
+.ledger-auth-card .supabase-auth-ui_ui-label { display: block; color: var(--ledger-ink); font-size: 14px; margin: 18px 0 8px; }
+.ledger-auth-card .supabase-auth-ui_ui-input { display: block; width: 100%; min-height: 46px; border: 1px solid var(--ledger-line); border-radius: 6px; background: #fff9e9; color: var(--ledger-ink); padding: 10px 12px; font: inherit; }
+.ledger-auth-card .supabase-auth-ui_ui-button { display: block; width: 100%; min-height: 46px; margin: 20px 0 16px; border: 1px solid #193f30; border-radius: 6px; background: #193f30; color: #fff8e8; padding: 10px 16px; font-weight: 600; cursor: pointer; }
+.ledger-auth-card .supabase-auth-ui_ui-anchor { display: block; color: var(--ledger-green); margin: 12px 0; text-decoration: underline; text-underline-offset: 3px; font-size: 14px; }
+.ledger-auth-card .supabase-auth-ui_ui-message { color: var(--ledger-red); padding: 12px; border: 1px solid var(--ledger-line); margin-top: 14px; border-radius: 6px; }
+.ledger-auth-card button:disabled { opacity: .55; cursor: wait; }
