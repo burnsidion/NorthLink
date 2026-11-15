@@ -446,3 +446,35 @@
 .ledger-auth-card .supabase-auth-ui_ui-anchor { display: block; color: var(--ledger-green); margin: 12px 0; text-decoration: underline; text-underline-offset: 3px; font-size: 14px; }
 .ledger-auth-card .supabase-auth-ui_ui-message { color: var(--ledger-red); padding: 12px; border: 1px solid var(--ledger-line); margin-top: 14px; border-radius: 6px; }
 .ledger-auth-card button:disabled { opacity: .55; cursor: wait; }
+
+/* One viewport-sized backdrop, always behind opaque reading surfaces. */
+body { isolation: isolate; background: #102c22; }
+.ledger-background { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; background: radial-gradient(ellipse at top, #244d38, transparent 70%), #102c22; }
+.ledger-background span { position: absolute; top: -8px; left: 0; width: var(--snow-size); height: var(--snow-size); border-radius: 50%; background: #fff4d5; opacity: .5; animation: ledger-snow var(--snow-duration) linear var(--snow-delay) infinite; }
+@keyframes ledger-snow { from { transform: translate(0, -12px); } to { transform: translate(24px, calc(100dvh + 16px)); } }
+.ledger-frame { background: transparent; }
+.ledger-theme :where(h1,h2,h3,p,code) { overflow-wrap: anywhere; }
+.ledger-secondary { display: inline-flex; align-items: center; justify-content: center; }
+.ledger-back-link, .ledger-desktop-account a, .ledger-footer > a:last-child { min-height: 44px; display: inline-flex; align-items: center; }
+.ledger-theme :where(button,a,input,select,textarea,summary) { touch-action: manipulation; }
+.ledger-page-heading > div { min-width: 0; }
+.ledger-page-heading .ledger-countdown { flex-shrink: 0; }
+.ledger-dialog:focus, .ledger-dialog-backdrop:focus { outline: none; }
+.ledger-dialog-actions > div { flex-wrap: wrap; }
+@media (min-width: 601px) and (max-width: 900px) { .ledger-page-heading { align-items: flex-start; flex-direction: column; } }
+@media (max-width: 360px) {
+	.scroll-actions { flex-wrap: wrap; }
+	.ledger-dialog-backdrop { padding: 12px; }
+	.ledger-dialog { padding: 20px 16px; max-height: calc(100dvh - 24px); }
+	.ledger-brand { gap: 7px; }
+	.ledger-brand span { font-size: 25px; }
+}
+@media (prefers-reduced-motion: reduce) {
+	.ledger-background span { animation: none; display: none; }
+	.ledger-theme *, .ledger-theme *::before, .ledger-theme *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: 0s !important; scroll-behavior: auto !important; }
+}
+.ledger-input, .ledger-select, .ledger-secondary, .ledger-filter, .ledger-avatar-option,
+.ledger-theme .ledger-purchase, .ledger-auth-card .supabase-auth-ui_ui-input { border-color: #917550; }
+.ledger-avatar-option[aria-pressed="true"] { border-color: var(--ledger-green); }
+.ledger-theme [role="alert"] button { min-height: 44px; padding: 8px 4px; }
+.ledger-family-box button[title="Copy invite code"] { min-width: 44px; }

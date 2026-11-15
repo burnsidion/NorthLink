@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { createPortal } from "react-dom";
+import { useDialogFocus } from "./use-dialog-focus";
 
 export default function CreateListButton({
 	onCreated,
@@ -17,7 +18,8 @@ export default function CreateListButton({
 	const [title, setTitle] = useState("");
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
-	const inputRef = useRef<HTMLInputElement | null>(null);
+	const dialogRef = useRef<HTMLDivElement>(null);
+	useDialogFocus(open, dialogRef);
 
 	function openModal() {
 		startTransition(() => setOpen(true));
@@ -30,23 +32,15 @@ export default function CreateListButton({
 		setLoading(false);
 	}
 
-	// Auto-focus input on open
-	useEffect(() => {
-		if (open) {
-			const id = setTimeout(() => inputRef.current?.focus(), 50);
-			return () => clearTimeout(id);
-		}
-	}, [open]);
-
 	// Close on Escape
 	useEffect(() => {
 		if (!open) return;
 		function onKey(e: KeyboardEvent) {
-			if (e.key === "Escape") closeModal();
+			if (e.key === "Escape" && !loading) closeModal();
 		}
 		document.addEventListener("keydown", onKey);
 		return () => document.removeEventListener("keydown", onKey);
-	}, [open]);
+	}, [open, loading]);
 
 	async function handleCreate() {
 		const t = title.trim();
@@ -112,13 +106,16 @@ export default function CreateListButton({
 				createPortal(
 					<div
 						className="ledger-theme ledger-dialog-backdrop fixed inset-0 z-9999 flex items-center justify-center"
-						role="dialog"
+						ref={dialogRef}
+                        tabIndex={-1}
+                        aria-busy={loading}
+                        role="dialog"
 						aria-modal="true"
 						aria-label="Create new list"
 					>
 						<div
 							className="absolute inset-0"
-							onClick={closeModal}
+							onClick={() => { if (!loading) closeModal(); }}
 							aria-hidden
 						/>
 
@@ -129,7 +126,7 @@ export default function CreateListButton({
 								Name
 							</label>
 							<input
-								ref={inputRef}
+								disabled={loading}
 								value={title}
 								onChange={(e) => setTitle(e.target.value)}
 								className="ledger-input"

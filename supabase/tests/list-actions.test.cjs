@@ -99,7 +99,7 @@ test('leaving the screen suppresses late action results and messages',async () =
 });
 test('manage dialog blocks edits, deletion, save, close and backdrop dismissal during either action',() => {
   const jsx=(type,props) => ({type,props:props??{}});
-  const component=load('src/components/ui/manage-list-modal.tsx',{react:{},'react/jsx-runtime':{jsx,jsxs:jsx},'@ant-design/icons':{DeleteOutlined:'DeleteIcon'}}).ManageListModal;
+  const component=load('src/components/ui/manage-list-modal.tsx',{react:{useRef:() => ({current:null})},'./use-dialog-focus':{useDialogFocus(){}},'react/jsx-runtime':{jsx,jsxs:jsx},'@ant-design/icons':{DeleteOutlined:'DeleteIcon'}}).ManageListModal;
   function nodes(node){if(Array.isArray(node))return node.flatMap(nodes);return node&&typeof node==='object'?[node,...nodes(node.props?.children)]:[];}
   for(const action of ['saving','deleting']){
     let closed=false;const tree=component({open:true,list:{id:'list',title:'Name'},newTitle:'Name',saving:false,deleting:false,[action]:true,onClose:() => {closed=true;}});
@@ -112,8 +112,10 @@ test('the root layout mounts one message display inside the theme provider',() =
   const jsx=(type,props) => ({type,props:props??{}});
   const component=load('src/app/layout.tsx',{
     'react/jsx-runtime':{jsx,jsxs:jsx},'next/font/google':{Fredoka:() => ({variable:'font'}),Geist:() => ({variable:"sans"}),Geist_Mono(){}},
-    './globals.css':{},'next-themes':{ThemeProvider:'ThemeProvider'},'@/components/ui/sonner':{Toaster:'Toaster'},
+    '@/components/brand/ledger-background':{LedgerBackground:'Background'},'@/components/brand/ledger-motion':{LedgerMotion:'Motion'},'./globals.css':{},'next-themes':{ThemeProvider:'ThemeProvider'},'@/components/ui/sonner':{Toaster:'Toaster'},
   }).default;
-  const provider=component({children:'APP'}).props.children.props.children;
+  const body=component({children:'APP'}).props.children.props.children;
+  assert.equal(body.filter(node => node?.type==='Background').length,1);
+  const provider=body.find(node => node?.type==='ThemeProvider');
   assert.equal(provider.type,'ThemeProvider');assert.equal(provider.props.children.filter(node => node?.type==='Toaster').length,1);
 });

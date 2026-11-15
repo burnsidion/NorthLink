@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Fredoka } from "next/font/google";
 import "./globals.css";
+import { LedgerMotion } from "@/components/brand/ledger-motion";
+import { LedgerBackground } from "@/components/brand/ledger-background";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -45,13 +47,14 @@ export default function RootLayout({
 	return (
 		<html lang="en" suppressHydrationWarning className={`${fredoka.variable} ${ledgerSans.variable}`}>
 			<body>
+                <LedgerBackground />
 				<ThemeProvider
 					attribute="class"
 					defaultTheme="dark"
 					enableSystem
 					disableTransitionOnChange
 				>
-					{children}
+					<LedgerMotion>{children}</LedgerMotion>
 					<Toaster richColors />
 				</ThemeProvider>
 			</body>
