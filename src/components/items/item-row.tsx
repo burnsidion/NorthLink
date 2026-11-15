@@ -168,7 +168,7 @@ const CheckIcon = () => {
 
 type Props = {
 	item: ItemRow;
-	onToggle: (id: string, nextPurchased: boolean) => Promise<void> | void;
+	onToggle: (id: string, nextPurchased: boolean) => Promise<boolean>;
 	onDelete: (id: string) => Promise<void> | void;
 	onUpdate: (
 		id: string,
