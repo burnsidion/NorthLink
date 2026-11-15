@@ -48,7 +48,18 @@ import {
 
 export default function ListDetailPage() {
 	const { id } = useParams<{ id: string }>();
+	// A new list gets fresh state; requests from the previous list cannot own it.
+	return <ListDetailContent key={id} id={id} />;
+}
+
+function ListDetailContent({ id }: { id: string }) {
 	const router = useRouter();
+	const mounted = useRef(false);
+	const refreshVersion = useRef(0);
+	useEffect(() => {
+		mounted.current = true;
+		return () => { mounted.current = false; };
+	}, []);
 
 	// state
 	const [list, setList] = useState<ListRow | null>(null);
@@ -81,6 +92,7 @@ export default function ListDetailPage() {
 
 		(async () => {
 			const user = await getCurrentUser();
+			if (!alive) return;
 			if (!user) {
 				router.push("/login");
 				return;
@@ -90,6 +102,7 @@ export default function ListDetailPage() {
 
 			// Fetch user's family group
 			const familyGroupId = await getUserFamilyGroup(user.id);
+			if (!alive) return;
 			if (familyGroupId) {
 				setFamilyGroupId(familyGroupId);
 			}
@@ -127,10 +140,12 @@ export default function ListDetailPage() {
 
 			// Update last_viewed_at for the list when the owner views it (best-effort)
 			await updateListLastViewed(id, user.id);
+			if (!alive) return;
 
 			// Check if this list is shared to the user's family group
 			if (familyGroupId) {
 				const shared = await isListShared(id, familyGroupId);
+				if (!alive) return;
 				setIsShared(shared);
 			}
 
@@ -167,15 +182,23 @@ export default function ListDetailPage() {
 	}, [id]);
 
 	async function refreshItems() {
-		const { data, error } = await supabase
-			.from("items")
-			.select(
-				"id,list_id,title,purchased,purchased_at,created_at,price_cents,link,notes,most_wanted,on_sale"
-			)
-			.eq("list_id", id)
-			.order("created_at", { ascending: true });
+		if (!mounted.current) return false;
+		const version = ++refreshVersion.current;
+		try {
+			const { data, error } = await supabase
+				.from("items")
+				.select(
+					"id,list_id,title,purchased,purchased_at,created_at,price_cents,link,notes,most_wanted,on_sale"
+				)
+				.eq("list_id", id)
+				.order("created_at", { ascending: true });
 
-		if (!error) setItems(data ?? []);
+			if (!mounted.current || version !== refreshVersion.current || error) return false;
+			setItems(data ?? []);
+			return true;
+		} catch {
+			return false;
+		}
 	}
 
 	async function handleAdd(e: React.FormEvent) {
@@ -207,18 +230,32 @@ export default function ListDetailPage() {
 	}
 
 	async function handleToggle(idToToggle: string, nextPurchased: boolean) {
+		if (!mounted.current) return false;
+		// Invalidate refreshes started before this purchase.
+		++refreshVersion.current;
 		setError(null);
 		try {
 			const saved = await togglePurchased(idToToggle, nextPurchased);
+			if (!mounted.current) return false;
+			++refreshVersion.current;
 			setItems((current) => current.map((item) =>
 				item.id === idToToggle ? { ...item, ...saved } : item
 			));
 
 			return true;
 		} catch (e: unknown) {
-			setError(typeof e === "object" && e !== null && "message" in e &&
-				typeof e.message === "string" ? e.message : "Could not save the purchase change. Please refresh.");
-			await refreshItems();
+			if (!mounted.current) return false;
+			const refreshed = await refreshItems();
+			if (!mounted.current) return false;
+			const message = typeof e === "object" && e !== null && "message" in e &&
+				typeof e.message === "string" ? e.message : "Could not confirm the purchase change.";
+			const rejected = typeof e === "object" && e !== null && "code" in e &&
+				typeof e.code === "string" && /^[0-9A-Z]{5}$/.test(e.code);
+			setError(rejected
+				? message + (refreshed ? "" : " The list could not be refreshed. Refresh the page to see its current status.")
+				: refreshed
+					? "The save response was interrupted. The list has been refreshed—check this gift’s current status before trying again."
+					: "We couldn’t confirm whether this purchase change saved, and the list could not be refreshed. Refresh the page before trying again.");
 			return false;
 		}
 	}
