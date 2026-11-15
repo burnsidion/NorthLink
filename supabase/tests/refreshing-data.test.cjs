@@ -99,7 +99,7 @@ test('all three screens retain successful content beside a retry notice after re
     '@/lib/use-refreshing-data':{useRefreshingData:()=>({data:[{id:'list',title:'Still here',created_at:'2026-11-14',list_title:'List',list_owner_name:'Name',price_cents:null}],error:'Refresh failed',loading:false,retry(){},updateData(){}})},
     '@/lib/list-progress':{getListsWithProgress(){}},'@/lib/purchases-api':{getMyPurchases(){}},'@/lib/lists-api':{},sonner:{toast:{}},
     '@/components/ui/refresh-notice':{RefreshNotice:'RefreshNotice'},'@/components/lists/list-card':{default:'ListCard'},'motion/react':{motion:new Proxy({},{get:(_,key)=>'motion.'+key})},
-    '@/lib/format':{usd:new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'})}};
+    '@/lib/format':{safeWebUrl:value=>value,usd:new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'})}};
   for(const name of ['next/link','@/components/ui/create-list-button','@/components/ui/manage-list-modal','@/components/ui/glare-card','@/components/ui/festive-glow','@/components/ui/snowfall','@/components/ui/stars-background','@/components/ui/countdown-banner','@/components/ui/skeleton-card','@/components/ui/page-fade','@/components/ui/hero-highlight','@/components/ui/colourful-text','@/components/ui/text-animate'])modules[name]=new Proxy({default:'component'},{get:(obj,key)=>obj[key]??'component'});
   function nodes(node){if(Array.isArray(node))return node.flatMap(nodes);return node&&typeof node==='object'?[node,...nodes(node.props?.children)]:[];}
   for(const path of ['user-lists','family-lists','purchased-items']){

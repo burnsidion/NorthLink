@@ -14,7 +14,7 @@ import { HeroHighlight, Highlight } from "@/components/ui/hero-highlight";
 import { SkeletonCard } from "@/components/ui/skeleton-card";
 import CountdownBanner from "@/components/ui/countdown-banner";
 import { TextAnimate } from "@/components/ui/text-animate";
-import { usd } from "@/lib/format";
+import { safeWebUrl, usd } from "@/lib/format";
 
 const gridVariants = {
 	hidden: {},
@@ -132,6 +132,7 @@ export default function PurchasedItemsPage() {
 				>
 					{items.map((item, index) => {
 						const isGreen = index % 2 === 0;
+						const giftLink = safeWebUrl(item.link);
 						return (
 							<motion.div
 								key={item.id}
@@ -181,11 +182,11 @@ export default function PurchasedItemsPage() {
 									)}
 
 									{/* Link */}
-									{item.link && (
+									{giftLink && (
 										<a
-											href={item.link}
+											href={giftLink}
 											target="_blank"
-											rel="noreferrer"
+											rel="noopener noreferrer"
 											className={`inline-block px-4 py-2 text-white rounded-lg text-sm font-medium transition-colors ${
 												isGreen
 													? "bg-red-700/80 hover:bg-red-700"

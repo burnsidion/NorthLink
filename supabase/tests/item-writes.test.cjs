@@ -59,7 +59,7 @@ test('update/delete confirm the affected ID without reading buyer identity', asy
 });
 
 // Exercise actual edit controls and handlers with deterministic hooks.
-function row(onUpdate = async () => true, onDelete = async () => true) {
+function row(onUpdate = async () => true, onDelete = async () => true, link = null) {
   let index=0; const slots=[], effects=[], cleanups=[], writes=[];
   const hooks={
     useState(initial) { const key=index++; if (!(key in slots)) slots[key]=initial;
@@ -70,10 +70,10 @@ function row(onUpdate = async () => true, onDelete = async () => true) {
   const jsx=(type,props) => ({ type,props:props ?? {} });
   const component=load('src/components/items/item-row.tsx', {
     react:hooks, 'react/jsx-runtime':{ jsx,jsxs:jsx }, '@/lib/format':format,
-    '@/lib/utils':{ cn:() => '' }, '@/components/ui/link-preview':{ LinkPreview:'LinkPreview' },
+    '@/lib/utils':{ cn:() => '' },
     'lucide-react':{ Snowflake:'Snowflake' }, '@/components/ui/stateful-checkbox':{ StatefulCheckbox:'PurchaseCheckbox' },
   }).default;
-  const props={ item:{ id:'gift', title:'Gift', purchased:false, price_cents:null },onUpdate,onDelete,onToggle:async () => true };
+  const props={ item:{ id:'gift', title:'Gift', purchased:false, price_cents:null, link },onUpdate,onDelete,onToggle:async () => true };
   function render() { index=0; const tree=component(props); while (effects.length) { const cleanup=effects.shift()(); if (cleanup) cleanups.push(cleanup); } return tree; }
   function nodes(node) { if (Array.isArray(node)) return node.flatMap(nodes); return node && typeof node==='object' ? [node,...nodes(node.props?.children)] : []; }
   const all=() => nodes(render());
@@ -106,5 +106,37 @@ test('delete and sale-toggle failures remain visible without a success animation
     const page=row(async () => false,async () => false);
     await page.button(label).props.onClick();
     assert.ok(page.all().some(node => node.props.role==='alert')); assert.ok(page.button('Delete')); page.unmount();
+  }
+});
+
+test('gift links are normal web links with no image or preview request on render', () => {
+  const page=row(undefined,undefined,'https://shop.example/gift?size=large#details');
+  const link=page.all().find(node=>node.type==='a');
+  assert.equal(link.props.href,'https://shop.example/gift?size=large#details');
+  assert.equal(link.props.target,'_blank');assert.equal(link.props.rel,'noopener noreferrer');
+  assert.equal(page.all().some(node=>node.type==='img'||node.props.src||node.props.onMouseEnter||node.props.onMouseMove),false);
+  page.unmount();
+});
+test('unsafe or invalid saved gift links are not clickable', () => {
+  for(const value of ['javascript:alert(1)','data:text/html,bad','file:///tmp/gift','//shop.example/gift','not a URL','https://user:password@shop.example',null]){
+    const page=row(undefined,undefined,value);assert.equal(page.all().filter(node=>node.type==='a').length,0);page.unmount();
+  }
+  assert.equal(format.safeWebUrl('HTTP://shop.example/gift'),'http://shop.example/gift');
+});
+test('purchased gifts apply the same web-link check without loading previews', () => {
+  const jsx=(type,props)=>({type,props:props??{}});
+  function nodes(node){if(Array.isArray(node))return node.flatMap(nodes);return node&&typeof node==='object'?[node,...nodes(node.props?.children)]:[];}
+  for(const link of ['https://shop.example/gift','javascript:alert(1)',null]){
+    const modules={react:{useState:initial=>[typeof initial==='function'?initial():initial,()=>{}]},
+      'react/jsx-runtime':{jsx,jsxs:jsx},'@/lib/purchases-api':{getMyPurchases(){}},
+      '@/lib/use-refreshing-data':{useRefreshingData:()=>({data:[{id:'gift',title:'Gift',link,price_cents:null}],error:null,loading:false,retry(){}})},
+      '@/lib/format':format,'@/components/ui/refresh-notice':{RefreshNotice:'RefreshNotice'},
+      'motion/react':{motion:new Proxy({},{get:(_,key)=>'motion.'+key})}};
+    for(const name of ['snowfall','colourful-text','stars-background','hero-highlight','skeleton-card','countdown-banner','text-animate'])modules['@/components/ui/'+name]=new Proxy({default:'component'},{get:(obj,key)=>obj[key]??'component'});
+    const Page=load('src/app/(authed)/purchased-items/page.tsx',modules).default;
+    const all=nodes(Page());const anchors=all.filter(node=>node.type==='a');
+    assert.equal(anchors.length,link?.startsWith('https:')?1:0);
+    if(anchors.length)assert.equal(anchors[0].props.rel,'noopener noreferrer');
+    assert.equal(all.some(node=>node.type==='img'||node.props.src),false);
   }
 });
