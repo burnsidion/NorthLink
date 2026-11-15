@@ -17,7 +17,7 @@ const flush = async () => { for (let n = 0; n < 8; n++) await new Promise(setImm
 
 // Exercise the actual page handlers and JSX with deterministic hooks/transport.
 // A route key creates a fresh harness, just as React remounts keyed content.
-function page(id, { save, refresh } = {}) {
+function page(id, { save, refresh, update, remove, add } = {}) {
   let index = 0;
   const slots = [], effects = [], cleanups = [], writes = [];
   let realtime, refreshes = 0;
@@ -63,7 +63,7 @@ function page(id, { save, refresh } = {}) {
       calculateNewPurchases: () => 0, updateListLastViewed: async () => {},
       filterItems: items => items, sortItems: items => items,
     },
-    "@/lib/items-api": { togglePurchased: save ?? (async () => ({ purchased: true, purchased_at: "2026-11-15T01:00:00Z" })) },
+    "@/lib/items-api": { addItem: add ?? (async () => ({ ...gift, id: "added" })), updateItem: update ?? (async () => {}), deleteItem: remove ?? (async () => {}), togglePurchased: save ?? (async () => ({ purchased: true, purchased_at: "2026-11-15T01:00:00Z" })) },
     "@/components/items/item-row": { default: "ItemRowCard" },
   };
   const exports = {};
@@ -85,8 +85,12 @@ function page(id, { save, refresh } = {}) {
   render();
   return {
     key: route.key, gift, writes,
+    openAdd: () => all().find(node => node.type === "button" && node.props.children === "Add item").props.onClick(),
+    form: () => all().find(node => typeof node.props.onSubmit === "function")?.props,
     item: () => all().find(node => node.type === "ItemRowCard")?.props.item,
     toggle: () => all().find(node => node.type === "ItemRowCard").props.onToggle(gift.id, true),
+    update: patch => all().find(node => node.type === "ItemRowCard").props.onUpdate(gift.id, patch),
+    remove: () => all().find(node => node.type === "ItemRowCard").props.onDelete(gift.id),
     error: () => all().find(node => node.type === "p" && node.props.className === "text-red-600 text-sm")?.props.children,
     realtime: () => realtime(), refreshes: () => refreshes,
     unmount: () => cleanups.forEach(cleanup => cleanup()),
@@ -172,4 +176,44 @@ test("a refresh started before save confirmation cannot overwrite the saved stat
   await flush();
   assert.equal(screen.item().purchased, true);
   screen.unmount();
+});
+
+test("gift edits and deletes wait for confirmation and failures preserve current items", async () => {
+  for (const action of ['update', 'remove']) {
+    const pending = deferred();
+    const screen = page('A', { [action]: () => pending.promise });
+    await flush();
+    const request = action === 'update' ? screen.update({ title: 'Edited' }) : screen.remove();
+    assert.equal(screen.item().title, 'Gift');
+    pending.reject(new Error('No rows changed'));
+    assert.equal(await request, false);
+    assert.equal(screen.item().title, 'Gift');
+    assert.match(screen.error(), /couldn’t confirm/); screen.unmount();
+  }
+});
+test("confirmed gift edits merge into current state rather than an earlier snapshot", async () => {
+  const pending = deferred(); const screen = page('A', { update: () => pending.promise });
+  await flush(); const request = screen.update({ title: 'Edited' });
+  await screen.toggle(); pending.resolve(); assert.equal(await request, true);
+  assert.equal(screen.item().title, 'Edited'); assert.equal(screen.item().purchased, true); screen.unmount();
+});
+test("confirmed deletion removes the gift; late write completions after navigation do nothing", async () => {
+  const screen = page('A'); await flush(); assert.equal(await screen.remove(), true); assert.equal(screen.item(), undefined); screen.unmount();
+  for (const action of ['update', 'remove']) {
+    const pending = deferred(); const old = page('A', { [action]: () => pending.promise }); await flush();
+    const request = action === 'update' ? old.update({ title: 'Edited' }) : old.remove();
+    old.unmount(); const count = old.writes.length; pending.resolve(); assert.equal(await request, false);
+    assert.equal(old.writes.length, count);
+  }
+});
+
+test("add failures preserve the form and block duplicate submissions while pending", async () => {
+  const pending = deferred(); let calls = 0;
+  const screen = page('A', { add: async () => { calls++; return pending.promise; } });
+  await flush(); screen.openAdd(); screen.form().setTitle('New gift'); screen.form().setPrice('12.50');
+  const submit = screen.form().onSubmit;
+  const request = submit({ preventDefault() {} }); await submit({ preventDefault() {} }); assert.equal(calls,1);
+  pending.reject(new Error('offline')); await request;
+  assert.equal(screen.form().title,'New gift'); assert.equal(screen.form().price,'12.50'); assert.equal(screen.form().submitting,false);
+  assert.ok(screen.error()); screen.unmount();
 });

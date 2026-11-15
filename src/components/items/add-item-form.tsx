@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { ShinyButton } from "@/components/ui/shiny-button";
-import { Button as StatefulButton } from "@/components/ui/stateful-button";
 
 type Props = {
 	/** collapsed/expanded */
@@ -63,6 +62,7 @@ export default function AddItemForm({
 	return (
 		<form id="add-item-form" onSubmit={onSubmit} className="space-y-3">
 			<input
+				disabled={submitting}
 				name="title"
 				placeholder="Item Name"
 				maxLength={120}
@@ -73,6 +73,7 @@ export default function AddItemForm({
 
 			<div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
 				<input
+				disabled={submitting}
 					name="price"
 					inputMode="decimal"
 					placeholder="Price (e.g. 24.99)"
@@ -81,6 +82,7 @@ export default function AddItemForm({
 					className="rounded-lg bg-neutral-800 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-700/40"
 				/>
 				<input
+				disabled={submitting}
 					name="link"
 					placeholder="Link (amazon.com/…)"
 					value={link}
@@ -88,6 +90,7 @@ export default function AddItemForm({
 					className="rounded-lg bg-neutral-800 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-700/40"
 				/>
 				<input
+				disabled={submitting}
 					name="notes"
 					placeholder="Notes (size, color, etc.)"
 					value={notes}
@@ -97,16 +100,17 @@ export default function AddItemForm({
 			</div>
 
 			<div className="flex flex-col sm:flex-row gap-2">
-				<StatefulButton
+				<button
 					type="submit"
 					disabled={!!submitting}
 					className="w-full sm:w-auto h-11 bg-emerald-700 hover:ring-emerald-700"
 				>
-					Save
-				</StatefulButton>
+					{submitting ? "Saving…" : "Save"}
+				</button>
 				<ShinyButton
 					className="w-full sm:w-auto h-11 hover:bg-red-700/60"
 					type="button"
+					disabled={submitting}
 					onClick={() => onOpenChange(false)}
 				>
 					Cancel
