@@ -1,9 +1,5 @@
 import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {
-	images: {
-		domains: ["api.microlink.io"], // Microlink Image Preview
-	},
-};
+const nextConfig: NextConfig = {};
 
 export default nextConfig;

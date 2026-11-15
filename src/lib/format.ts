@@ -26,6 +26,18 @@ export const normalizeUrl = (v: string) => {
 	}
 };
 
+/** Stored links are untrusted too. Only absolute web URLs may be clickable. */
+export function safeWebUrl(value: string | null | undefined): string | null {
+	if (!value) return null;
+	try {
+		const url = new URL(value);
+		if ((url.protocol !== "https:" && url.protocol !== "http:") || url.username || url.password) return null;
+		return url.href;
+	} catch {
+		return null;
+	}
+}
+
 export const usd = new Intl.NumberFormat(undefined, {
 	style: "currency",
 	currency: "USD",

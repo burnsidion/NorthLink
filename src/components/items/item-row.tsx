@@ -2,8 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { ItemRow } from "@/types/db";
-import { toCents, normalizeUrl, usd } from "@/lib/format";
-import { LinkPreview } from "@/components/ui/link-preview";
+import { toCents, normalizeUrl, safeWebUrl, usd } from "@/lib/format";
 import { Snowflake } from "lucide-react";
 import { StatefulCheckbox } from "@/components/ui/stateful-checkbox";
 import { cn } from "@/lib/utils";
@@ -31,6 +30,7 @@ export default function ItemRow({
 	onUpdate,
 	isOwner = true,
 }: Props) {
+	const giftLink = safeWebUrl(item.link);
 	const [editing, setEditing] = useState(false);
 	const [saving, setSaving] = useState(false);
 	const [editError, setEditError] = useState<string | null>(null);
@@ -218,13 +218,15 @@ export default function ItemRow({
 										· {usd.format(item.price_cents / 100)}
 									</span>
 								)}
-								{item.link && (
-									<LinkPreview
-										url={item.link}
+								{giftLink && (
+									<a
+										href={giftLink}
+										target="_blank"
+										rel="noopener noreferrer"
 										className="underline hover:text-white text-sm whitespace-nowrap"
 									>
 										View
-									</LinkPreview>
+									</a>
 								)}
 							</div>
 						</div>{" "}
