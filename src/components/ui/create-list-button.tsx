@@ -5,15 +5,6 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { createPortal } from "react-dom";
 
-export const glowButtonClasses = {
-	outer:
-		"relative inline-flex h-12 overflow-hidden rounded-full p-px focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50",
-	spinner:
-		"absolute inset-[-1000%] animate-[spin_2s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#FF0000_0%,#008000_50%,#FFFFFF_100%)]",
-	inner:
-		"inline-flex h-full w-full items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white backdrop-blur-3xl",
-};
-
 export default function CreateListButton({
 	onCreated,
 }: {
@@ -111,50 +102,50 @@ export default function CreateListButton({
 				onClick={openModal}
 				aria-busy={pending}
 				disabled={pending}
-				className={glowButtonClasses.outer}
+				className="ledger-button"
 			>
-				<span className={glowButtonClasses.spinner} />
-				<span className={glowButtonClasses.inner}>Create New List</span>
+				<span aria-hidden="true">＋</span> Create list
 			</button>
 
 			{/* Modal */}
 			{open &&
 				createPortal(
 					<div
-						className="fixed inset-0 z-9999 flex items-center justify-center"
+						className="ledger-theme ledger-dialog-backdrop fixed inset-0 z-9999 flex items-center justify-center"
 						role="dialog"
 						aria-modal="true"
+						aria-label="Create new list"
 					>
 						<div
-							className="absolute inset-0 bg-black/50"
+							className="absolute inset-0"
 							onClick={closeModal}
 							aria-hidden
 						/>
 
-						<div className="relative z-10 w-full max-w-md rounded-lg bg-white p-6 shadow-lg dark:bg-slate-900">
-							<h3 className="mb-2 text-lg font-semibold">Create new list</h3>
+						<div className="relative z-10 ledger-paper ledger-dialog">
+							<h3>Create new list</h3>
 
-							<label className="mb-2 block text-sm text-slate-600 dark:text-slate-300">
+							<label className="block">
 								Name
 							</label>
 							<input
 								ref={inputRef}
 								value={title}
 								onChange={(e) => setTitle(e.target.value)}
-								className="mb-3 w-full rounded border px-3 py-2 text-sm dark:bg-slate-800 dark:text-white"
+								className="ledger-input"
 								placeholder="e.g. Mum's Christmas List"
 								aria-label="List title"
 							/>
 
 							{error && (
-								<div className="mb-3 text-sm text-red-600">{error}</div>
+								<div role="alert" className="ledger-error">{error}</div>
 							)}
 
-							<div className="flex justify-end gap-2">
+							<div className="ledger-dialog-actions">
 								<button
 									type="button"
 									onClick={closeModal}
-									className="rounded px-3 py-1 text-sm"
+									className="ledger-secondary"
 									disabled={loading}
 								>
 									Cancel
@@ -162,7 +153,7 @@ export default function CreateListButton({
 								<button
 									type="button"
 									onClick={handleCreate}
-									className="rounded bg-slate-900 px-3 py-1 text-sm text-white disabled:opacity-50"
+									className="ledger-button"
 									disabled={loading}
 								>
 									{loading ? "Saving..." : "Save"}

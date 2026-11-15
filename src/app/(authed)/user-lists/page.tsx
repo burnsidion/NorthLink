@@ -1,27 +1,16 @@
 "use client";
 //Deps
 import { useState, useEffect, useRef } from "react";
-import { motion } from "motion/react";
 import { getListsWithProgress } from "@/lib/list-progress";
 import { useRefreshingData } from "@/lib/use-refreshing-data";
 import { RefreshNotice } from "@/components/ui/refresh-notice";
 import { toast } from "sonner";
 import { renameList, deleteList } from "@/lib/lists-api";
 
-//components
-import Link from "next/link";
 import CreateListButton from "@/components/ui/create-list-button";
 import { ManageListModal } from "@/components/ui/manage-list-modal";
 import ListCard from "@/components/lists/list-card";
-
-//ui components
-import { GlareCard } from "@/components/ui/glare-card";
-import { FestiveGlow } from "@/components/ui/festive-glow";
-import Snowfall from "@/components/ui/snowfall";
-import { StarsBackground } from "@/components/ui/stars-background";
 import CountdownBanner from "@/components/ui/countdown-banner";
-import { SkeletonCard } from "@/components/ui/skeleton-card";
-import PageFade from "@/components/ui/page-fade";
 
 const loadLists = () => getListsWithProgress(false);
 
@@ -94,111 +83,44 @@ export default function UserListsPage() {
 		}
 	}
 
-	if (loading) {
-		return (
-			<main className="relative min-h-screen px-6 py-8 space-y-6 overflow-hidden">
-				<PageFade>
-					<StarsBackground />
-					<Snowfall
-						count={70}
-						speed={40}
-						wind={0.18}
-						enableMeteors={true}
-						meteorCount={3}
-					/>
-					<CountdownBanner initialNow={Date.now()} />
-					{/* header skeleton */}
-					<header className="mx-auto w-full max-w-5xl">
-						<div className="text-center space-y-3">
-							<div className="mx-auto h-8 w-40 rounded bg-white/10 animate-pulse" />
-							<div className="mx-auto h-10 w-48 rounded-full bg-white/10 animate-pulse" />
-						</div>
-					</header>
-					{/* cards grid skeleton */}
-					<section
-						className="grid grid-cols-1 sm:grid-cols-2 gap-8 justify-items-center"
-						aria-label="Loading lists"
-					>
-						{[0, 1, 2, 3].map((k) => (
-							<SkeletonCard
-								key={k}
-								className="w-full max-w-[720px] h-64 sm:h-72 lg:h-80 rounded-xl"
-							/>
-						))}
-					</section>
-				</PageFade>
-			</main>
-		);
-	}
-
-	if (error && lists === null) {
-		return <main className="p-6"><RefreshNotice message={error} onRetry={retry} /></main>;
-	}
-
 	const rows = lists ?? [];
 	const many = rows.length > 1;
 
 	return (
-		<main className="relative min-h-screen px-6 py-8 space-y-6 overflow-hidden">
-			<PageFade>
-				{error && <RefreshNotice message={error} onRetry={retry} />}
-				<StarsBackground />
-				<CountdownBanner initialNow={Date.now()} />
-				<header className="relative mx-auto w-full max-w-5xl">
-					{/* title */}
-					<div className="text-center my-7 flex flex-col gap-3">
-						<motion.h1
-							initial={{ opacity: 0, y: 6 }}
-							animate={{ opacity: 1, y: 0 }}
-							transition={{ duration: 0.25 }}
-							className="heading-festive text-6xl mb-2"
-						>
-							Your Lists
-						</motion.h1>
-						<div>
-							<CreateListButton
-								onCreated={(newList) => {
-									setLists(prev => [{ ...newList, total: 0, purchased: 0 }, ...(prev ?? [])]);
-									retry();
-								}}
-							/>
-						</div>
-					</div>
-				</header>
-				{rows.length === 0 ? (
-					// No lists yet
-					<FestiveGlow>
-						<div className="rounded-xl border border-white/10 p-6 text-white/80">
-							No lists yet. Click{" "}
-							<span className="font-medium">“Create New List”</span> to get
-							started.
-						</div>
-					</FestiveGlow>
-				) : (
-					// List cards grid
-					<section
-						className={`relative grid gap-8 ${
-							many
-								? "grid-cols-1 sm:grid-cols-2 justify-items-center"
-								: "grid-cols-1 place-items-center max-w-3xl mx-auto"
-						}`}
-					>
-						{rows.map((l, index) => (
-							<ListCard
-								key={l.id}
-								list={l}
-								index={index}
-								onManage={(id, title) => {
-									if (actionPending.current) return;
-									setActionError(null);
-									setManageList({ id, title });
-									setNewTitle(title);
-									setIsModalOpen(true);
-								}}
-							/>
-						))}
-					</section>
-				)}
+		<main className="ledger-theme ledger-paper ledger-page">
+			<header className="ledger-page-heading">
+				<div>
+					<p className="ledger-eyebrow">A little Christmas magic</p>
+					<h1 className="ledger-title">My Lists</h1>
+					<CountdownBanner appearance="ledger" />
+				</div>
+				{!loading && lists !== null && <CreateListButton onCreated={newList => {
+					setLists(previous => [{ ...newList, total: 0, purchased: 0 }, ...(previous ?? [])]);
+					retry();
+				}} />}
+			</header>
+			<div className="ledger-rule" aria-hidden="true">✦</div>
+			{error && <RefreshNotice message={error} onRetry={retry} />}
+			{loading ? (
+				<section className="grid gap-6 sm:grid-cols-2" aria-label="Loading lists" aria-busy="true">
+					{[0, 1, 2, 3].map(index => <div key={index} className="ledger-loading-card"><div className="ledger-loading-line"/><div className="ledger-loading-line" style={{ width: "40%" }}/></div>)}
+				</section>
+			) : lists === null ? null : rows.length === 0 ? (
+				<section className="ledger-empty">
+					<h2>Your Christmas story starts here</h2>
+					<p>Create your first list, then fill it with a few things you’d love.</p>
+				</section>
+			) : (
+				<section className={`ledger-legacy-cards grid gap-6 ${many ? "sm:grid-cols-2" : "max-w-2xl mx-auto"}`} aria-label="Your wish lists">
+					{rows.map((list, index) => <ListCard key={list.id} list={list} index={index} onManage={(id, title) => {
+						if (actionPending.current) return;
+						setActionError(null);
+						setManageList({ id, title });
+						setNewTitle(title);
+						setIsModalOpen(true);
+					}} />)}
+				</section>
+			) }
 				{isModalOpen && (
 					<ManageListModal
 						open={isModalOpen}
@@ -217,8 +139,6 @@ export default function UserListsPage() {
 						}}
 					/>
 				)}
-				<Snowfall count={70} speed={40} wind={0.18} />
-			</PageFade>
 		</main>
 	);
 }

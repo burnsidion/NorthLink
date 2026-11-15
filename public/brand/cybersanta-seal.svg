@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" fill="none">
+  <defs>
+    <radialGradient id="wax" cx=".35" cy=".25" r=".8"><stop stop-color="#b74739"/><stop offset=".65" stop-color="#8e2d29"/><stop offset="1" stop-color="#60221f"/></radialGradient>
+    <linearGradient id="rim" x1="20" y1="10" x2="76" y2="86" gradientUnits="userSpaceOnUse"><stop stop-color="#e1a183"/><stop offset=".5" stop-color="#ad4b3b"/><stop offset="1" stop-color="#411b19"/></linearGradient>
+  </defs>
+  <path d="M48 4c7 0 10 5 16 6s12 0 16 5 3 10 6 15 6 10 5 16-5 10-6 16 0 12-5 16-11 3-16 6-10 7-16 7-10-5-16-6-12 0-16-5-3-11-6-16S3 54 4 48s5-10 6-16 0-12 5-16 11-3 16-6S41 4 48 4Z" fill="url(#wax)" stroke="url(#rim)" stroke-width="3"/>
+  <circle cx="48" cy="48" r="33" stroke="#efba91" stroke-opacity=".7" stroke-width="1.5"/>
+  <circle cx="48" cy="48" r="29.5" stroke="#541d1a" stroke-opacity=".6"/>
+  <g stroke="#fff0ce" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M29 43h38v9H29zM33 52v20h30V52M48 43v29"/>
+    <path d="M48 42c-12 0-18-5-16-11 2-6 14-1 16 11Zm0 0c12 0 18-5 16-11-2-6-14-1-16 11Z"/>
+  </g>
+  <path d="m48 54 2.3 5 5.4.6-4 3.7 1 5.3-4.7-2.7-4.7 2.7 1-5.3-4-3.7 5.4-.6L48 54Z" fill="#fff0ce"/>
+</svg>

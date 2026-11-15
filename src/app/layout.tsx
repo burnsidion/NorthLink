@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Fredoka } from "next/font/google";
+import { Geist, Fredoka } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/sonner";
+
+const ledgerSans = Geist({ subsets: ["latin"], variable: "--font-ledger-sans", display: "swap" });
 
 const fredoka = Fredoka({
 	subsets: ["latin"],
@@ -16,7 +18,7 @@ export const metadata: Metadata = {
 	description:
 		"Create, share, and track family Christmas lists with zero spoilers.",
 	icons: {
-		icon: "/favicon.ico",
+		icon: { url: "/brand/cybersanta-seal.svg", type: "image/svg+xml" },
 	},
 	openGraph: {
 		title: "CyberSanta – Shared Family Gift Lists",
@@ -41,7 +43,7 @@ export default function RootLayout({
 	children: React.ReactNode;
 }) {
 	return (
-		<html lang="en" suppressHydrationWarning className={fredoka.variable}>
+		<html lang="en" suppressHydrationWarning className={`${fredoka.variable} ${ledgerSans.variable}`}>
 			<body>
 				<ThemeProvider
 					attribute="class"
