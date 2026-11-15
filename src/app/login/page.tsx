@@ -1,9 +1,10 @@
 "use client";
 //Deps
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/lib/supabase";
+import { getProfileUser } from "@/lib/auth-helpers";
 import { motion } from "motion/react";
 
 //UI components
@@ -14,20 +15,32 @@ import { BorderBeam } from "@/components/ui/border-beam";
 export default function LoginPage() {
 	const sb = supabase;
 
+	const generation = useRef(0);
+	const [attempt, setAttempt] = useState(0);
+	const [failedAttempt, setFailedAttempt] = useState<number | null>(null);
+
 	useEffect(() => {
-		const {
-			data: { subscription },
-		} = sb.auth.onAuthStateChange((evt, session) => {
-			if (evt === "SIGNED_OUT") {
-				// Stay on login page when signed out
-				return;
-			}
-			if (session && (evt === "INITIAL_SESSION" || evt === "SIGNED_IN" || evt === "TOKEN_REFRESHED")) {
-				window.location.replace("/");
+		const { data: { subscription } } = sb.auth.onAuthStateChange((event) => {
+			if (["INITIAL_SESSION", "SIGNED_IN", "SIGNED_OUT", "TOKEN_REFRESHED"].includes(event)) {
+				generation.current++;
+				setAttempt(value => value + 1);
 			}
 		});
 		return () => subscription.unsubscribe();
 	}, [sb]);
+
+	useEffect(() => {
+		let active = true;
+		const request = ++generation.current;
+		// Validate stored sessions before redirecting. An expired/revoked session
+		// must leave the sign-in form available rather than bouncing to the gate.
+		getProfileUser().then(user => {
+			if (active && generation.current === request && user) window.location.replace("/");
+		}).catch(() => {
+			if (active && generation.current === request) setFailedAttempt(attempt);
+		});
+		return () => { active = false; };
+	}, [attempt]);
 
 	return (
 		<main className="relative min-h-dvh grid place-items-center p-6">
@@ -55,6 +68,12 @@ export default function LoginPage() {
 				<h1 className="heading-festive mb-6 text-xl font-semibold text-center text-white">
 					🎁 🎄 Sign in to CyberSanta 🎄 🎁
 				</h1>
+				{failedAttempt === attempt && (
+					<div className="mb-4 space-y-2">
+						<p role="alert">We couldn’t check your sign-in. Please try again.</p>
+						<button onClick={() => setAttempt(value => value + 1)} className="underline">Try again</button>
+					</div>
+				)}
 				<Auth
 					supabaseClient={sb}
 					appearance={{

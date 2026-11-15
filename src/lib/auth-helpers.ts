@@ -66,7 +66,11 @@ export function isProfileComplete(
 /** Distinguish a signed-out visitor from a request that failed. */
 export async function getProfileUser() {
 	const { data: { user }, error } = await supabase.auth.getUser();
-	if (error && !isAuthSessionMissingError(error)) throw error;
+	if (error) {
+		if (isAuthSessionMissingError(error) || error.status === 401 ||
+			["session_not_found", "session_expired", "refresh_token_not_found", "refresh_token_already_used", "user_not_found"].includes(error.code ?? "")) return null;
+		throw error;
+	}
 	return user;
 }
 
