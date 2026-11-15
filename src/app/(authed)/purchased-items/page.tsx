@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { getCurrentUser } from "@/lib/auth-helpers";
+import { getMyPurchases, type PurchasedItem } from "@/lib/purchases-api";
 import { motion } from "motion/react";
 
 // Components
@@ -14,18 +15,6 @@ import { SkeletonCard } from "@/components/ui/skeleton-card";
 import CountdownBanner from "@/components/ui/countdown-banner";
 import { TextAnimate } from "@/components/ui/text-animate";
 import { usd } from "@/lib/format";
-
-// Types
-type PurchasedItem = {
-	id: string;
-	title: string;
-	price_cents: number | null;
-	link: string | null;
-	notes: string | null;
-	most_wanted?: boolean;
-	list_title: string;
-	list_owner_name: string;
-};
 
 const gridVariants = {
 	hidden: {},
@@ -52,90 +41,21 @@ export default function PurchasedItemsPage() {
 		let alive = true;
 
 		(async () => {
-			const {
-				data: { user },
-				error: userError,
-			} = await supabase.auth.getUser();
-
-			if (!alive) return;
-
-			if (userError || !user) {
-				router.push("/login");
-				return;
-			}
-
-			// Query items that this user has purchased
-			// We'll need to join with lists and v_user_accessible_lists to get list details
-			const { data, error: itemsError } = await supabase
-				.from("items")
-				.select(
-					`
-						id,
-						title,
-						price_cents,
-						link,
-						notes,
-						most_wanted,
-						on_sale,
-						list_id,
-						lists!inner (
-							id,
-							title,
-							owner_user_id
-						)
-					`
-				)
-				.eq("purchased_by", user.id);
-
-			let ownerNamesByListId: Record<string, string> = {};
-
-			const listIds = Array.from(
-				new Set((data ?? []).map((item: any) => item.list_id as string))
-			);
-
-			if (listIds.length > 0) {
-				const { data: listMeta, error: listMetaError } = await supabase
-					.from("v_user_accessible_lists")
-					.select("id, owner_display_name")
-					.in("id", listIds);
-
-				if (listMetaError) {
-					console.error(
-						"Error fetching list metadata for purchased items:",
-						listMetaError
-					);
-				} else {
-					ownerNamesByListId = Object.fromEntries(
-						(listMeta ?? []).map((row: any) => [
-							row.id as string,
-							row.owner_display_name as string,
-						])
-					);
+			try {
+				const user = await getCurrentUser();
+				if (!alive) return;
+				if (!user) {
+					router.push("/login");
+					return;
 				}
+				const purchases = await getMyPurchases();
+				if (alive) setItems(purchases);
+			} catch (err: unknown) {
+				if (alive) setError(typeof err === "object" && err !== null && "message" in err &&
+					typeof err.message === "string" ? err.message : "Could not load your purchases. Please try again.");
+			} finally {
+				if (alive) setLoading(false);
 			}
-
-			if (!alive) return;
-
-			if (itemsError) {
-				console.error("Error fetching purchased items:", itemsError);
-				setError(itemsError.message);
-				setLoading(false);
-				return;
-			}
-
-			// Transform the data
-			const transformed: PurchasedItem[] = (data ?? []).map((item: any) => ({
-				id: item.id,
-				title: item.title,
-				price_cents: item.price_cents,
-				link: item.link,
-				notes: item.notes,
-				list_title: item.lists.title,
-				list_owner_name: ownerNamesByListId[item.list_id] ?? "List owner",
-			}));
-
-			setItems(transformed);
-			setLoading(false);
 		})();
 
 		return () => {
