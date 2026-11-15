@@ -22,8 +22,8 @@ export default function LoginPage() {
 				// Stay on login page when signed out
 				return;
 			}
-			if (session && (evt === "SIGNED_IN" || evt === "TOKEN_REFRESHED")) {
-				window.location.replace("/landing");
+			if (session && (evt === "INITIAL_SESSION" || evt === "SIGNED_IN" || evt === "TOKEN_REFRESHED")) {
+				window.location.replace("/");
 			}
 		});
 		return () => subscription.unsubscribe();

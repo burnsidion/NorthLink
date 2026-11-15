@@ -1,4 +1,5 @@
 // src/lib/auth-helpers.ts
+import { isAuthSessionMissingError } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 
 /**
@@ -45,10 +46,7 @@ export async function getUserProfile(userId: string) {
 		.eq("id", userId)
 		.maybeSingle();
 
-	if (error) {
-		console.error("Error fetching profile:", error);
-		return null;
-	}
+	if (error) throw error;
 
 	return data;
 }
@@ -62,5 +60,30 @@ export function isProfileComplete(
 		avatar_url?: string | null;
 	} | null
 ): boolean {
-	return !!(profile?.display_name && profile?.avatar_url);
+	return !!(profile?.display_name?.trim() && profile?.avatar_url?.trim());
+}
+
+/** Distinguish a signed-out visitor from a request that failed. */
+export async function getProfileUser() {
+	const { data: { user }, error } = await supabase.auth.getUser();
+	if (error && !isAuthSessionMissingError(error)) throw error;
+	return user;
+}
+
+export async function getProfileAccess() {
+	const user = await getProfileUser();
+	if (!user) return "signed-out" as const;
+	const profile = await getUserProfile(user.id);
+	return isProfileComplete(profile) ? "ready" as const : "incomplete" as const;
+}
+
+export async function saveSetupProfile(userId: string, name: string, avatar: string) {
+	const user = await getProfileUser();
+	if (!user || user.id !== userId) throw new Error("Account changed");
+	if (!name.trim() || !avatar.trim()) throw new Error("Profile incomplete");
+	const { data, error } = await supabase.from("profiles").upsert({
+		id: user.id, display_name: name.trim(), avatar_url: avatar,
+	}, { onConflict: "id" }).select("display_name, avatar_url").single();
+	if (error) throw error;
+	if (!isProfileComplete(data)) throw new Error("Profile save was not confirmed");
 }
