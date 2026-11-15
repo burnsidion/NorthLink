@@ -1,9 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { GlareCard } from "@/components/ui/glare-card";
-import { IconCalendar, IconGift } from "@tabler/icons-react";
-import { EditOutlined } from "@ant-design/icons";
+import { useId, useState } from "react";
 
 export type ListWithProgress = {
 	id: string;
@@ -27,122 +25,45 @@ type Props = {
 	index?: number;
 };
 
-export default function ListCard({
-	list: l,
-	onManage,
-	onUnshare,
-	currentUserId,
-	showOwner = false,
-	hideManageButton = false,
-	index = 0,
-}: Props) {
-	const purchased = l.purchased ?? 0;
-	const total = l.total ?? 0;
-	const pct = ((purchased / Math.max(total, 1)) * 100).toFixed(1);
-	const isGreen = index % 2 === 0;
-
+export default function ListCard({ list, onManage, onUnshare, currentUserId,
+	showOwner = false, hideManageButton = false }: Props) {
+	const [expanded, setExpanded] = useState(false);
+	const detailsId = useId();
+	const purchased = list.purchased ?? 0;
+	const total = list.total ?? 0;
+	const percent = Math.min(100, Math.max(0, purchased / Math.max(1, total) * 100));
 	return (
-		<GlareCard
-			containerClassName="h-64 sm:h-72 lg:h-80"
-			color={isGreen ? "emerald" : "red"}
-		>
-			<div
-				className={`relative flex flex-col justify-between h-full w-full p-4 rounded-xl ${
-					isGreen
-						? "bg-linear-to-br from-emerald-900/40 to-emerald-950/30"
-						: "bg-linear-to-br from-red-700/50 to-red-900/40"
-				}`}
-			>
-				{/* Title + manage */}
-				<div className="flex flex-col items-center">
-					<h2 className="heading-festive text-3xl font-semibold text-white wrap-break-word">
-						{l.title}
-					</h2>
-					{showOwner && l.owner_display_name && (
-						<div className="mt-2 flex items-center gap-2">
-							{l.owner_avatar_url && (
-								<div className="w-9 h-9 rounded-full bg-white/10 p-0.5 ring-1 ring-white/20">
-									<img
-										src={l.owner_avatar_url}
-										alt={l.owner_display_name}
-										className="w-full h-full rounded-full object-cover"
-									/>
-								</div>
-							)}
-							<p className="text-sm text-white/70">By {l.owner_display_name}</p>
-						</div>
-					)}
-					{!hideManageButton && onManage && (
-						<button
-							onClick={() => onManage(l.id, l.title)}
-							aria-label={`Manage list ${l.title}`}
-							className="absolute right-1.5 top-2 inline-flex items-center gap-1 rounded-md border border-white/10 bg-black/40 px-2 py-1 text-xs text-white hover:bg-black/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
-						>
-							<EditOutlined className="text-white/90" />
-						</button>
-					)}
-					{onUnshare && l.group_id && currentUserId === l.owner_user_id && (
-						<button
-							onClick={() => onUnshare(l.id, l.group_id!)}
-							aria-label={`Unshare ${l.title} from family`}
-							className="absolute left-1.5 top-2 inline-flex items-center gap-1 rounded-md border border-red-500/50 bg-red-900/40 px-2 py-1 text-xs text-white hover:bg-red-900/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
-						>
-							Unshare
-						</button>
-					)}
-				</div>
-				{/* Meta row */}
-				<div className="flex items-center gap-4 my-6">
-					<div className="flex items-center gap-2 text-white/70">
-						<IconCalendar className="h-4 w-4 shrink-0" aria-hidden />
-						<time dateTime={l.created_at}>
-							{new Date(l.created_at).toLocaleDateString()}
-						</time>
-					</div>
-					<div className="flex items-center gap-2 text-white/70">
-						<IconGift className="h-4 w-4 shrink-0" aria-hidden />
-						<span aria-label="Total items">{total} items</span>
+		<article className="ledger-theme ledger-paper scroll-card" data-expanded={expanded}>
+			<div className="scroll-summary">
+				<div className="scroll-heading">
+					<h2>{list.title}</h2>
+					{showOwner && list.owner_display_name && <div className="scroll-owner">
+						{list.owner_avatar_url && <img src={list.owner_avatar_url} width={28} height={28} alt="" />}
+						<span>By {list.owner_display_name}</span>
+					</div>}
+					<p className="scroll-count">{purchased} of {total} purchased</p>
+					<div role="progressbar" aria-label={`Purchase progress for ${list.title}`} aria-valuemin={0}
+						aria-valuemax={Math.max(1, total)} aria-valuenow={purchased} aria-valuetext={`${purchased} of ${total} purchased`} className="scroll-progress">
+						<div style={{ width: `${percent}%` }} />
 					</div>
 				</div>
-				{/* Progress */}
-				<div className="flex items-center justify-between">
-					<p className="text-sm text-white/70 mb-2">Progress</p>
-					<p className="text-sm text-white/70 mb-2">
-						{purchased} / {total} items purchased
-					</p>
-				</div>
-				<div
-					role="progressbar"
-					aria-label="List purchase progress"
-					aria-valuemin={0}
-					aria-valuemax={total}
-					aria-valuenow={purchased}
-					className="w-full h-2 bg-white/10 rounded-full overflow-hidden shadow-[0_0_8px_rgba(220,38,38,0.4)] mb-2"
-				>
-					<div
-						className="h-full transition-all duration-300 animate-candy-cane shadow-[0_0_6px_rgba(255,255,255,0.6)]"
-						style={{
-							width: `${pct}%`,
-							background:
-								"repeating-linear-gradient(90deg, white 0px, white 8px, #dc2626 8px, #dc2626 16px)",
-						}}
-					/>
-				</div>{" "}
-				{/* CTA */}
-				<div className="mt-auto">
-					<Link
-						href={`/lists/${l.id}`}
-						aria-label={`View list ${l.title}`}
-						className={`block w-full text-center px-3 py-2 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black text-sm font-medium ${
-							isGreen
-								? "bg-red-600/80 hover:bg-red-600"
-								: "bg-emerald-600/80 hover:bg-emerald-600"
-						}`}
-					>
-						View List
-					</Link>
+				<div className="scroll-actions">
+					<Link href={`/lists/${list.id}`} aria-label={`View list ${list.title}`} className="ledger-button">View list <span aria-hidden="true">→</span></Link>
+					<button type="button" className="scroll-toggle" aria-expanded={expanded} aria-controls={detailsId}
+						aria-label={`${expanded ? "Collapse" : "Expand"} details for ${list.title}`} onClick={() => setExpanded(value => !value)}>
+						{expanded ? "Roll up" : "Unroll"}<span aria-hidden="true">⌄</span>
+					</button>
 				</div>
 			</div>
-		</GlareCard>
+			<div id={detailsId} className="scroll-details" aria-hidden={!expanded} inert={!expanded}>
+				<div className="scroll-details-clip"><div className="scroll-details-content">
+					<p>Created <time dateTime={list.created_at}>{new Date(list.created_at).toLocaleDateString()}</time> · {total} {total === 1 ? "gift" : "gifts"}</p>
+					<div className="scroll-management">
+						{!hideManageButton && onManage && <button type="button" className="ledger-secondary" onClick={() => onManage(list.id, list.title)} aria-label={`Manage list ${list.title}`}>Manage list</button>}
+						{onUnshare && list.group_id && currentUserId === list.owner_user_id && <button type="button" className="ledger-secondary" onClick={() => onUnshare(list.id, list.group_id!)}>Unshare from family</button>}
+					</div>
+				</div></div>
+			</div>
+		</article>
 	);
 }
