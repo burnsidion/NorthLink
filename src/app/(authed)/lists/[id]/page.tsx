@@ -35,7 +35,6 @@ import {
 	sortItems,
 } from "@/lib/list-helpers";
 import {
-	triggerPurchaseConfetti,
 	triggerNotificationConfetti,
 } from "@/lib/confetti-helpers";
 
@@ -171,7 +170,7 @@ export default function ListDetailPage() {
 		const { data, error } = await supabase
 			.from("items")
 			.select(
-				"id,list_id,title,purchased,created_at,price_cents,link,notes,most_wanted,on_sale"
+				"id,list_id,title,purchased,purchased_at,created_at,price_cents,link,notes,most_wanted,on_sale"
 			)
 			.eq("list_id", id)
 			.order("created_at", { ascending: true });
@@ -208,22 +207,19 @@ export default function ListDetailPage() {
 	}
 
 	async function handleToggle(idToToggle: string, nextPurchased: boolean) {
-		const prev = items;
-		setItems((p) =>
-			p.map((it) =>
-				it.id === idToToggle ? { ...it, purchased: nextPurchased } : it
-			)
-		);
+		setError(null);
 		try {
-			await togglePurchased(idToToggle, nextPurchased);
+			const saved = await togglePurchased(idToToggle, nextPurchased);
+			setItems((current) => current.map((item) =>
+				item.id === idToToggle ? { ...item, ...saved } : item
+			));
 
-			// Trigger confetti when marking an item as purchased
-			if (nextPurchased) {
-				triggerPurchaseConfetti();
-			}
-		} catch (e: any) {
-			setItems(prev); // revert
-			setError(e?.message ?? String(e));
+			return true;
+		} catch (e: unknown) {
+			setError(typeof e === "object" && e !== null && "message" in e &&
+				typeof e.message === "string" ? e.message : "Could not save the purchase change. Please refresh.");
+			await refreshItems();
+			return false;
 		}
 	}
 

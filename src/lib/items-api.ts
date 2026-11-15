@@ -118,33 +118,26 @@ export async function updateItem(
 	if (error) throw error;
 }
 
-/** Toggle purchased flag. */
+export type PurchaseState = { purchased: boolean; purchased_at: string | null };
+
+/** The backend owns buyer identity, purchase time, and conflict handling. */
 export async function togglePurchased(
 	itemId: string,
 	next: boolean
-): Promise<void> {
-	// Get current user
-	const {
-		data: { user },
-	} = await supabase.auth.getUser();
-	if (!user) throw new Error("User not authenticated");
-
-	// Prepare update payload
-	const payload: {
-		purchased: boolean;
-		purchased_by: string | null;
-		purchased_at: string | null;
-	} = {
-		purchased: next,
-		purchased_by: next ? user.id : null,
-		purchased_at: next ? new Date().toISOString() : null,
-	};
-
-	const { error } = await supabase
-		.from("items")
-		.update(payload)
-		.eq("id", itemId);
+): Promise<PurchaseState> {
+	const { data, error } = await supabase.rpc("set_item_purchase", {
+		p_item_id: itemId,
+		p_purchased: next,
+	});
 	if (error) throw error;
+	if (
+		!data || typeof data !== "object" || data.purchased !== next ||
+		(next ? typeof data.purchased_at !== "string" || !Number.isFinite(Date.parse(data.purchased_at))
+			: data.purchased_at !== null)
+	) {
+		throw new Error("Could not confirm the purchase change. Refresh to check its current status.");
+	}
+	return { purchased: data.purchased, purchased_at: data.purchased_at };
 }
 
 /** Delete an item. */

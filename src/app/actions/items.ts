@@ -3,6 +3,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createSupabaseServer } from "@/lib/supabase";
+import { togglePurchased } from "@/lib/items-api";
 
 export async function addItem(listId: string, name: string) {
 	const supabase = createSupabaseServer();
@@ -18,32 +19,13 @@ export async function addItem(listId: string, name: string) {
 }
 
 export async function toggleItem(id: string, listId: string, value: boolean) {
-	const supabase = createSupabaseServer();
-	// get current user
-	const {
-		data: { user },
-		error: userErr,
-	} = await supabase.auth.getUser();
-	if (userErr || !user) return { error: "Not signed in." };
+	try {
+		await togglePurchased(id, value);
+	} catch (error: unknown) {
+		return { error: typeof error === "object" && error !== null && "message" in error &&
+			typeof error.message === "string" ? error.message : "Could not save the purchase change." };
+	}
 
-	const payload = value
-		? {
-				purchased: true,
-				purchased_by: user.id,
-				purchased_at: new Date().toISOString(),
-		  }
-		: {
-				purchased: false,
-				purchased_by: null,
-				purchased_at: null,
-		  };
-
-	const { error } = await supabase
-		.from("items")
-		.update(payload)
-		.eq("id", id)
-		.eq("list_id", listId);
-	if (error) return { error: error.message };
 	revalidatePath(`/lists/${listId}`);
 	return { ok: true };
 }

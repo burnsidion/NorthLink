@@ -1,13 +1,13 @@
 "use client";
 import { cn } from "@/lib/utils";
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { motion, useAnimate } from "motion/react";
 import { MultiStepLoader } from "./multi-step-loader";
-import confetti from "canvas-confetti";
+import { triggerPurchaseConfetti } from "@/lib/confetti-helpers";
 
 interface StatefulCheckboxProps {
 	checked: boolean;
-	onChange: () => Promise<void> | void;
+	onChange: () => Promise<boolean>;
 	className?: string;
 	ariaLabel?: string;
 	showMultiStepLoader?: boolean; // Enable festive multi-step loader for purchases
@@ -31,52 +31,13 @@ export const StatefulCheckbox = ({
 		{ text: "🎁 Wrapping it up..." },
 	];
 
-	const triggerConfetti = () => {
-		const duration = 1.5 * 1000;
-		const animationEnd = Date.now() + duration;
-		const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
-
-		const randomInRange = (min: number, max: number) =>
-			Math.random() * (max - min) + min;
-
-		const interval = window.setInterval(() => {
-			const timeLeft = animationEnd - Date.now();
-
-			if (timeLeft <= 0) {
-				return clearInterval(interval);
-			}
-
-			const particleCount = 50 * (timeLeft / duration);
-			confetti({
-				...defaults,
-				particleCount,
-				origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
-			});
-			confetti({
-				...defaults,
-				particleCount,
-				origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
-			});
-		}, 250);
-	};
-
-	const animateLoading = async () => {
-		try {
-			await animate(
-				".loader",
-				{
-					scale: 1,
-					opacity: 1,
-				},
-				{
-					duration: 0.2,
-				}
-			);
-		} catch (e) {
-			// Loader element may not exist, ignore
-		}
-	};
-
+	const inFlight = useRef(false);
+	const mounted = useRef(true);
+	const [error, setError] = useState<string | null>(null);
+	useEffect(() => {
+		mounted.current = true;
+		return () => { mounted.current = false; };
+	}, []);
 	const animateSuccess = async () => {
 		try {
 			await animate(
@@ -89,7 +50,7 @@ export const StatefulCheckbox = ({
 					duration: 0.2,
 				}
 			);
-		} catch (e) {
+		} catch {
 			// Loader element may not exist, ignore
 		}
 
@@ -106,46 +67,41 @@ export const StatefulCheckbox = ({
 						duration: 0.3,
 					}
 				);
-			} catch (e) {
+			} catch {
 				// Checkmark element may not exist yet, ignore
 			}
 		}
 	};
 
 	const handleClick = async () => {
-		// If multi-step loader is enabled and we're purchasing (unchecked -> checked)
-		if (showMultiStepLoader && !checked) {
-			setIsLoading(true);
-			setShowLoader(true);
-
-			// Wait for multi-step loader to complete (8 seconds)
-			setTimeout(async () => {
-				// Execute the purchase
-				await onChange();
-
-				// Show confetti celebration
-				triggerConfetti();
-
-				// Wait a bit for confetti to start, then allow interaction again
-				setTimeout(() => {
-					setIsLoading(false);
-					setShowLoader(false);
-				}, 500);
-			}, 8000);
-		} else {
-			// For unpurchasing (checked -> unchecked) or when multi-step is disabled
-			// Use the simple loading animation - NO multi-step loader
-			setIsLoading(true);
-			setShowLoader(false);
-			await animateLoading();
-			await onChange();
-			await animateSuccess();
-			setIsLoading(false);
+		if (inFlight.current) return;
+		inFlight.current = true;
+		setIsLoading(true);
+		setError(null);
+		setShowLoader(showMultiStepLoader && !checked);
+		try {
+			// Save immediately. Animation must never delay or decide persistence.
+			const saved = await onChange();
+			if (mounted.current && saved) {
+				if (!checked) {
+					try { triggerPurchaseConfetti(); } catch { /* Decoration cannot fail a saved purchase. */ }
+				}
+				await animateSuccess();
+			}
+		} catch {
+			if (mounted.current) setError("Could not save. Please refresh and try again.");
+		} finally {
+			inFlight.current = false;
+			if (mounted.current) {
+				setIsLoading(false);
+				setShowLoader(false);
+			}
 		}
 	};
 
 	return (
 		<>
+			{error && <span role="alert" className="text-sm text-red-400">{error}</span>}
 			{/* Only show multi-step loader when explicitly enabled for purchasing */}
 			<MultiStepLoader
 				loadingStates={loadingStates}
@@ -157,6 +113,7 @@ export const StatefulCheckbox = ({
 				type="button"
 				ref={scope}
 				aria-label={ariaLabel}
+				aria-busy={isLoading}
 				onClick={handleClick}
 				disabled={isLoading}
 				className={cn(
@@ -173,6 +130,8 @@ export const StatefulCheckbox = ({
 					<motion.svg
 						animate={{
 							rotate: [0, 360],
+							scale: isLoading ? 1 : 0,
+							opacity: isLoading ? 1 : 0,
 						}}
 						initial={{
 							scale: 0,
@@ -215,6 +174,7 @@ export const StatefulCheckbox = ({
 						strokeWidth="3"
 						strokeLinecap="round"
 						strokeLinejoin="round"
+						animate={{ scale: 1, opacity: 1 }}
 						className="checkmark text-white"
 					>
 						<path d="M5 12l5 5l10 -10" />
