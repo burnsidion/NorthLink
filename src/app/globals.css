@@ -334,11 +334,31 @@
 
 
 /* Scroll cards: the lower roller travels with the disclosure panel. */
-.ledger-scroll-stack { display: grid; gap: 32px; padding: 8px 4px; }
-.scroll-card { position: relative; border-radius: 8px; width: 100%; min-width: 0; box-shadow: 0 5px 10px #50351b18, inset 0 0 28px #aa793c0c; }
-.scroll-card::before, .scroll-card::after { content: ""; position: absolute; left: -6px; right: -6px; height: 17px; border: 1px solid #b99a6c; border-radius: 50% / 65%; background: linear-gradient(#bda076, #ead7b1 18%, #fcf0d2 52%, #d3b58a 82%, #b2946b); box-shadow: 0 3px 4px #69452620; pointer-events: none; z-index: 1; }
-.scroll-card::before { top: -7px; }
-.scroll-card::after { bottom: -7px; }
+/* Blunt paper rolls with layered curls, rather than tapered oval edges. */
+.ledger-scroll-stack { display: grid; gap: 40px; padding: 12px 4px; }
+.scroll-card { position: relative; border-radius: 3px; width: 100%; min-width: 0; box-shadow: 0 5px 10px #50351b18, inset 0 0 28px #aa793c0c; }
+.scroll-card::before, .scroll-card::after {
+	content: "";
+	position: absolute;
+	left: -7px;
+	right: -7px;
+	height: 26px;
+	border: 1px solid #b39466;
+	border-radius: 11px;
+	background-color: #ead7b2;
+	background-image:
+		radial-gradient(ellipse at center, #8d6b42 0 8%, #f8e9c8 10% 25%, #b39466 28% 33%, #f5e4bf 36% 53%, #ba9b70 56% 61%, #ead7b2 64%),
+		radial-gradient(ellipse at center, #8d6b42 0 8%, #f8e9c8 10% 25%, #b39466 28% 33%, #f5e4bf 36% 53%, #ba9b70 56% 61%, #ead7b2 64%),
+		linear-gradient(to bottom, #d2b88d, #f4e4c2 24%, #f8edcf 48%, #e8d2a8 78%, #c5a675);
+	background-size: 22px 24px, 22px 24px, 100% 100%;
+	background-position: left center, right center, center;
+	background-repeat: no-repeat;
+	box-shadow: 0 3px 5px #69452624;
+	pointer-events: none;
+	z-index: 1;
+}
+.scroll-card::before { top: -12px; }
+.scroll-card::after { bottom: -12px; }
 .scroll-summary { display: flex; align-items: center; justify-content: space-between; gap: 32px; padding: 28px 30px; }
 .scroll-heading { flex: 1; min-width: 0; }
 .scroll-heading h2 { font: 500 clamp(23px, 2.6vw, 30px)/1.25 Georgia, serif; letter-spacing: -.5px; overflow-wrap: anywhere; }
@@ -478,3 +498,54 @@ body { isolation: isolate; background: #102c22; }
 .ledger-avatar-option[aria-pressed="true"] { border-color: var(--ledger-green); }
 .ledger-theme [role="alert"] button { min-height: 44px; padding: 8px 4px; }
 .ledger-family-box button[title="Copy invite code"] { min-width: 44px; }
+
+/* Closed family scrolls link directly to their open list page. */
+.family-scroll-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 34px 28px; padding: 10px 6px; }
+.family-scroll {
+	position: relative; display: flex; align-items: center; gap: 16px; min-width: 0;
+	padding: 24px 70px 28px 34px; min-height: 158px; border: 1px solid #b99c72; border-radius: 15px 24px 19px 12px;
+	background-color: #f3e5c6;
+	background-image: url("/brand/parchment-grain.svg"), linear-gradient(#dcc7a2, #f5e8ca 15%, #f8eed6 47%, #f1e2c1 80%, #d5be96);
+	box-shadow: 0 5px 9px #50351b24, inset 0 2px 1px #fff8e875;
+	text-decoration: none;
+}
+.family-scroll::before, .family-scroll::after {
+	content: ""; position: absolute; top: 3px; bottom: 3px; width: 22px;
+	border: 3px solid #dbc299; border-radius: 46% 54% 41% 59% / 53% 44% 56% 47%; pointer-events: none;
+	background: radial-gradient(ellipse at 60% 48%, #6d4c30 12%, #987345 46%, #c4a477 66%, #eddbb6 70%);
+	box-shadow: inset 2px 0 3px #49301e60, 1px 0 0 #9d7b50;
+}
+.family-scroll::before { left: -7px; }
+.family-scroll::after { right: -7px; }
+.family-scroll > .ledger-avatar { box-shadow: 0 0 0 3px #fff5d980; }
+.family-scroll-label { flex: 1; min-width: 0; }
+.family-scroll h2 { font: 500 24px/1.2 Georgia, serif; overflow-wrap: anywhere; }
+.family-scroll-owner { font-size: 13px; color: #6c5542; margin-top: 5px; }
+.family-scroll-count { font-size: 13px; color: #39271e; margin-top: 12px; }
+.family-scroll-open { display: flex; align-items: center; gap: 8px; color: #193f30; font-size: 12px; font-weight: 600; white-space: nowrap; margin-top: 10px; }
+.family-scroll:hover { box-shadow: 0 6px 12px #50351b38, inset 0 0 0 2px #91755070; }
+@media (max-width: 1100px) { .family-scroll-grid { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 600px) {
+	.family-scroll { gap: 12px; padding: 24px 48px 28px 26px; }
+	.family-scroll-label { flex-basis: 0; }
+	.family-scroll-open { margin-left: 0; }
+	.family-scroll h2 { font-size: 22px; }
+}
+
+/* A loose outer sheet and tied cord distinguish paper from a solid cylinder. */
+.family-scroll-edge {
+	position: absolute; left: 5px; right: 5px; bottom: -8px; height: 27px;
+	background: linear-gradient(#c6ab7f 0 12%, #f3e2bd 20%, #f9edce 80%, #d2b78b);
+	clip-path: polygon(0 0, 100% 5%, 99% 55%, 96% 68%, 92% 64%, 89% 83%, 82% 74%, 75% 91%, 68% 83%, 60% 98%, 53% 87%, 46% 94%, 37% 78%, 30% 86%, 23% 67%, 15% 78%, 9% 60%, 3% 69%);
+	transform: rotate(-.6deg); pointer-events: none;
+}
+.family-scroll-cord { position: absolute; top: -3px; bottom: -7px; right: 21px; width: 38px; height: calc(100% + 10px); pointer-events: none; z-index: 2; filter: drop-shadow(1px 1px 1px #49301e45); }
+@media (max-width: 600px) { .family-scroll-cord { right: 12px; width: 27px; } }
+
+.family-scroll-progress { width: 100%; max-width: 240px; margin-top: 8px; }
+/* Candy-cane fill stays still so purchase progress remains easy to scan. */
+.family-scroll-progress { height: 9px; background: #e4d1ad; box-shadow: inset 0 1px 2px #65482620; }
+.family-scroll-progress > div {
+	background: repeating-linear-gradient(135deg, #a72e35 0 7px, #fff6e3 7px 14px);
+	box-shadow: inset 0 1px 0 #ffffff60, inset 0 -1px 0 #70212625;
+}
