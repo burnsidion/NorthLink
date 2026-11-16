@@ -288,10 +288,9 @@
 .ledger-page { min-height: 55dvh; padding: clamp(22px, 4vw, 52px); border-radius: 6px; }
 .ledger-page-heading { display: flex; justify-content: space-between; align-items: center; gap: 20px; margin-bottom: 32px; }
 .ledger-eyebrow { color: #842d29; text-transform: uppercase; letter-spacing: .18em; font-size: 11px; font-weight: 700; margin-bottom: 8px; }
-.ledger-title { font: 500 clamp(36px, 5vw, 56px)/1.1 Georgia, "Times New Roman", serif; letter-spacing: -1.8px; margin: 0 0 16px; overflow-wrap: anywhere; }
+.ledger-title { font: 700 clamp(38px, 5vw, 58px)/1.25 var(--font-ledger-heading), Georgia, "Times New Roman", serif; letter-spacing: 0; margin: 0 0 16px; overflow-wrap: anywhere; }
 .ledger-countdown { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; color: #6c5542; font-size: 14px; }
 .ledger-countdown strong { color: #39271e; font-weight: 600; }
-.ledger-countdown small { font-size: 12px; }
 .ledger-rule { display: flex; align-items: center; gap: 16px; margin-bottom: 32px; color: #926c43; }
 .ledger-rule::before, .ledger-rule::after { content: ""; height: 1px; flex: 1; background: #c7ad86; }
 .ledger-button { display: inline-flex; gap: 8px; align-items: center; justify-content: center; min-height: 44px; padding: 11px 20px; border: 1px solid #123427; border-radius: 7px; background: linear-gradient(#28563d, #193f30); color: #fff7e6; font-size: 14px; font-weight: 600; box-shadow: inset 0 1px 0 #ffffff20, 0 2px 3px #573b2314; cursor: pointer; }
@@ -303,12 +302,12 @@
 .ledger-input::placeholder { color: #7b695b; }
 .ledger-dialog-backdrop { background: #071b16b8; padding: 20px; }
 .ledger-dialog { width: 100%; max-width: 460px; max-height: calc(100dvh - 40px); overflow-y: auto; padding: 28px; border-radius: 12px; }
-.ledger-dialog h3 { font: 500 28px/1.25 Georgia, serif; margin-bottom: 20px; overflow-wrap: anywhere; }
+.ledger-dialog h3 { font: 700 32px/1.25 var(--font-ledger-heading), Georgia, serif; margin-bottom: 20px; overflow-wrap: anywhere; }
 .ledger-dialog label { color: #5f4837; font-size: 14px; font-weight: 600; }
 .ledger-dialog-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; margin-top: 24px; }
 .ledger-error { color: #842d29; font-size: 14px; line-height: 1.6; margin-top: 12px; }
 .ledger-empty { border: 1px dashed #bda079; border-radius: 10px; text-align: center; padding: 52px 24px; color: #6c5542; }
-.ledger-empty h2 { font: 500 28px/1.3 Georgia, serif; color: #39271e; margin-bottom: 10px; }
+.ledger-empty h2 { font: 700 30px/1.25 var(--font-ledger-heading), Georgia, serif; color: #39271e; margin-bottom: 10px; }
 .ledger-loading-card { min-height: 260px; border: 1px solid #c7ad86; border-radius: 10px; padding: 28px; background: #ead8b56b; }
 .ledger-loading-line { height: 14px; width: 65%; background: #d4bb9699; border-radius: 4px; margin-bottom: 20px; }
 @media (max-width: 1050px) {
@@ -361,7 +360,7 @@
 .scroll-card::after { bottom: -12px; }
 .scroll-summary { display: flex; align-items: center; justify-content: space-between; gap: 32px; padding: 28px 30px; }
 .scroll-heading { flex: 1; min-width: 0; }
-.scroll-heading h2 { font: 500 clamp(23px, 2.6vw, 30px)/1.25 Georgia, serif; letter-spacing: -.5px; overflow-wrap: anywhere; }
+.scroll-heading h2 { font: 700 clamp(25px, 2.6vw, 32px)/1.25 var(--font-ledger-heading), Georgia, serif; letter-spacing: 0; overflow-wrap: anywhere; }
 .scroll-count { margin: 10px 0 8px; color: #6c5542; font-size: 13px; }
 .scroll-progress { height: 7px; max-width: 300px; background: #dbc6a3; border-radius: 10px; overflow: hidden; }
 .scroll-progress > div { height: 100%; background: #28563d; border-radius: inherit; transition: width .2s ease; }
@@ -413,7 +412,7 @@
 .ledger-add-form { padding: 24px; border: 1px solid #c7ad86; border-radius: 8px; margin: 24px 0; background: #fff8e844; }
 .ledger-add-form > .ledger-input { margin-bottom: 14px; }
 .ledger-detail .text-red-600 { color: #842d29; }
-.ledger-notification-title { font: 500 32px/1.3 Georgia, serif; }
+.ledger-notification-title { font: 500 32px/1.3 var(--font-ledger-heading), Georgia, serif; }
 @media (max-width: 600px) {
 	.scroll-summary { padding: 24px 20px; gap: 18px; flex-direction: column; align-items: stretch; }
 	.scroll-progress { max-width: none; }
@@ -432,7 +431,7 @@
 /* Remaining Ledger screens and resilient profile images. */
 .ledger-muted { color: var(--ledger-muted); }
 .ledger-purchased-row { padding: 26px 0; border-top: 1px solid var(--ledger-line); overflow-wrap: anywhere; }
-.ledger-purchased-row h2, .ledger-home-card h2, .ledger-how h2 { font: 700 26px/1.25 Georgia, serif; }
+.ledger-home-card h2, .ledger-how h2 { font: 700 26px/1.25 var(--font-ledger-heading), Georgia, serif; }
 .ledger-purchased-row > p { margin: 12px 0; }
 .ledger-home-family { margin: 28px 0; }
 .ledger-family-panel { width: 100%; margin: 0 auto 24px; }
@@ -450,7 +449,7 @@
 .ledger-auth-shell { align-items: center; justify-content: center; }
 .ledger-auth-card { width: 100%; max-width: 560px; padding: clamp(24px,5vw,44px); border-radius: 12px; }
 .ledger-auth-card > .ledger-brand { margin-bottom: 24px; }
-.ledger-auth-card h1 { font: 700 clamp(28px,4vw,36px)/1.15 Georgia, serif; margin-bottom: 12px; }
+.ledger-auth-card h1 { font: 700 clamp(28px,4vw,36px)/1.15 var(--font-ledger-heading), Georgia, serif; margin-bottom: 12px; }
 .ledger-auth-card input { min-height: 44px; }
 .ledger-avatar { flex: none; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; overflow: hidden; background: #ddc9a3; color: #513b28; font-weight: 700; vertical-align: middle; }
 .ledger-avatar img { width: 100%; height: 100%; object-fit: contain; }
@@ -519,7 +518,7 @@ body { isolation: isolate; background: #102c22; }
 .family-scroll::after { right: -7px; }
 .family-scroll > .ledger-avatar { box-shadow: 0 0 0 3px #fff5d980; }
 .family-scroll-label { flex: 1; min-width: 0; }
-.family-scroll h2 { font: 500 24px/1.2 Georgia, serif; overflow-wrap: anywhere; }
+.family-scroll h2 { font: 700 27px/1.25 var(--font-ledger-heading), Georgia, serif; overflow-wrap: anywhere; }
 .family-scroll-owner { font-size: 13px; color: #6c5542; margin-top: 5px; }
 .family-scroll-count { font-size: 13px; color: #39271e; margin-top: 12px; }
 .family-scroll-open { display: flex; align-items: center; gap: 8px; color: #193f30; font-size: 12px; font-weight: 600; white-space: nowrap; margin-top: 10px; }
@@ -549,3 +548,73 @@ body { isolation: isolate; background: #102c22; }
 	background: repeating-linear-gradient(135deg, #a72e35 0 7px, #fff6e3 7px 14px);
 	box-shadow: inset 0 1px 0 #ffffff60, inset 0 -1px 0 #70212625;
 }
+
+/* Book typography, warm paper edges, and quiet hearth light. */
+.ledger-theme { --ledger-paper: #f7edd6; }
+.ledger-paper {
+	background-image: url("/brand/parchment-grain.svg"),
+		radial-gradient(ellipse at top left, #b3803b1c, transparent 42%),
+		radial-gradient(ellipse at bottom right, #a975351c, transparent 48%),
+		linear-gradient(105deg, #fff8e84d, transparent 60%, #b99b6012);
+	border-color: #ba9b6e;
+	box-shadow: inset 0 0 0 5px #fff9ea45, inset 0 0 28px #986b3220, 0 3px 5px #091c1740, 0 18px 38px #071c1840;
+}
+.ledger-page, .ledger-auth-card {
+	box-shadow: inset 0 0 0 5px #fff9ea45, inset 0 0 36px #986b3224,
+		0 3px 6px #071c1845, 0 22px 48px #071c185c, 0 0 70px 8px #ce8b3c16;
+}
+.ledger-dialog {
+	box-shadow: inset 0 0 0 5px #fff9ea50, inset 0 0 30px #986b3220,
+		0 25px 70px #020b08a6, 0 0 70px 16px #d08b402b;
+}
+.ledger-title { text-wrap: balance; }
+.ledger-home { position: relative; outline: 1px solid #a1845555; outline-offset: -10px; }
+.ledger-home::after { content: ""; position: absolute; right: 24px; bottom: 17px; width: 118px; height: 44px; background: url("/brand/evergreen-sprig.svg") center / contain no-repeat; transform: rotate(180deg); opacity: .8; pointer-events: none; }
+.ledger-home .ledger-page-heading { margin-bottom: 0; }
+.ledger-home .ledger-countdown { font-family: Georgia, serif; font-style: italic; font-size: 20px; }
+.ledger-home-flourish { display: flex; align-items: center; gap: 16px; width: 230px; height: 46px; margin: 6px 0 18px; color: #9b7548; }
+.ledger-home-flourish::before, .ledger-home-flourish::after { content: ""; flex: 1; height: 40px; background: url("/brand/evergreen-sprig.svg") center / contain no-repeat; }
+.ledger-home-flourish::after { transform: rotate(180deg); }
+.ledger-home-family { margin: 28px 0 32px; }
+.ledger-home .ledger-family-box { background: #e4d2aa33; box-shadow: inset 0 1px 0 #fff9ea90, 0 3px 6px #6a4a2210; }
+.ledger-home-card {
+	position: relative; gap: 18px; padding: 30px 26px 26px; border-color: #bda077;
+	background: url("/brand/parchment-grain.svg"), linear-gradient(120deg, #fff9e8a6, #efe0bb55);
+	box-shadow: inset 0 1px 0 #fffaf0, inset 0 0 20px #a8783220, 0 4px 8px #5c3b211a;
+}
+.ledger-home-card::before { content: ""; width: 95px; height: 32px; background: url("/brand/evergreen-sprig.svg") center / contain no-repeat; pointer-events: none; }
+.ledger-home-card h2 { font-size: 32px; line-height: 1.25; }
+.ledger-home-card > p { line-height: 1.6; }
+.ledger-home .ledger-how { padding-bottom: 26px; }
+.ledger-home .ledger-how h2 { font-size: 32px; }
+.ledger-home .ledger-how p { max-width: 67ch; }
+@media (max-width: 600px) {
+	.ledger-home { outline-offset: -6px; }
+	.ledger-home::after { right: 14px; bottom: 9px; width: 85px; height: 32px; }
+	.ledger-home-flourish { width: 180px; }
+	.ledger-home-card { padding: 24px; }
+	.ledger-home-card h2 { font-size: 30px; }
+}
+
+.ledger-purchased-row h2 { font: 600 22px/1.4 var(--font-ledger-sans), Arial, sans-serif; }
+@media (max-width: 360px) { .ledger-title { font-size: 30px; } }
+/* Give handwritten titles the full scroll width on phones. */
+@media (max-width: 600px) {
+	.family-scroll { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 10px; }
+	.family-scroll-label { display: contents; }
+	.family-scroll h2 { grid-column: 1 / -1; grid-row: 1; }
+	.family-scroll > .ledger-avatar { grid-column: 1; grid-row: 2; }
+	.family-scroll-owner { grid-column: 2; grid-row: 2; margin-top: 0; align-self: center; }
+	.family-scroll-count { grid-column: 1 / -1; grid-row: 3; margin-top: 0; }
+	.family-scroll-progress { grid-column: 1 / -1; grid-row: 4; margin-top: 0; }
+	.family-scroll-open { grid-column: 1 / -1; grid-row: 5; margin-top: 0; }
+}
+
+/* Quiet greenery frames the viewport behind the snow and reading surfaces. */
+.ledger-background-greenery { position: absolute; inset: 0; pointer-events: none; }
+.ledger-corner { position: absolute; width: clamp(180px, 21vw, 320px); aspect-ratio: 1; background: url("/brand/evergreen-corner.svg") top left / contain no-repeat; opacity: .8; }
+.ledger-corner-top-left { top: 0; left: 0; }
+.ledger-corner-top-right { top: 0; right: 0; transform: scaleX(-1); }
+.ledger-corner-bottom-left { bottom: 0; left: 0; transform: scaleY(-1); }
+.ledger-corner-bottom-right { bottom: 0; right: 0; transform: rotate(180deg); }
+@media (max-width: 600px) { .ledger-corner { width: 110px; opacity: .45; } }

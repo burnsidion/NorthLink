@@ -1,4 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160">
- <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency=".7" numOctaves="3" stitchTiles="stitch" seed="8"/><feColorMatrix type="saturate" values="0"/></filter>
- <path fill="#9d7c47" opacity=".065" filter="url(#grain)" d="M0 0h160v160H0z"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="220" height="220" viewBox="0 0 220 220">
+ <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency=".62" numOctaves="3" stitchTiles="stitch" seed="8"/><feColorMatrix type="saturate" values="0"/></filter>
+ <filter id="fiber"><feTurbulence type="fractalNoise" baseFrequency=".035 .28" numOctaves="2" stitchTiles="stitch" seed="12"/><feColorMatrix type="saturate" values="0"/></filter>
+ <path fill="#876139" opacity=".15" filter="url(#grain)" d="M0 0h220v220H0z"/>
+ <path fill="#8d7045" opacity=".025" filter="url(#fiber)" d="M0 0h220v220H0z"/>
 </svg>
