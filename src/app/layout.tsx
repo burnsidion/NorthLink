@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Fredoka } from "next/font/google";
+import { Geist, Fredoka, Merienda } from "next/font/google";
 import "./globals.css";
 import { LedgerMotion } from "@/components/brand/ledger-motion";
 import { LedgerBackground } from "@/components/brand/ledger-background";
@@ -7,6 +7,13 @@ import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/sonner";
 
 const ledgerSans = Geist({ subsets: ["latin"], variable: "--font-ledger-sans", display: "swap" });
+
+const ledgerHeading = Merienda({
+	subsets: ["latin"],
+	weight: "700",
+	variable: "--font-ledger-heading",
+	display: "swap",
+});
 
 const fredoka = Fredoka({
 	subsets: ["latin"],
@@ -45,7 +52,7 @@ export default function RootLayout({
 	children: React.ReactNode;
 }) {
 	return (
-		<html lang="en" suppressHydrationWarning className={`${fredoka.variable} ${ledgerSans.variable}`}>
+		<html lang="en" suppressHydrationWarning className={`${fredoka.variable} ${ledgerSans.variable} ${ledgerHeading.variable}`}>
 			<body>
                 <LedgerBackground />
 				<ThemeProvider

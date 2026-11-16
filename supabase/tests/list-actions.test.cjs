@@ -111,7 +111,7 @@ test('manage dialog blocks edits, deletion, save, close and backdrop dismissal d
 test('the root layout mounts one message display inside the theme provider',() => {
   const jsx=(type,props) => ({type,props:props??{}});
   const component=load('src/app/layout.tsx',{
-    'react/jsx-runtime':{jsx,jsxs:jsx},'next/font/google':{Fredoka:() => ({variable:'font'}),Geist:() => ({variable:"sans"}),Geist_Mono(){}},
+    'react/jsx-runtime':{jsx,jsxs:jsx},'next/font/google':{Fredoka:() => ({variable:'font'}),Geist:() => ({variable:"sans"}),Merienda:() => ({variable:"serif"}),Geist_Mono(){}},
     '@/components/brand/ledger-background':{LedgerBackground:'Background'},'@/components/brand/ledger-motion':{LedgerMotion:'Motion'},'./globals.css':{},'next-themes':{ThemeProvider:'ThemeProvider'},'@/components/ui/sonner':{Toaster:'Toaster'},
   }).default;
   const body=component({children:'APP'}).props.children.props.children;

@@ -83,7 +83,6 @@ export default function CountdownBanner({
 		<div className="ledger-countdown" role="region" aria-label="Countdown to Christmas">
 			<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v5m10-5v5M3 11h18"/></svg>
 			<span>Christmas in <strong>{left.d} days</strong></span>
-			<small className="tabular-nums">{left.h}h · {left.m}m · {left.s}s</small>
 		</div>
 	);
 
@@ -100,12 +99,6 @@ export default function CountdownBanner({
 				</span>
 				<div className="flex items-center gap-2 text-5xl">
 					<TimePill label="Days" value={left.d} />
-					<Separator />
-					<TimePill label="Hours" value={left.h} />
-					<Separator />
-					<TimePill label="Min" value={left.m} />
-					<Separator />
-					<TimePill label="Sec" value={left.s} />
 				</div>
 			</div>
 		</div>
@@ -124,8 +117,4 @@ function TimePill({ label, value }: { label: string; value: number }) {
 			<span className="text-xs text-white/80">{label}</span>
 		</div>
 	);
-}
-
-function Separator() {
-	return <span className="text-white/40">·</span>;
 }
