@@ -3,27 +3,18 @@
 //React
 import { useEffect, useState, useRef } from "react";
 import { motion } from "motion/react";
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { links } from "@/config/nav-links";
-import { Snowflake } from "lucide-react";
 import { toast } from "sonner";
 import { setListShared } from "@/lib/lists-api";
-import { Confetti, type ConfettiRef } from "@/components/ui/confetti";
-import confetti from "canvas-confetti";
 
 //Ui components
-import { FestiveGlow } from "@/components/ui/festive-glow";
-import Snowfall from "@/components/ui/snowfall";
-import { StarsBackground } from "@/components/ui/stars-background";
 import CountdownBanner from "@/components/ui/countdown-banner";
 import AddItemForm from "@/components/items/add-item-form";
 import ItemRowCard from "@/components/items/item-row";
-import PageFade from "@/components/ui/page-fade";
-import { SkeletonCard } from "@/components/ui/skeleton-card";
 
 //Utils
-import { toCents, normalizeUrl, usd } from "@/lib/format";
 import type { ListRow, ItemRow as ItemRowType } from "@/types/db";
 import { getCurrentUser } from "@/lib/auth-helpers";
 import {
@@ -323,66 +314,53 @@ function ListDetailContent({ id }: { id: string }) {
 
 	const isOwner = userId && list && userId === (list as any).owner_user_id;
 
-	if (loading)
-		return (
-			<main className="relative min-h-screen px-6 py-8 space-y-6 overflow-hidden">
-				<PageFade>
-					<StarsBackground />
-					<Snowfall
-						count={70}
-						speed={40}
-						wind={0.18}
-						enableMeteors={true}
-						meteorCount={3}
-					/>
-					<CountdownBanner initialNow={Date.now()} />
-					{/* header skeleton */}
-					<header className="mx-auto w-full max-w-5xl">
-						<div className="text-center space-y-3">
-							<div className="mx-auto h-8 w-40 rounded bg-white/10 animate-pulse" />
-							<div className="mx-auto h-10 w-48 rounded-full bg-white/10 animate-pulse" />
-						</div>
-					</header>
-					{/* cards grid skeleton */}
-					<section
-						className="grid grid-cols-1 sm:grid-cols-2 gap-8 justify-items-center"
-						aria-label="Loading lists"
-					>
-						{[0, 1, 2, 3].map((k) => (
-							<SkeletonCard
-								key={k}
-								className="w-full max-w-[720px] h-64 sm:h-72 lg:h-80 rounded-xl"
-							/>
-						))}
-					</section>
-				</PageFade>
-			</main>
-		);
-	if (error && !list)
-		return (
-			<main className="px-6 py-8">
-				<p className="text-red-600">{error}</p>
-			</main>
-		);
-	if (!list)
-		return (
-			<main className="px-6 py-8">
-				<p className="text-red-600">List not found.</p>
-			</main>
-		);
+	const displayedItems = sortItems(filterItems(items, showOnSaleOnly, showMostWantedOnly), sortBy);
+	const purchasedCount = items.filter(item => item.purchased).length;
+	if (loading) return (
+		<main className="ledger-theme ledger-paper ledger-page ledger-detail" aria-busy="true">
+			<h1 className="ledger-title">Opening your list…</h1>
+			{[0, 1, 2].map(index => <div key={index} className="ledger-loading-card"><div className="ledger-loading-line" /></div>)}
+		</main>
+	);
+	if (!list) return <main className="ledger-theme ledger-paper ledger-page"><p role="alert" className="ledger-error">{error ?? "List not found."}</p></main>;
 
 	return (
-		<main className="px-6 py-8 max-w-2xl mx-auto space-y-6">
-			<StarsBackground className="pointer-events-none fixed inset-0 z-0" />
-			<Snowfall
-				count={70}
-				speed={40}
-				wind={0.18}
-				enableMeteors={true}
-				meteorCount={3}
-			/>
-			<PageFade>
-				<CountdownBanner initialNow={now0} />
+		<main className="ledger-theme ledger-paper ledger-page ledger-detail">
+			<Link href={isOwner ? "/user-lists" : "/family-lists"} className="ledger-back-link">← {isOwner ? "My Lists" : "Family Lists"}</Link>
+			<header className="ledger-page-heading">
+				<div>
+					<p className="ledger-eyebrow">The Christmas ledger</p>
+					<h1 className="ledger-title">{list.title}</h1>
+					<p className="ledger-muted">Created {new Date(list.created_at).toLocaleDateString()}</p>
+					{isShared && <span className="ledger-badge">Shared with family</span>}
+				</div>
+				<CountdownBanner appearance="ledger" initialNow={now0} />
+			</header>
+			<div className="ledger-rule" aria-hidden="true">✦</div>
+			<div className="ledger-detail-toolbar">
+				<p className="ledger-muted">{purchasedCount} of {items.length} gifts purchased</p>
+				<div className="ledger-inline-actions">
+					{isOwner && familyGroupId && <button onClick={handleShareToggle} disabled={shareLoading} className="ledger-secondary">{shareLoading ? "Saving…" : isShared ? "Unshare from Family" : "Share to Family"}</button>}
+					{isOwner && !formOpen && <button type="button" onClick={() => setFormOpen(true)} aria-expanded={formOpen} aria-controls="add-item-form" className="ledger-button">Add item</button>}
+				</div>
+			</div>
+			{isOwner && formOpen && <AddItemForm open={formOpen} onOpenChange={setFormOpen}
+				title={newTitle} setTitle={setNewTitle} price={newPrice} setPrice={setNewPrice}
+				link={newLink} setLink={setNewLink} notes={newNotes} setNotes={setNewNotes} onSubmit={handleAdd} submitting={adding} />}
+			{error && <p role="alert" className="text-red-600 text-sm">{error}</p>}
+			{items.length > 0 && <div className="ledger-filters">
+				<div className="ledger-inline-actions">
+					<button type="button" className="ledger-filter" aria-pressed={showOnSaleOnly} onClick={() => setShowOnSaleOnly(!showOnSaleOnly)}>On Sale Only</button>
+					<button type="button" className="ledger-filter" aria-pressed={showMostWantedOnly} onClick={() => setShowMostWantedOnly(!showMostWantedOnly)}>Most Wanted Only</button>
+				</div>
+				<label className="ledger-sort-label">Sort gifts<select value={sortBy} className="ledger-select" onChange={event => setSortBy(event.target.value as "default" | "price-asc" | "price-desc")}>
+					<option value="default">Default order</option><option value="price-asc">Price: Low to High</option><option value="price-desc">Price: High to Low</option>
+				</select></label>
+			</div>}
+			<ul className="ledger-gift-list">
+				{displayedItems.map(item => <ItemRowCard key={item.id} item={item} onToggle={handleToggle} onDelete={handleDelete} onUpdate={handleUpdate} isOwner={Boolean(isOwner)} />)}
+			</ul>
+			{displayedItems.length === 0 && <div className="ledger-empty"><h2>{items.length ? "No gifts match these filters" : "A little room for wishes"}</h2><p>{items.length ? "Try turning off a filter to see more gifts." : isOwner ? "Add your first gift to get started." : "No gifts have been added to this list yet."}</p></div>}
 				{/* Purchase Notification Modal */}
 				{isOwner && showPurchaseModal && newPurchaseCount > 0 && (
 					<>
@@ -410,12 +388,12 @@ function ListDetailContent({ id }: { id: string }) {
 								}, 3000);
 							}}
 						>
-							<div className="mx-4 p-8 rounded-xl bg-gradient-to-br from-emerald-900/90 to-emerald-950/90 border-2 border-emerald-500/50 shadow-2xl shadow-emerald-500/20 backdrop-blur-md">
+							<div className="ledger-theme ledger-paper ledger-dialog mx-4">
 								<div className="text-center space-y-4">
 									<div className="text-6xl">🎁</div>
-									<h2 className="text-3xl font-bold text-white">Good News!</h2>
-									<p className="text-xl text-emerald-200">
-										<span className="font-bold text-2xl text-white">
+									<h2 className="ledger-notification-title">Good News!</h2>
+									<p className="ledger-muted">
+										<span className="font-bold text-2xl">
 											{newPurchaseCount}
 										</span>{" "}
 										gift{newPurchaseCount > 1 ? "s were" : " was"} purchased
@@ -427,139 +405,7 @@ function ListDetailContent({ id }: { id: string }) {
 						</motion.div>
 					</>
 				)}
-				{/* Header */}
-				<header className="space-y-1 text-center my-8">
-					<motion.h1
-						initial={{ opacity: 0, y: 6 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.25 }}
-						className="heading-festive text-6xl mb-2"
-					>
-						{list.title}
-					</motion.h1>
-					<p className="text-sm text-white/60">
-						Created at: {new Date(list.created_at).toLocaleDateString()}
-					</p>
-				</header>
-				{/* Share button - only show for owner */}
-				<div className="flex justify-between items-center flex-col">
-					{userId &&
-						list &&
-						userId === (list as any).owner_user_id &&
-						familyGroupId && (
-							<div className="py-2">
-								<button
-									onClick={handleShareToggle}
-									disabled={shareLoading}
-									className="px-4 py-2 bg-emerald-700/80 text-white rounded-lg text-sm font-medium border border-emerald-700/50 hover:ring-emerald-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700/60 disabled:opacity-50 transition-colors min-w-[180px]"
-								>
-									{shareLoading ? "Saving…" : isShared ? "Unshare from Family" : "Share to Family"}
-								</button>
-							</div>
-						)}
-					{/* Toggle button shown when the form is collapsed - only for owner */}
-					{isOwner && !formOpen ? (
-						<div className="py-4">
-							<button
-								type="button"
-								onClick={() => setFormOpen(true)}
-								aria-expanded={formOpen}
-								aria-controls="add-item-form"
-								className="px-6 py-2 bg-black/70 text-white rounded-lg font-semibold border border-white/10 hover:bg-emerald-700/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black z-30"
-							>
-								Add item
-							</button>
-						</div>
-					) : null}
-					{isOwner && formOpen && (
-						<AddItemForm
-							open={formOpen}
-							onOpenChange={setFormOpen}
-							title={newTitle}
-							setTitle={setNewTitle}
-							price={newPrice}
-							setPrice={setNewPrice}
-							link={newLink}
-							setLink={setNewLink}
-							notes={newNotes}
-							setNotes={setNewNotes}
-							onSubmit={handleAdd}
-							submitting={adding}
-						/>
-					)}
-				</div>
-				{/* Error message */}
-				{error && <p className="text-red-600 text-sm">{error}</p>}
-				{/* Filter and Sort controls */}
-				{items.length > 0 && (
-					<div className="flex flex-wrap gap-3 justify-center my-4">
-						{/* On Sale Only toggle */}
-						<button
-							type="button"
-							onClick={() => setShowOnSaleOnly(!showOnSaleOnly)}
-							className={`flex items-center gap-2 px-3 py-2 text-sm rounded-lg border transition-all ${
-								showOnSaleOnly
-									? "bg-red-700/20 text-red-300 border-red-700/50 hover:bg-red-700/30 shadow-lg shadow-red-500/20 animate-pulse"
-									: "bg-black/60 text-white/90 border-red-700/50 hover:border-red-700"
-							}`}
-						>
-							🏷️ On Sale Only
-						</button>
-						{/* Most Wanted toggle */}
-						<button
-							type="button"
-							onClick={() => setShowMostWantedOnly(!showMostWantedOnly)}
-							className={`flex items-center gap-2 px-3 py-2 text-sm rounded-lg border transition-all ${
-								showMostWantedOnly
-									? "bg-emerald-700/20 text-emerald-300 border-emerald-700/50 hover:bg-emerald-700/30"
-									: "bg-black/60 text-white/90 border-white/20 hover:border-white/40"
-							}`}
-						>
-							<Snowflake className="h-4 w-4" />
-							Most Wanted Only
-						</button>
-						{/* Sort dropdown */}
-						<select
-							value={sortBy}
-							onChange={(e) =>
-								setSortBy(
-									e.target.value as "default" | "price-asc" | "price-desc"
-								)
-							}
-							className="px-3 py-2 bg-black/60 text-white/90 text-sm rounded-lg border border-emerald-700/50 hover:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/60 transition-all cursor-pointer backdrop-blur-sm"
-						>
-							<option value="default">Sort: Default</option>
-							<option value="price-asc">Price: Low to High</option>
-							<option value="price-desc">Price: High to Low</option>
-						</select>
-					</div>
-				)}
-				{/* Items list */}
-				<FestiveGlow>
-					<ul className="space-y-2">
-						{(() => {
-							// Apply filters and sorting using helper functions
-							const filtered = filterItems(
-								items,
-								showOnSaleOnly,
-								showMostWantedOnly
-							);
-							const sorted = sortItems(filtered, sortBy);
 
-							return sorted.map((it) => (
-								<ItemRowCard
-									key={it.id}
-									item={it}
-									onToggle={handleToggle}
-									onDelete={handleDelete}
-									onUpdate={handleUpdate}
-									isOwner={userId === (list as any).owner_user_id}
-								/>
-							));
-						})()}
-					</ul>
-				</FestiveGlow>
-			</PageFade>
 		</main>
 	);
 }

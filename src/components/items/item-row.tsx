@@ -3,9 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { ItemRow } from "@/types/db";
 import { toCents, normalizeUrl, safeWebUrl, usd } from "@/lib/format";
-import { Snowflake } from "lucide-react";
 import { StatefulCheckbox } from "@/components/ui/stateful-checkbox";
-import { cn } from "@/lib/utils";
 
 type Props = {
 	item: ItemRow;
@@ -93,170 +91,49 @@ export default function ItemRow({
 	};
 
 	return (
-		<li
-			className={cn(
-				"flex items-start gap-3 rounded-lg border px-3 py-2 transition-all duration-300",
-				item.on_sale
-					? "border-orange-500/60 bg-orange-950/10 shadow-lg shadow-orange-500/20 animate-pulse"
-					: "border-white/10 bg-white/2"
-			)}
-		>
-			<StatefulCheckbox
-				checked={item.purchased ?? false}
+		<li className="ledger-gift-row" data-purchased={item.purchased}>
+			<StatefulCheckbox className="ledger-purchase" checked={item.purchased ?? false}
 				onChange={() => onToggle(item.id, !item.purchased)}
-				ariaLabel={item.purchased ? "Mark unpurchased" : "Mark purchased"}
-				showMultiStepLoader={!isOwner}
-			/>
-
-			<div className="flex-1">
-				{editError && <p role="alert">{editError}</p>}
+				ariaLabel={item.purchased ? "Mark unpurchased" : "Mark purchased"} showMultiStepLoader={!isOwner} />
+			<div className="ledger-gift-content">
+				{editError && <p role="alert" className="ledger-error">{editError}</p>}
 				{editing ? (
-					<div className="space-y-2">
-						<div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
-							<input
-								disabled={saving}
-								value={title}
-								onChange={(e) => setTitle(e.target.value)}
-								placeholder="Title"
-								className="rounded-lg bg-neutral-800 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-700/40"
-							/>
-							<input
-								disabled={saving}
-								value={price}
-								onChange={(e) => setPrice(e.target.value)}
-								placeholder="Price (e.g. 24.99)"
-								inputMode="decimal"
-								className="rounded-lg bg-neutral-800 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-700/40"
-							/>
-							<input
-								disabled={saving}
-								value={link}
-								onChange={(e) => setLink(e.target.value)}
-								placeholder="Link"
-								className="rounded-lg bg-neutral-800 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-700/40"
-							/>
-							<input
-								disabled={saving}
-								value={notes}
-								onChange={(e) => setNotes(e.target.value)}
-								placeholder="Notes"
-								className="rounded-lg bg-neutral-800 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-700/40"
-							/>
+					<div className="ledger-gift-editor">
+						<div className="ledger-form-fields">
+							<label>Gift name<input aria-label="Gift name" disabled={saving} value={title} onChange={e => setTitle(e.target.value)} placeholder="Title" className="ledger-input" /></label>
+							<label>Price<input aria-label="Price" disabled={saving} value={price} onChange={e => setPrice(e.target.value)} placeholder="Price (e.g. 24.99)" inputMode="decimal" className="ledger-input" /></label>
+							<label>Shop link<input aria-label="Shop link" disabled={saving} value={link} onChange={e => setLink(e.target.value)} placeholder="Link" className="ledger-input" /></label>
+							<label>Notes<input aria-label="Notes" disabled={saving} value={notes} onChange={e => setNotes(e.target.value)} placeholder="Notes" className="ledger-input" /></label>
 						</div>
-
-						<div className="flex gap-2">
-							<button
-								onClick={saveEdit}
-								disabled={saving}
-								className="rounded-lg bg-emerald-700 px-3 py-1.5 text-sm hover:ring-emerald-700 disabled:opacity-60 min-w-20"
-							>
-								{saving ? "Saving…" : "Save"}
-							</button>
-							<button
-								disabled={saving}
-								onClick={cancelEdit}
-								className="rounded-lg border border-white/10 bg-red-600 px-3 py-1.5 text-sm hover:bg-red-600"
-							>
-								Cancel
-							</button>
+						<div className="ledger-inline-actions">
+							<button onClick={saveEdit} disabled={saving} className="ledger-button">{saving ? "Saving…" : "Save"}</button>
+							<button disabled={saving} onClick={cancelEdit} className="ledger-secondary">Cancel</button>
 						</div>
 					</div>
 				) : (
-					<div>
-						<div className="flex items-start gap-2 justify-between flex-wrap">
-							<span
-								className={item.purchased ? "line-through text-white/50" : ""}
-							>
-								{item.title}
-							</span>
-							<div className="flex items-center gap-2 flex-wrap justify-between">
-								{!isOwner && item.most_wanted && (
-									<Snowflake
-										className="h-4 w-4 text-cyan-400"
-										aria-label="Most Wanted"
-									/>
-								)}
-								{!isOwner && item.on_sale && (
-									<span
-										className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-orange-600/90 text-white text-xs font-medium ring-1 ring-orange-500/50"
-										aria-label="On Sale"
-									>
-										🏷️ On Sale
-									</span>
-								)}
-							</div>
-							<div className="flex gap-2 sm:gap-4 items-center flex-wrap w-full justify-between">
-								{isOwner && (
-									<div className="flex items-center gap-2 flex-wrap">
-										<button type="button" disabled={saving} aria-pressed={item.on_sale ?? false}
-											className={cn("rounded-md px-2 py-1 text-xs border disabled:opacity-50", item.on_sale ? "bg-orange-600/90 border-orange-500" : "bg-white/5 border-white/10")}
-											onClick={() => runChange(() => onUpdate(item.id, { on_sale: !item.on_sale }))}>
-											On Sale
-										</button>
-										<div className="flex items-center gap-1.5">
-											<label className="text-xs text-white/60 hidden sm:inline">
-												Most Wanted
-											</label>
-											<label
-												className="text-xs text-white/60 sm:hidden"
-												title="Most Wanted"
-											>
-												❄️
-											</label>
-											<input
-												disabled={saving}
-												type="checkbox"
-												checked={item.most_wanted ?? false}
-												onChange={(e) => { const next = e.target.checked; void runChange(() => onUpdate(item.id, { most_wanted: next })); }}
-												className="h-4 w-4 rounded border-white/20 bg-transparent checked:bg-amber-500 checked:border-amber-500 cursor-pointer"
-											/>
-										</div>
-									</div>
-								)}
-								{typeof item.price_cents === "number" && (
-									<span className="text-sm text-emerald-400 font-medium whitespace-nowrap">
-										· {usd.format(item.price_cents / 100)}
-									</span>
-								)}
-								{giftLink && (
-									<a
-										href={giftLink}
-										target="_blank"
-										rel="noopener noreferrer"
-										className="underline hover:text-white text-sm whitespace-nowrap"
-									>
-										View
-									</a>
-								)}
-							</div>
-						</div>{" "}
-						{(item.link || item.notes) && (
-							<div className="mt-1 text-sm text-white/70 space-x-2 grid">
-								<p>Notes:</p>
-								{item.notes && <span className="opacity-80">{item.notes}</span>}
-							</div>
-						)}
-						{/* Show Edit/Delete only for owner, and only Edit button if item is not purchased */}
-						{isOwner && (
-							<div className="mt-2 flex gap-2">
-								{!item.purchased && (
-									<button
-										onClick={beginEdit}
-										className="text-sm rounded-lg bg-emerald-700 hover:bg-emerald-700 text-white px-2 py-1"
-									>
-										Edit
-									</button>
-								)}
-								<button
-									disabled={saving}
-									onClick={() => runChange(() => onDelete(item.id))}
-									className="text-sm rounded-lg bg-red-600/80 hover:bg-red-600 text-white px-2 py-1"
-								>
-									Delete
-								</button>
-							</div>
-						)}
-					</div>
+					<>
+						<div className="ledger-gift-heading"><h2>{item.title}</h2>
+							{typeof item.price_cents === "number" && <span className="ledger-gift-price">{usd.format(item.price_cents / 100)}</span>}
+						</div>
+						<div className="ledger-gift-badges">
+							{item.most_wanted && <span className="ledger-badge" aria-label="Most Wanted">✦ Most Wanted</span>}
+							{item.on_sale && <span className="ledger-badge ledger-badge-sale" aria-label="On Sale">On Sale</span>}
+						</div>
+						{item.notes && <p className="ledger-gift-notes">{item.notes}</p>}
+						<div className="ledger-inline-actions">
+							{giftLink && <a href={giftLink} target="_blank" rel="noopener noreferrer" className="ledger-shop-link">View</a>}
+							{isOwner && <>
+								{!item.purchased && <button onClick={beginEdit} disabled={saving} className="ledger-text-button">Edit</button>}
+								<button disabled={saving} onClick={() => runChange(() => onDelete(item.id))} className="ledger-text-button ledger-text-danger">Delete</button>
+							</>}
+						</div>
+						{isOwner && <div className="ledger-owner-flags">
+							<button type="button" disabled={saving} aria-pressed={item.on_sale ?? false} className="ledger-filter"
+								onClick={() => runChange(() => onUpdate(item.id, { on_sale: !item.on_sale }))}>On Sale</button>
+							<label><input disabled={saving} type="checkbox" checked={item.most_wanted ?? false}
+								onChange={e => { const next = e.target.checked; void runChange(() => onUpdate(item.id, { most_wanted: next })); }} /> Most Wanted</label>
+						</div>}
+					</>
 				)}
 			</div>
 		</li>

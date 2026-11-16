@@ -84,7 +84,6 @@ export default function UserListsPage() {
 	}
 
 	const rows = lists ?? [];
-	const many = rows.length > 1;
 
 	return (
 		<main className="ledger-theme ledger-paper ledger-page">
@@ -111,7 +110,7 @@ export default function UserListsPage() {
 					<p>Create your first list, then fill it with a few things you’d love.</p>
 				</section>
 			) : (
-				<section className={`ledger-legacy-cards grid gap-6 ${many ? "sm:grid-cols-2" : "max-w-2xl mx-auto"}`} aria-label="Your wish lists">
+				<section className="ledger-scroll-stack" aria-label="Your wish lists">
 					{rows.map((list, index) => <ListCard key={list.id} list={list} index={index} onManage={(id, title) => {
 						if (actionPending.current) return;
 						setActionError(null);

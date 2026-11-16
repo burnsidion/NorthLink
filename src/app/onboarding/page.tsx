@@ -4,9 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { AVATARS } from "@/lib/avatars";
-import { StarsBackground } from "@/components/ui/stars-background";
-import Snowfall from "@/components/ui/snowfall";
-import { cn } from "@/lib/utils";
+import { CyberSantaBrand } from "@/components/brand/cybersanta-brand";
+import { ProfileAvatar } from "@/components/brand/profile-avatar";
 import { getProfileUser, getUserProfile, saveSetupProfile } from "@/lib/auth-helpers";
 
 export default function OnboardingPage() {
@@ -76,69 +75,49 @@ export default function OnboardingPage() {
 	};
 
 	if (loaded?.attempt !== attempt || loaded.error) return (
-		<main className="min-h-dvh grid place-items-center p-6">
+		<main className="ledger-frame ledger-theme ledger-auth-shell">
 			{loaded?.attempt === attempt && loaded.error ? (
-				<div className="space-y-4 text-center">
+				<div className="ledger-paper ledger-auth-card space-y-4 text-center">
 					<p role="alert">We couldn’t load your profile. Please try again before making changes.</p>
-					<button onClick={() => setAttempt(value => value + 1)} className="rounded bg-emerald-700 px-4 py-2 text-white">Try again</button>
+					<button onClick={() => setAttempt(value => value + 1)} className="ledger-button">Try again</button>
 				</div>
-			) : <p role="status">Loading your profile…</p>}
+			) : <p role="status" className="ledger-paper ledger-auth-card">Loading your profile…</p>}
 		</main>
 	);
 
 	return (
-		<main className="min-h-dvh grid place-items-center p-6">
-			<div className="pointer-events-none fixed inset-0 -z-10">
-				<StarsBackground />
-				<Snowfall
-					count={70}
-					speed={40}
-					wind={0.18}
-					enableMeteors={true}
-					meteorCount={3}
-				/>
-			</div>
-			<div className="w-full max-w-md space-y-4 rounded-lg border p-6 shadow-sm">
-				<h1 className="heading-festive text-2xl font-semibold text-center">
+		<main className="ledger-frame ledger-theme ledger-auth-shell">
+			<div className="ledger-paper ledger-auth-card space-y-4">
+				<CyberSantaBrand />
+				<h1>
 					Welcome to CyberSanta!
 				</h1>
-				<h4 className="text-center text-sm text-muted-foreground">
+				<h4 className="ledger-muted">
 					Please enter your details to get started.
 				</h4>
 				<label htmlFor="display-name" className="block text-sm font-medium">Your name</label>
 				<input
 					id="display-name"
 					disabled={saving}
-					className="w-full rounded border px-3 py-2 bg-black/10"
+					className="ledger-input"
 					value={displayName}
 					onChange={(e) => setDisplayName(e.target.value)}
 					placeholder="e.g., Ian"
 				/>
-				<label className="block text-sm font-medium">Choose an avatar</label>
-				<div className="grid grid-cols-6 gap-4 max-h-[400px] overflow-y-auto">
-					{AVATARS.map((avatarUrl) => (
+				<p id="avatar-label" className="block text-sm font-medium">Choose an avatar</p>
+                <div className="ledger-avatar-preview"><ProfileAvatar src={avatar} name={displayName || "Your"} size={72} /><span>Your selected avatar</span></div>
+				<div className="ledger-avatar-grid" role="group" aria-labelledby="avatar-label">
+					{AVATARS.map((avatarUrl, index) => (
 						<button
 							key={avatarUrl}
 							type="button"
 							disabled={saving}
 							onClick={() => setAvatar(avatarUrl)}
-							className={cn(
-								"relative flex h-12 w-12 items-center justify-center rounded-lg border text-white transition",
-								// default
-								"border-white/10 bg-white/5 hover:bg-white/15",
-								// selected state
-								avatar === avatarUrl &&
-									"bg-emerald-600/90 border-emerald-300 shadow-lg shadow-emerald-500/40"
-							)}
+							className="ledger-avatar-option"
+                            aria-label={`Avatar option ${index + 1}`}
 							aria-pressed={avatar === avatarUrl}
 						>
-							<img
-								src={avatarUrl}
-								alt="Avatar option"
-								className="h-9 w-9 object-cover"
-								loading="lazy"
-								decoding="async"
-							/>
+							<ProfileAvatar src={avatarUrl} name={`Option ${index + 1}`} size={40} />
 						</button>
 					))}
 				</div>{" "}
@@ -146,7 +125,7 @@ export default function OnboardingPage() {
 				<button
 					onClick={save}
 					disabled={saving || !displayName.trim()}
-					className="w-full rounded bg-emerald-700 py-2 text-white disabled:opacity-50"
+					className="ledger-button w-full"
 				>
 					{saving ? "Saving…" : "Save & continue"}
 				</button>

@@ -82,6 +82,8 @@ function screen(path, helpers, props = {}) {
   const jsx = (type, props) => ({ type, props: props ?? {} });
   const component = load(path, {
     react: hooks, 'react/jsx-runtime': { jsx, jsxs: jsx },
+    '@/components/brand/cybersanta-brand': { CyberSantaBrand: 'Brand' },
+    '@/components/brand/profile-avatar': { ProfileAvatar: 'Avatar' },
     'next/navigation': { useRouter: () => router },
     '@/lib/supabase': { supabase: { auth: { onAuthStateChange(fn) { callback = fn; return { data: { subscription: { unsubscribe() {} } } }; } } } },
     '@/lib/auth-helpers': helpers,

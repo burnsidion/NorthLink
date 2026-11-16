@@ -79,7 +79,7 @@ export async function updateListLastViewed(
  * Calculate new purchases since last viewed
  */
 export function calculateNewPurchases(
-	items: ItemRow[],
+	items: Pick<ItemRow, "purchased" | "purchased_at">[],
 	lastViewedAt: string | null
 ): number {
 	if (!lastViewedAt || !Array.isArray(items)) return 0;

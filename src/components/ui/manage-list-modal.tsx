@@ -1,6 +1,7 @@
 "use client";
 
-import React from "react";
+import React, { useRef } from "react";
+import { useDialogFocus } from "./use-dialog-focus";
 import { DeleteOutlined } from "@ant-design/icons";
 
 interface ManageListModalProps {
@@ -28,12 +29,17 @@ export function ManageListModal({
 	onDelete,
 	onClose,
 }: ManageListModalProps) {
+	const dialogRef = useRef<HTMLDivElement>(null);
+	useDialogFocus(open && Boolean(list), dialogRef);
 	if (!open || !list) return null;
 
 	return (
 		<div
 			className="ledger-theme ledger-dialog-backdrop fixed inset-0 z-100 flex items-center justify-center"
-			role="dialog"
+			ref={dialogRef}
+            tabIndex={-1}
+            onKeyDown={event => { if (event.key === "Escape" && !saving && !deleting) { event.stopPropagation(); onClose(); } }}
+            role="dialog"
 			aria-modal="true"
 			aria-busy={saving || deleting}
 			aria-label="Manage list"
