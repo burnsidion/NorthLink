@@ -618,3 +618,43 @@ body { isolation: isolate; background: #102c22; }
 .ledger-corner-bottom-left { bottom: 0; left: 0; transform: scaleY(-1); }
 .ledger-corner-bottom-right { bottom: 0; right: 0; transform: rotate(180deg); }
 @media (max-width: 600px) { .ledger-corner { width: 110px; opacity: .45; } }
+
+/* A measured reveal opens the paper without scaling text or shifting the page. */
+.list-scroll-shell { position: relative; margin: 18px 6px 24px; }
+.list-scroll-paper { clip-path: inset(0 0 calc(100% - 28px) 0); }
+.list-scroll-shell[data-open="true"] .list-scroll-paper { clip-path: none; }
+.list-scroll-shell .ledger-detail {
+	--ledger-paper: #f4e5c4;
+	border-radius: 3px;
+	padding-top: clamp(34px, 4vw, 58px);
+	padding-bottom: clamp(38px, 4vw, 58px);
+	background-image: url("/brand/parchment-grain.svg"),
+		linear-gradient(90deg, #a56d2d26, transparent 6%, transparent 94%, #a56d2d26),
+		radial-gradient(ellipse at top, #fff7e3b3, transparent 68%),
+		linear-gradient(110deg, #fff6e35c, #e8d2a717);
+	box-shadow: inset 0 0 0 5px #fff7de38, inset 0 0 40px #9b642429, 0 15px 35px #061c1940;
+}
+.list-scroll-roller {
+	position: absolute; left: -6px; right: -6px; height: 32px; border: 1px solid #a98a5d; border-radius: 13px;
+	background-color: #e5cfa6;
+	background-image:
+		radial-gradient(ellipse at center, #8b683e 0 8%, #f3dfb9 11% 28%, #b49364 31% 35%, #f5e4c1 38% 55%, #b99b70 58% 62%, #e5cfa6 65%),
+		radial-gradient(ellipse at center, #8b683e 0 8%, #f3dfb9 11% 28%, #b49364 31% 35%, #f5e4c1 38% 55%, #b99b70 58% 62%, #e5cfa6 65%),
+		url("/brand/parchment-grain.svg"), linear-gradient(#c9ac7e, #f4e3bf 27%, #fbefd0 53%, #dfc397 84%, #b99a68);
+	background-size: 25px 30px, 25px 30px, auto, 100% 100%;
+	background-position: left center, right center, center, center; background-repeat: no-repeat, no-repeat, repeat, no-repeat;
+	box-shadow: 0 4px 7px #56381630; pointer-events: none; z-index: 2;
+}
+.list-scroll-top { top: -15px; }
+.list-scroll-travelling { top: -15px; transform: translateY(28px); }
+.list-scroll-bottom { bottom: -15px; visibility: hidden; }
+.list-scroll-shell[data-open="true"] .list-scroll-travelling { display: none; }
+.list-scroll-shell[data-open="true"] .list-scroll-bottom { visibility: visible; }
+@media (prefers-reduced-motion: reduce) {
+	.list-scroll-paper { clip-path: none; }
+	.list-scroll-travelling { display: none; }
+	.list-scroll-bottom { visibility: visible; }
+}
+.list-scroll-loading { min-height: 55dvh; padding: 18px 6px; }
+.list-scroll-loading-paper { position: relative; padding: 30px 32px; border-radius: 8px; }
+.list-scroll-loading .list-scroll-bottom { visibility: visible; }

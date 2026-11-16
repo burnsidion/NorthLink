@@ -13,6 +13,7 @@ import { setListShared } from "@/lib/lists-api";
 import CountdownBanner from "@/components/ui/countdown-banner";
 import AddItemForm from "@/components/items/add-item-form";
 import ItemRowCard from "@/components/items/item-row";
+import ListScrollReveal from "@/components/lists/list-scroll-reveal";
 
 //Utils
 import type { ListRow, ItemRow as ItemRowType } from "@/types/db";
@@ -59,6 +60,7 @@ function ListDetailContent({ id }: { id: string }) {
 	const [list, setList] = useState<ListRow | null>(null);
 	const [items, setItems] = useState<ItemRowType[]>([]);
 	const [loading, setLoading] = useState(true);
+	const [revealComplete, setRevealComplete] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [now0] = useState(() => Date.now());
 	const [userId, setUserId] = useState<string | null>(null);
@@ -317,14 +319,19 @@ function ListDetailContent({ id }: { id: string }) {
 	const displayedItems = sortItems(filterItems(items, showOnSaleOnly, showMostWantedOnly), sortBy);
 	const purchasedCount = items.filter(item => item.purchased).length;
 	if (loading) return (
-		<main className="ledger-theme ledger-paper ledger-page ledger-detail" aria-busy="true">
-			<h1 className="ledger-title">Opening your list…</h1>
-			{[0, 1, 2].map(index => <div key={index} className="ledger-loading-card"><div className="ledger-loading-line" /></div>)}
+		<main className="ledger-theme list-scroll-loading" aria-busy="true">
+			<div className="list-scroll-loading-paper ledger-paper">
+				<div className="list-scroll-roller list-scroll-top" aria-hidden="true" />
+				<p role="status" className="ledger-muted">Opening your list…</p>
+				<div className="list-scroll-roller list-scroll-bottom" aria-hidden="true" />
+			</div>
 		</main>
 	);
 	if (!list) return <main className="ledger-theme ledger-paper ledger-page"><p role="alert" className="ledger-error">{error ?? "List not found."}</p></main>;
 
 	return (
+		<>
+		<ListScrollReveal onComplete={() => setRevealComplete(true)}>
 		<main className="ledger-theme ledger-paper ledger-page ledger-detail">
 			<Link href={isOwner ? "/user-lists" : "/family-lists"} className="ledger-back-link">← {isOwner ? "My Lists" : "Family Lists"}</Link>
 			<header className="ledger-page-heading">
@@ -361,8 +368,10 @@ function ListDetailContent({ id }: { id: string }) {
 				{displayedItems.map(item => <ItemRowCard key={item.id} item={item} onToggle={handleToggle} onDelete={handleDelete} onUpdate={handleUpdate} isOwner={Boolean(isOwner)} />)}
 			</ul>
 			{displayedItems.length === 0 && <div className="ledger-empty"><h2>{items.length ? "No gifts match these filters" : "A little room for wishes"}</h2><p>{items.length ? "Try turning off a filter to see more gifts." : isOwner ? "Add your first gift to get started." : "No gifts have been added to this list yet."}</p></div>}
+		</main>
+		</ListScrollReveal>
 				{/* Purchase Notification Modal */}
-				{isOwner && showPurchaseModal && newPurchaseCount > 0 && (
+				{isOwner && revealComplete && showPurchaseModal && newPurchaseCount > 0 && (
 					<>
 						{/* Backdrop */}
 						<motion.div
@@ -406,6 +415,6 @@ function ListDetailContent({ id }: { id: string }) {
 					</>
 				)}
 
-		</main>
+		</>
 	);
 }

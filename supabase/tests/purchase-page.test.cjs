@@ -17,7 +17,7 @@ const flush = async () => { for (let n = 0; n < 8; n++) await new Promise(setImm
 
 // Exercise the actual page handlers and JSX with deterministic hooks/transport.
 // A route key creates a fresh harness, just as React remounts keyed content.
-function page(id, { save, refresh, update, remove, add, share, group, shared } = {}) {
+function page(id, { save, refresh, update, remove, add, share, group, shared, newPurchases = 0 } = {}) {
   let index = 0;
   const slots = [], effects = [], cleanups = [], writes = [], messages = [];
   let realtime, refreshes = 0;
@@ -61,13 +61,14 @@ function page(id, { save, refresh, update, remove, add, share, group, shared } =
       isListShared: async () => shared ?? false,
       getListWithItems: async () => ({ list: { id, title: "List", owner_user_id: "owner", last_viewed_at: null },
         items: [gift], listError: null, itemsError: null }),
-      calculateNewPurchases: () => 0, updateListLastViewed: async () => {},
+      calculateNewPurchases: () => newPurchases, updateListLastViewed: async () => {},
       filterItems: items => items, sortItems: items => items,
     },
     "@/lib/items-api": { addItem: add ?? (async () => ({ ...gift, id: "added" })), updateItem: update ?? (async () => {}), deleteItem: remove ?? (async () => {}), togglePurchased: save ?? (async () => ({ purchased: true, purchased_at: "2026-11-15T01:00:00Z" })) },
     "sonner": { toast: { success: message => messages.push(["success", message]), error: message => messages.push(["error", message]) } },
     "@/lib/lists-api": { setListShared: share ?? (async () => {}) },
     "@/components/items/item-row": { default: "ItemRowCard" },
+    "@/components/lists/list-scroll-reveal": { default: "ListScrollReveal" },
   };
   const exports = {};
   vm.runInNewContext(source, {
@@ -87,7 +88,7 @@ function page(id, { save, refresh, update, remove, add, share, group, shared } =
   const all = () => [...nodes(render())];
   render();
   return {
-    key: route.key, gift, writes, messages,
+    key: route.key, gift, writes, messages, all,
     shareButton: () => all().find(node => node.type === "button" && ["Share to Family", "Unshare from Family", "Saving…"].includes(node.props.children)),
     openAdd: () => all().find(node => node.type === "button" && node.props.children === "Add item").props.onClick(),
     form: () => all().find(node => typeof node.props.onSubmit === "function")?.props,
@@ -249,4 +250,20 @@ test("late sharing completions after leaving cannot change state or display mess
     if (failed) pending.reject(new Error('offline')); else pending.resolve(); await request;
     assert.equal(screen.writes.length, count); assert.deepEqual(screen.messages, []);
   }
+});
+
+
+test("list entrance starts after loading and purchase notices wait outside the paper until it opens", async () => {
+  const view = page("A", { newPurchases: 2 });
+  assert.equal(view.all().some(node => node.type === "ListScrollReveal"), false);
+  await flush();
+  const reveal = view.all().find(node => node.type === "ListScrollReveal");
+  assert.ok(reveal);
+  assert.equal(view.all().some(node => node.props.className === "ledger-notification-title"), false);
+  reveal.props.onComplete();
+  assert.equal(view.all().some(node => node.props.className === "ledger-notification-title"), true);
+  assert.equal(JSON.stringify(reveal.props.children).includes("Good News!"), false);
+  const next = page("B"); await flush();
+  assert.notEqual(view.key, next.key);
+  assert.ok(next.all().some(node => node.type === "ListScrollReveal"));
 });
