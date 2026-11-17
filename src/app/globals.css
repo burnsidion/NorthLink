@@ -501,13 +501,11 @@ body { isolation: isolate; background: #102c22; }
 /* Closed family scrolls link directly to their open list page. */
 .family-scroll-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 34px 28px; padding: 10px 6px; }
 .family-scroll {
-	position: relative; display: flex; align-items: center; gap: 16px; min-width: 0;
-	padding: 24px 70px 28px 34px; min-height: 158px; border: 1px solid #b99c72; border-radius: 15px 24px 19px 12px;
-	background-color: #f3e5c6;
-	background-image: url("/brand/parchment-grain.svg"), linear-gradient(#dcc7a2, #f5e8ca 15%, #f8eed6 47%, #f1e2c1 80%, #d5be96);
-	box-shadow: 0 5px 9px #50351b24, inset 0 2px 1px #fff8e875;
+	position: relative; isolation: isolate; display: flex; align-items: center; gap: 14px; min-width: 0;
+	padding: 27px 90px 27px 32px; min-height: 146px; border-radius: 16px;
 	text-decoration: none;
 }
+.family-scroll-paper { position: absolute; inset: 0; z-index: -2; background: url("/brand/rolled-parchment.svg") center / 100% 100% no-repeat; filter: drop-shadow(0 5px 5px #50351b26); pointer-events: none; }
 .family-scroll::before, .family-scroll::after {
 	content: ""; position: absolute; top: 3px; bottom: 3px; width: 22px;
 	border: 3px solid #dbc299; border-radius: 46% 54% 41% 59% / 53% 44% 56% 47%; pointer-events: none;
@@ -516,30 +514,21 @@ body { isolation: isolate; background: #102c22; }
 }
 .family-scroll::before { left: -7px; }
 .family-scroll::after { right: -7px; }
-.family-scroll > .ledger-avatar { box-shadow: 0 0 0 3px #fff5d980; }
+.family-scroll > .ledger-avatar { position: absolute; z-index: 2; right: 30px; top: 50%; transform: translateY(-50%); box-shadow: 0 0 0 3px #fff5d980; }
 .family-scroll-label { flex: 1; min-width: 0; }
 .family-scroll h2 { font: 700 27px/1.25 var(--font-ledger-heading), Georgia, serif; overflow-wrap: anywhere; }
 .family-scroll-owner { font-size: 13px; color: #6c5542; margin-top: 5px; }
 .family-scroll-count { font-size: 13px; color: #39271e; margin-top: 12px; }
 .family-scroll-open { display: flex; align-items: center; gap: 8px; color: #193f30; font-size: 12px; font-weight: 600; white-space: nowrap; margin-top: 10px; }
-.family-scroll:hover { box-shadow: 0 6px 12px #50351b38, inset 0 0 0 2px #91755070; }
+.family-scroll:hover .family-scroll-paper { filter: drop-shadow(0 6px 7px #50351b38); }
 @media (max-width: 1100px) { .family-scroll-grid { grid-template-columns: minmax(0, 1fr); } }
-@media (max-width: 600px) {
-	.family-scroll { gap: 12px; padding: 24px 48px 28px 26px; }
-	.family-scroll-label { flex-basis: 0; }
-	.family-scroll-open { margin-left: 0; }
-	.family-scroll h2 { font-size: 22px; }
+/* The loose top sheet follows the same bow as the parchment body. */
+@media (min-width: 601px) {
+	.family-scroll-paper { background-image: url("/brand/rolled-parchment-desktop.svg"); }
 }
 
-/* A loose outer sheet and tied cord distinguish paper from a solid cylinder. */
-.family-scroll-edge {
-	position: absolute; left: 5px; right: 5px; bottom: -8px; height: 27px;
-	background: linear-gradient(#c6ab7f 0 12%, #f3e2bd 20%, #f9edce 80%, #d2b78b);
-	clip-path: polygon(0 0, 100% 5%, 99% 55%, 96% 68%, 92% 64%, 89% 83%, 82% 74%, 75% 91%, 68% 83%, 60% 98%, 53% 87%, 46% 94%, 37% 78%, 30% 86%, 23% 67%, 15% 78%, 9% 60%, 3% 69%);
-	transform: rotate(-.6deg); pointer-events: none;
-}
-.family-scroll-cord { position: absolute; top: -3px; bottom: -7px; right: 21px; width: 38px; height: calc(100% + 10px); pointer-events: none; z-index: 2; filter: drop-shadow(1px 1px 1px #49301e45); }
-@media (max-width: 600px) { .family-scroll-cord { right: 12px; width: 27px; } }
+.family-scroll-top-bow { display: none; }
+.family-scroll-cord { position: absolute; right: 34px; top: -3px; width: 34px; height: calc(100% + 6px); pointer-events: none; filter: drop-shadow(0 1px 1px #49301e35); }
 
 .family-scroll-progress { width: 100%; max-width: 240px; margin-top: 8px; }
 /* Candy-cane fill stays still so purchase progress remains easy to scan. */
@@ -547,6 +536,19 @@ body { isolation: isolate; background: #102c22; }
 .family-scroll-progress > div {
 	background: repeating-linear-gradient(135deg, #a72e35 0 7px, #fff6e3 7px 14px);
 	box-shadow: inset 0 1px 0 #ffffff60, inset 0 -1px 0 #70212625;
+}
+
+/* A clear center channel lets the desktop tie gather the paper without covering text. */
+@media (min-width: 601px) {
+	.family-scroll { display: grid; grid-template-columns: minmax(0, 1fr) 42px minmax(0, 1fr); align-content: center; gap: 8px 16px; padding: 30px 32px; }
+	.family-scroll-label { display: contents; }
+	.family-scroll h2 { grid-column: 1; grid-row: 1; align-self: center; }
+	.family-scroll-owner { grid-column: 1; grid-row: 2; margin-top: 0; }
+	.family-scroll-open { grid-column: 1; grid-row: 3; margin-top: 0; }
+	.family-scroll > .ledger-avatar { position: static; transform: none; grid-column: 3; grid-row: 1; justify-self: end; align-self: center; }
+	.family-scroll-count { grid-column: 3; grid-row: 2; margin-top: 0; }
+	.family-scroll-progress { grid-column: 3; grid-row: 3; margin-top: 0; align-self: center; }
+	.family-scroll-cord { left: 50%; right: auto; top: 10%; height: 80%; transform: translateX(-50%); }
 }
 
 /* Book typography, warm paper edges, and quiet hearth light. */
@@ -598,16 +600,23 @@ body { isolation: isolate; background: #102c22; }
 
 .ledger-purchased-row h2 { font: 600 22px/1.4 var(--font-ledger-sans), Arial, sans-serif; }
 @media (max-width: 360px) { .ledger-title { font-size: 30px; } }
-/* Give handwritten titles the full scroll width on phones. */
+/* Keep short phone scrolls compact; longer titles can grow without truncation. */
 @media (max-width: 600px) {
-	.family-scroll { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 10px; }
+	.ledger-family-page { padding-inline: 16px; }
+	.family-scroll-grid { gap: 25px; padding-inline: 4px; }
+	.family-scroll { display: grid; grid-template-columns: minmax(0, 1fr) auto 28px; gap: 6px 8px; padding: 28px 23px 20px; min-height: 0; }
 	.family-scroll-label { display: contents; }
-	.family-scroll h2 { grid-column: 1 / -1; grid-row: 1; }
-	.family-scroll > .ledger-avatar { grid-column: 1; grid-row: 2; }
-	.family-scroll-owner { grid-column: 2; grid-row: 2; margin-top: 0; align-self: center; }
-	.family-scroll-count { grid-column: 1 / -1; grid-row: 3; margin-top: 0; }
-	.family-scroll-progress { grid-column: 1 / -1; grid-row: 4; margin-top: 0; }
-	.family-scroll-open { grid-column: 1 / -1; grid-row: 5; margin-top: 0; }
+	.family-scroll h2 { grid-column: 1 / 3; grid-row: 1; font-size: 20px; line-height: 1.25; }
+	.family-scroll > .ledger-avatar { position: static; transform: none; grid-column: 3; grid-row: 1 / 3; align-self: center; width: 28px !important; height: 28px !important; }
+	.family-scroll-owner { grid-column: 1 / 3; grid-row: 2; margin-top: 0; align-self: center; font-size: 12px; }
+	.family-scroll-count { grid-column: 1; grid-row: 3; margin-top: 0; font-size: 12px; align-self: center; }
+	.family-scroll-open { grid-column: 2 / -1; grid-row: 3; margin-top: 0; font-size: 11px; gap: 4px; align-self: center; }
+	.family-scroll-cord { display: none; }
+	.family-scroll-top-bow { display: block; position: absolute; left: 50%; top: 0; transform: translateX(-50%); width: 34px; height: 28px; pointer-events: none; filter: drop-shadow(0 1px 1px #49301e35); }
+	.family-scroll-progress { grid-column: 1 / -1; grid-row: 4; margin-top: 0; height: 7px; }
+	.family-scroll::before, .family-scroll::after { width: 17px; border-width: 2px; }
+	.family-scroll::before { left: -4px; }
+	.family-scroll::after { right: -4px; }
 }
 
 /* Quiet greenery frames the viewport behind the snow and reading surfaces. */
@@ -635,19 +644,27 @@ body { isolation: isolate; background: #102c22; }
 	box-shadow: inset 0 0 0 5px #fff7de38, inset 0 0 40px #9b642429, 0 15px 35px #061c1940;
 }
 .list-scroll-roller {
-	position: absolute; left: -6px; right: -6px; height: 32px; border: 1px solid #a98a5d; border-radius: 13px;
-	background-color: #e5cfa6;
-	background-image:
-		radial-gradient(ellipse at center, #8b683e 0 8%, #f3dfb9 11% 28%, #b49364 31% 35%, #f5e4c1 38% 55%, #b99b70 58% 62%, #e5cfa6 65%),
-		radial-gradient(ellipse at center, #8b683e 0 8%, #f3dfb9 11% 28%, #b49364 31% 35%, #f5e4c1 38% 55%, #b99b70 58% 62%, #e5cfa6 65%),
-		url("/brand/parchment-grain.svg"), linear-gradient(#c9ac7e, #f4e3bf 27%, #fbefd0 53%, #dfc397 84%, #b99a68);
-	background-size: 25px 30px, 25px 30px, auto, 100% 100%;
-	background-position: left center, right center, center, center; background-repeat: no-repeat, no-repeat, repeat, no-repeat;
-	box-shadow: 0 4px 7px #56381630; pointer-events: none; z-index: 2;
+	position: absolute; left: -14px; right: -14px; height: 56px;
+	background: url("/brand/open-scroll-roll.svg") center / 100% 100% no-repeat;
+	filter: drop-shadow(0 4px 4px #56381630); pointer-events: none; z-index: 2;
 }
-.list-scroll-top { top: -15px; }
-.list-scroll-travelling { top: -15px; transform: translateY(28px); }
-.list-scroll-bottom { bottom: -15px; visibility: hidden; }
+.list-scroll-roller::before, .list-scroll-roller::after {
+	content: ""; position: absolute; top: 1px; width: 30px; height: 44px;
+	border: 1px solid #a98a5d; border-radius: 50%;
+	background: radial-gradient(ellipse at center, #8b683e 0 7%, #f3dfb9 10% 27%, #b49364 30% 34%, #f5e4c1 37% 54%, #b99b70 57% 61%, #e5cfa6 64%);
+	box-shadow: inset 2px 0 3px #fff5da70;
+}
+.list-scroll-roller::before { left: 0; }
+.list-scroll-roller::after { right: 0; }
+.list-scroll-top { top: -25px; }
+.list-scroll-travelling { top: -25px; transform: translateY(28px); }
+.list-scroll-bottom { bottom: -25px; visibility: hidden; }
+@media (max-width: 600px) {
+	.list-scroll-roller { left: -10px; right: -10px; height: 46px; }
+	.list-scroll-roller::before, .list-scroll-roller::after { width: 23px; height: 36px; }
+	.list-scroll-top, .list-scroll-travelling { top: -20px; }
+	.list-scroll-bottom { bottom: -20px; }
+}
 .list-scroll-shell[data-open="true"] .list-scroll-travelling { display: none; }
 .list-scroll-shell[data-open="true"] .list-scroll-bottom { visibility: visible; }
 @media (prefers-reduced-motion: reduce) {
