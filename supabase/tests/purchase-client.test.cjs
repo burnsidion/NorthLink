@@ -12,7 +12,7 @@ function load(file, modules) {
   vm.runInNewContext(code, {
     exports, console,
     require(name) {
-      if (!(name in modules)) throw new Error("Unexpected dependency: " + name);
+      if(name === '@/lib/item-image') return require('./helpers/load-product-lookup.cjs').load('src/lib/item-image.ts'); if(name === '@/components/items/item-thumbnail') return {default:'ItemThumbnail'}; if (!(name in modules)) throw new Error("Unexpected dependency: " + name);
       return modules[name];
     },
   });

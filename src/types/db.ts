@@ -8,6 +8,7 @@ export type ItemRow = {
 	created_at: string;
 	price_cents: number | null;
 	link: string | null;
+	image_url?: string | null;
 	notes: string | null;
 	most_wanted?: boolean;
 	on_sale?: boolean;

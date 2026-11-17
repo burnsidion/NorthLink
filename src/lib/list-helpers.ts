@@ -16,7 +16,7 @@ export async function getListWithItems(listId: string) {
 			supabase
 				.from("items")
 				.select(
-					"id,list_id,title,purchased,purchased_at,created_at,price_cents,link,notes,most_wanted,on_sale"
+					"id,list_id,title,purchased,purchased_at,created_at,price_cents,link,image_url,notes,most_wanted,on_sale"
 				)
 				.eq("list_id", listId)
 				.order("created_at", { ascending: true }),

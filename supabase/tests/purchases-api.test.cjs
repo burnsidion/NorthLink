@@ -12,6 +12,7 @@ function load(rpc) {
   vm.runInNewContext(code, {
     exports,
     require(name) {
+      if(name === '@/lib/item-image') return require('./helpers/load-product-lookup.cjs').load('src/lib/item-image.ts');
       assert.equal(name, "@/lib/supabase");
       return { supabase: { rpc } };
     },
@@ -50,4 +51,11 @@ test("invalid responses do not masquerade as an empty purchase history", async (
 test("permission errors and network failures propagate", async () => {
   await assert.rejects(load(async () => ({ data: null, error: new Error("Sign in") })).getMyPurchases(), /Sign in/);
   await assert.rejects(load(async () => { throw new Error("Offline"); }).getMyPurchases(), /Offline/);
+});
+
+test('purchase thumbnails are carried safely without accepting invalid image URLs', async () => {
+ for (const [image_url, expected] of [['https://cdn.example/gift.jpg','https://cdn.example/gift.jpg'],['javascript:alert(1)',null],[null,null]]) {
+  const result=await load(async()=>({data:[{...row,image_url}],error:null})).getMyPurchases();
+  assert.equal(result[0].image_url,expected);
+ }
 });

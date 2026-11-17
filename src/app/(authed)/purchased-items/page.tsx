@@ -1,4 +1,5 @@
 "use client";
+import ItemThumbnail from "@/components/items/item-thumbnail";
 import { useState } from "react";
 import { getMyPurchases } from "@/lib/purchases-api";
 import { useRefreshingData } from "@/lib/use-refreshing-data";
@@ -16,7 +17,7 @@ export default function PurchasedItemsPage() {
    <section aria-label="Purchased gifts">{items.map(item => {
     const giftLink = safeWebUrl(item.link);
     return <article key={item.id} className="ledger-purchased-row">
-     <div className="ledger-gift-heading"><h2>{item.title}</h2>{typeof item.price_cents === "number" && <strong>{usd.format(item.price_cents / 100)}</strong>}</div>
+     <div className="ledger-gift-heading"><div className="ledger-gift-identity"><ItemThumbnail src={item.image_url} /><h2>{item.title}</h2></div>{typeof item.price_cents === "number" && <strong>{usd.format(item.price_cents / 100)}</strong>}</div>
      <p>From: {item.list_owner_name} · List: {item.list_title}</p>
      {item.notes && <p className="ledger-gift-notes">{item.notes}</p>}
      {giftLink && <a href={giftLink} target="_blank" rel="noopener noreferrer" className="ledger-secondary">View Item</a>}
