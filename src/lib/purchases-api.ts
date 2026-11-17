@@ -1,3 +1,4 @@
+import { itemImageUrl } from "@/lib/item-image";
 import { supabase } from "@/lib/supabase";
 
 export type PurchasedItem = {
@@ -5,6 +6,7 @@ export type PurchasedItem = {
 	title: string;
 	price_cents: number | null;
 	link: string | null;
+	image_url?: string | null;
 	notes: string | null;
 	most_wanted: boolean;
 	list_title: string;
@@ -33,6 +35,6 @@ export async function getMyPurchases(): Promise<PurchasedItem[]> {
 		throw new Error("Could not read your purchases. Please refresh and try again.");
 	}
 	// Only carry the documented screen fields into client state.
-	return data.map(({ id, title, price_cents, link, notes, most_wanted, list_title, list_owner_name }) =>
-		({ id, title, price_cents, link, notes, most_wanted, list_title, list_owner_name }));
+	return data.map(({ id, title, price_cents, link, image_url, notes, most_wanted, list_title, list_owner_name }) =>
+		({ id, title, price_cents, link, ...(image_url === undefined ? {} : { image_url: itemImageUrl(image_url) }), notes, most_wanted, list_title, list_owner_name }));
 }

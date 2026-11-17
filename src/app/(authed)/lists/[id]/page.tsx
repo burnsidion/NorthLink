@@ -80,6 +80,7 @@ function ListDetailContent({ id }: { id: string }) {
 	const [newTitle, setNewTitle] = useState("");
 	const [newPrice, setNewPrice] = useState("");
 	const [newLink, setNewLink] = useState("");
+	const [newImageUrl, setNewImageUrl] = useState<string | null>(null);
 	const [newNotes, setNewNotes] = useState("");
 	const [formOpen, setFormOpen] = useState(false);
 
@@ -184,7 +185,7 @@ function ListDetailContent({ id }: { id: string }) {
 			const { data, error } = await supabase
 				.from("items")
 				.select(
-					"id,list_id,title,purchased,purchased_at,created_at,price_cents,link,notes,most_wanted,on_sale"
+					"id,list_id,title,purchased,purchased_at,created_at,price_cents,link,image_url,notes,most_wanted,on_sale"
 				)
 				.eq("list_id", id)
 				.order("created_at", { ascending: true });
@@ -210,7 +211,7 @@ function ListDetailContent({ id }: { id: string }) {
 			const inserted = await addItem(list.id, {
 				title,
 				price: newPrice,
-				link: newLink,
+				link: newLink, imageUrl: newImageUrl,
 				notes: newNotes,
 			});
 			if (!mounted.current) return;
@@ -218,7 +219,7 @@ function ListDetailContent({ id }: { id: string }) {
 			setItems(prev => [...prev.filter(item => item.id !== inserted.id), inserted]);
 			setNewTitle("");
 			setNewPrice("");
-			setNewLink("");
+			setNewLink(""); setNewImageUrl(null);
 			setNewNotes("");
 			setFormOpen(false);
 		} catch (err: unknown) {
@@ -276,7 +277,7 @@ function ListDetailContent({ id }: { id: string }) {
 	}
 
 	async function handleUpdate(itemId: string, patch: Partial<Pick<ItemRowType,
-		"title" | "price_cents" | "link" | "notes" | "most_wanted" | "on_sale"
+		"title" | "price_cents" | "link" | "notes" | "most_wanted" | "on_sale" | "image_url"
 	>>): Promise<boolean> {
 		if (!mounted.current) return false;
 		setError(null);
@@ -353,7 +354,7 @@ function ListDetailContent({ id }: { id: string }) {
 			</div>
 			{isOwner && formOpen && <AddItemForm open={formOpen} onOpenChange={setFormOpen}
 				title={newTitle} setTitle={setNewTitle} price={newPrice} setPrice={setNewPrice}
-				link={newLink} setLink={setNewLink} notes={newNotes} setNotes={setNewNotes} onSubmit={handleAdd} submitting={adding} />}
+				imageUrl={newImageUrl} setImageUrl={setNewImageUrl} link={newLink} setLink={setNewLink} notes={newNotes} setNotes={setNewNotes} onSubmit={handleAdd} submitting={adding} />}
 			{error && <p role="alert" className="text-red-600 text-sm">{error}</p>}
 			{items.length > 0 && <div className="ledger-filters">
 				<div className="ledger-inline-actions">

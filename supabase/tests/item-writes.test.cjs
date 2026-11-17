@@ -8,7 +8,7 @@ function load(path, modules = {}) {
   vm.runInNewContext(ts.transpileModule(fs.readFileSync(path, 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, jsx: ts.JsxEmit.ReactJSX },
   }).outputText, { exports, URL, Intl, require: name => {
-    if (!(name in modules)) throw new Error('Unexpected import: ' + name);
+    if(name === '@/lib/item-image') return require('./helpers/load-product-lookup.cjs').load('src/lib/item-image.ts'); if(name === '@/components/items/item-thumbnail') return {default:'ItemThumbnail'}; if (!(name in modules)) throw new Error('Unexpected import: ' + name);
     return modules[name];
   } });
   return exports;

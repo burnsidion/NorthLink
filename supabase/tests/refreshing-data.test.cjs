@@ -5,7 +5,7 @@ const vm=require('node:vm');
 const ts=require('typescript');
 function load(path,modules,globals={}){
   const exports={};vm.runInNewContext(ts.transpileModule(fs.readFileSync(path,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020,jsx:ts.JsxEmit.ReactJSX}}).outputText,
-    {exports,console,...globals,require:name=>{if(!(name in modules))throw new Error('Unexpected dependency: '+name);return modules[name];}});return exports;
+    {exports,console,...globals,require:name=>{if(name === '@/lib/item-image') return require('./helpers/load-product-lookup.cjs').load('src/lib/item-image.ts'); if(name === '@/components/items/item-thumbnail') return {default:'ItemThumbnail'}; if(!(name in modules))throw new Error('Unexpected dependency: '+name);return modules[name];}});return exports;
 }
 const deferred=()=>{let resolve,reject;const promise=new Promise((a,b)=>{resolve=a;reject=b;});return {promise,resolve,reject};};
 const flush=async()=>{for(let i=0;i<6;i++)await new Promise(setImmediate);};

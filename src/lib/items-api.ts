@@ -1,6 +1,7 @@
 // src/lib/items-api.ts
 import { supabase } from "@/lib/supabase";
 import { toCents, normalizeUrl, validatePriceCents } from "@/lib/format";
+import { validateItemImage } from "@/lib/item-image";
 import type { ItemRow } from "@/types/db";
 
 /** Create a new item on a list. Returns the inserted row. */
@@ -11,13 +12,18 @@ export async function addItem(
 		price?: string; // "24.99" (optional)
 		link?: string; // raw url (optional)
 		notes?: string; // optional
+		imageUrl?: string | null;
 	}
 ): Promise<ItemRow> {
 	const { title, price, link, notes } = input;
+	// Omit absent images so manual entry also works before the thumbnail migration.
+	const imageUrl = validateItemImage(input.imageUrl);
+	const image = imageUrl ? { image_url: imageUrl } : {};
 
 	const { data, error } = await supabase
 		.from("items")
 		.insert({
+			...image,
 			list_id: listId,
 			title: title.trim(),
 			price_cents: toCents(price ?? ""),
@@ -25,7 +31,7 @@ export async function addItem(
 			notes: (notes ?? "").trim() || null,
 		})
 		.select(
-			"id,list_id,title,purchased,created_at,price_cents,link,notes,most_wanted,on_sale"
+			"id,list_id,title,purchased,created_at,price_cents,link,image_url,notes,most_wanted,on_sale"
 		)
 		.single();
 
@@ -44,7 +50,7 @@ type PatchByUI = {
 type PatchByDB = Partial<
 	Pick<
 		ItemRow,
-		"title" | "price_cents" | "link" | "notes" | "most_wanted" | "on_sale"
+		"title" | "price_cents" | "link" | "notes" | "most_wanted" | "on_sale" | "image_url"
 	>
 >;
 
@@ -61,6 +67,8 @@ export async function updateItem(
 	patch: PatchByUI | PatchByDB
 ): Promise<void> {
 	const mapped: PatchByDB = {};
+
+	if ("image_url" in patch) mapped.image_url = validateItemImage(patch.image_url);
 
 	// title
 	if ("title" in patch && typeof patch.title === "string") {

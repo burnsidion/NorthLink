@@ -1,5 +1,6 @@
 "use client";
 
+import ItemThumbnail from "@/components/items/item-thumbnail";
 import { useEffect, useRef, useState } from "react";
 import type { ItemRow } from "@/types/db";
 import { toCents, normalizeUrl, safeWebUrl, usd } from "@/lib/format";
@@ -14,7 +15,7 @@ type Props = {
 		patch: Partial<
 			Pick<
 				ItemRow,
-				"title" | "price_cents" | "link" | "notes" | "most_wanted" | "on_sale"
+				"title" | "price_cents" | "link" | "notes" | "most_wanted" | "on_sale" | "image_url"
 			>
 		>
 	) => Promise<boolean>;
@@ -66,11 +67,12 @@ export default function ItemRow({
 			: ""
 	);
 	const [link, setLink] = useState(item.link ?? "");
+	const [removeImage, setRemoveImage] = useState(false);
 	const [notes, setNotes] = useState(item.notes ?? "");
 
 	const beginEdit = () => setEditing(true);
 	const cancelEdit = () => {
-		setEditing(false);
+		setEditing(false); setRemoveImage(false);
 		// reset to original values
 		setTitle(item.title ?? "");
 		setPrice(
@@ -86,6 +88,7 @@ export default function ItemRow({
 		const saved = await runChange(() => onUpdate(item.id, {
 			title: title.trim(), price_cents: toCents(price),
 			link: normalizeUrl(link), notes: notes.trim() || null,
+			...(removeImage || normalizeUrl(link) !== normalizeUrl(item.link ?? "") ? { image_url: null } : {}),
 		}));
 		if (mounted.current && saved) setEditing(false);
 	};
@@ -105,6 +108,7 @@ export default function ItemRow({
 							<label>Shop link<input aria-label="Shop link" disabled={saving} value={link} onChange={e => setLink(e.target.value)} placeholder="Link" className="ledger-input" /></label>
 							<label>Notes<input aria-label="Notes" disabled={saving} value={notes} onChange={e => setNotes(e.target.value)} placeholder="Notes" className="ledger-input" /></label>
 						</div>
+						{item.image_url && !removeImage && <button type="button" disabled={saving} className="ledger-text-button" onClick={() => setRemoveImage(true)}>Remove image</button>}
 						<div className="ledger-inline-actions">
 							<button onClick={saveEdit} disabled={saving} className="ledger-button">{saving ? "Saving…" : "Save"}</button>
 							<button disabled={saving} onClick={cancelEdit} className="ledger-secondary">Cancel</button>
@@ -112,7 +116,7 @@ export default function ItemRow({
 					</div>
 				) : (
 					<>
-						<div className="ledger-gift-heading"><h2>{item.title}</h2>
+						<div className="ledger-gift-heading"><div className="ledger-gift-identity"><ItemThumbnail src={item.image_url} /><h2>{item.title}</h2></div>
 							{typeof item.price_cents === "number" && <span className="ledger-gift-price">{usd.format(item.price_cents / 100)}</span>}
 						</div>
 						<div className="ledger-gift-badges">
