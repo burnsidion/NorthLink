@@ -10,7 +10,7 @@ function load(path, modules) {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, jsx: ts.JsxEmit.ReactJSX },
   }).outputText;
   vm.runInNewContext(source, { exports, require: name => {
-    if (!(name in modules)) throw new Error('Unexpected import: ' + name);
+    if(name === '@/components/ui/wreath-loader') return {WreathLoader:'WreathLoader'}; if (!(name in modules)) throw new Error('Unexpected import: ' + name);
     return modules[name];
   } });
   return exports;

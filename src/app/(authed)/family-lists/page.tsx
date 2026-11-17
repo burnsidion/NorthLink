@@ -1,4 +1,5 @@
 "use client";
+import { WreathLoader } from "@/components/ui/wreath-loader";
 import { useState } from "react";
 import { getProfileUser } from "@/lib/auth-helpers";
 import { getUserGroupNames } from "@/lib/family-group-helpers";
@@ -18,10 +19,10 @@ export default function FamilyListsPage() {
  const { data, error, loading, retry } = useRefreshingData(loadLists, "family-lists-progress");
  const lists = data?.lists ?? [];
  const groupNames = data?.groupNames ?? [];
- return <main className="ledger-theme ledger-paper ledger-page ledger-family-page">
+ return <main className="ledger-theme ledger-paper ledger-page ledger-page-arrival ledger-family-page">
   <header className="ledger-page-heading ledger-family-heading"><div><h1 className="ledger-title ledger-family-title"><span>Family Lists</span></h1>{groupNames.length > 0 && <p className="font-semibold">{groupNames.length === 1 ? groupNames[0] : "Shared across your family groups"}</p>}<p>Browse shared lists and wanted gifts.</p></div><CountdownBanner initialNow={initialNow} appearance="ledger" /></header>
   {error && <RefreshNotice message={error} onRetry={retry} />}
-  {loading ? <p role="status" className="ledger-empty">Loading family lists…</p> : error && data === null ? null : lists.length === 0 ? <p className="ledger-empty">You don&apos;t have any shared lists yet. Once friends or family share lists with you, they&apos;ll appear here.</p> :
-   <section className="family-scroll-grid" aria-label="Family wish lists">{lists.map(list => <FamilyScroll key={list.id} list={list} />)}</section>}
+  {loading ? <WreathLoader label="Loading family lists…" className="ledger-empty" /> : error && data === null ? null : lists.length === 0 ? <p className="ledger-empty">You don&apos;t have any shared lists yet. Once friends or family share lists with you, they&apos;ll appear here.</p> :
+   <section className="family-scroll-grid ledger-content-arrival" aria-label="Family wish lists">{lists.map(list => <FamilyScroll key={list.id} list={list} />)}</section>}
  </main>;
 }

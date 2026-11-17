@@ -1,4 +1,5 @@
 "use client";
+import { WreathLoader } from "@/components/ui/wreath-loader";
 
 //React
 import { useEffect, useState, useRef } from "react";
@@ -323,7 +324,7 @@ function ListDetailContent({ id }: { id: string }) {
 		<main className="ledger-theme list-scroll-loading" aria-busy="true">
 			<div className="list-scroll-loading-paper ledger-paper">
 				<div className="list-scroll-roller list-scroll-top" aria-hidden="true" />
-				<p role="status" className="ledger-muted">Opening your list…</p>
+				<WreathLoader label="Loading your list…" />
 				<div className="list-scroll-roller list-scroll-bottom" aria-hidden="true" />
 			</div>
 		</main>

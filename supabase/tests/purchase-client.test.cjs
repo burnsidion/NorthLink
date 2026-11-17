@@ -4,13 +4,13 @@ const fs = require("node:fs");
 const vm = require("node:vm");
 const ts = require("typescript");
 
-function load(file, modules) {
+function load(file, modules, globals = {}) {
   const exports = {};
   const code = ts.transpileModule(fs.readFileSync(file, "utf8"), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, jsx: ts.JsxEmit.ReactJSX },
   }).outputText;
   vm.runInNewContext(code, {
-    exports, console,
+    exports, console, ...globals,
     require(name) {
       if(name === '@/lib/item-image') return require('./helpers/load-product-lookup.cjs').load('src/lib/item-image.ts'); if(name === '@/components/items/item-thumbnail') return {default:'ItemThumbnail'}; if (!(name in modules)) throw new Error("Unexpected dependency: " + name);
       return modules[name];
@@ -57,28 +57,25 @@ test("malformed responses never count as a saved purchase", async () => {
 
 // Test the actual click handler with lightweight hook/animation substitutes.
 // This checks save timing and failure propagation without another test runtime.
-function checkbox(onChange) {
-  const animations = [];
-  const states = [];
-  let unmount;
-  const jsx = (type, props) => ({ type, props });
-  const react = {
-    useState: () => [false, value => states.push(value)],
-    useRef: value => ({ current: value }),
-    useEffect: effect => { unmount = effect(); },
+function checkbox(onChange, { checked = false, reducedMotion = false } = {}) {
+  const animations=[], states=[], slots=[];
+  let cursor=0, unmount;
+  const jsx=(type,props)=>({type,props});
+  const react={
+    useState(initial){const i=cursor++;if(!(i in slots))slots[i]=initial;return [slots[i],value=>{slots[i]=value;states.push(value);}];},
+    useRef(value){const i=cursor++;return slots[i]??=({current:value});},
+    useEffect(effect){const i=cursor++;if(!(i in slots)){slots[i]=true;unmount=effect();}},
   };
-  const { StatefulCheckbox } = load("src/components/ui/stateful-checkbox.tsx", {
-    react,
-    "react/jsx-runtime": { jsx, jsxs: jsx, Fragment: "fragment" },
-    "@/lib/utils": { cn: () => "" },
-    "motion/react": { motion: { button: "button", svg: "svg" },
-      useAnimate: () => [{}, async selector => { animations.push(selector); }] },
-    "./multi-step-loader": { MultiStepLoader: "loader" },
-    "@/lib/confetti-helpers": { triggerPurchaseConfetti: () => animations.push("confetti") },
-  });
-  const tree = StatefulCheckbox({ checked: false, onChange, showMultiStepLoader: true });
-  const button = tree.props.children.find(node => node?.type === "button");
-  return { click: button.props.onClick, animations, states, unmount };
+  const {StatefulCheckbox}=load("src/components/ui/stateful-checkbox.tsx",{
+    react,"react/jsx-runtime":{jsx,jsxs:jsx,Fragment:"fragment"},
+    "@/lib/utils":{cn:(...values)=>values.filter(Boolean).join(' ')},
+    "./wreath-loader":{WreathSpinner:"wreath"},
+    "@/lib/confetti-helpers":{triggerPurchaseConfetti:()=>animations.push("confetti")},
+  },{window:{matchMedia:()=>({matches:reducedMotion})}});
+  function render(nextChecked=checked){checked=nextChecked;cursor=0;return StatefulCheckbox({checked,onChange});}
+  const button=tree=>tree.props.children.find(node=>node?.type==="button");
+  const tree=render();
+  return {click:button(tree).props.onClick,render,button,animations,states,unmount};
 }
 test("save starts immediately, duplicate clicks are blocked, success follows confirmation", async () => {
   let finish;
@@ -118,4 +115,25 @@ test("leaving the screen suppresses later animation and state updates", async ()
   await pending;
   assert.equal(control.animations.length, 0);
   assert.equal(control.states.length, count);
+});
+
+test("pending purchase stays inside the disabled checkbox and reveals confirmed state without an overlay", async()=>{
+ let finish;
+ const control=checkbox(()=>new Promise(resolve=>{finish=resolve;}));
+ const work=control.click();
+ const pending=control.button(control.render());
+ assert.equal(pending.props.disabled,true);assert.equal(pending.props['aria-busy'],true);
+ assert.equal(pending.props.children.type,'wreath');
+ assert.equal(control.animations.length,0);
+ finish(true);await work;
+ const saved=control.button(control.render(true));
+ assert.equal(saved.props.disabled,false);assert.equal(saved.props['aria-pressed'],true);
+ assert.equal(saved.props.children.type,'svg');assert.match(saved.props.children.props.className,/ledger-purchase-check-pop/);
+ control.unmount();
+});
+test("reduced motion and unpurchasing suppress celebratory confetti", async()=>{
+ for(const options of [{reducedMotion:true},{checked:true}]){
+  const control=checkbox(async()=>true,options);await control.click();
+  assert.equal(control.animations.length,0);control.unmount();
+ }
 });

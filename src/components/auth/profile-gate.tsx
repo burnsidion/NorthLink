@@ -1,5 +1,6 @@
 "use client";
 
+import { WreathLoader } from "@/components/ui/wreath-loader";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
@@ -51,13 +52,13 @@ export default function ProfileGate({ children, redirectReadyTo }: {
 
 	if (result?.attempt === attempt && result.status === "ready") return children;
 	return (
-		<main className="min-h-dvh grid place-items-center p-6">
+		<main className="ledger-frame ledger-theme ledger-auth-shell">
 			{result?.attempt === attempt && result.status === "error" ? (
 				<div className="space-y-4 text-center">
 					<p role="alert">We couldn’t check your profile. Please try again.</p>
 					<button onClick={retry} className="rounded bg-emerald-700 px-4 py-2 text-white">Try again</button>
 				</div>
-			) : <p role="status">Checking your profile…</p>}
+			) : <div className="ledger-paper ledger-auth-card"><WreathLoader label="Checking your profile…" /></div>}
 		</main>
 	);
 }

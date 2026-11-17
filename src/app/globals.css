@@ -711,3 +711,57 @@ body { isolation: isolate; background: #102c22; }
 .ledger-item-thumbnail img { width:100%; height:100%; object-fit:contain; }
 .ledger-thumbnail-preview { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
 @media(max-width:640px) { .ledger-item-thumbnail { width:40px; height:40px; flex-basis:40px; } }
+
+/* Optional dashboard tour, styled to match the Christmas ledger. */
+.ledger-tour-backdrop { position:fixed; inset:0; z-index:110; display:flex; align-items:center; justify-content:center; padding:20px; backdrop-filter:blur(3px); }
+.ledger-tour-dialog { position:relative; width:100%; max-width:560px; max-height:calc(100dvh - 40px); overflow-y:auto; overscroll-behavior:contain; border:1px solid #b89b6d; box-shadow:0 20px 65px #061b16a6, 0 0 38px #d5a45826, inset 0 0 0 5px #fffbec55; }
+.ledger-tour-dialog::before { content:""; position:absolute; top:0; left:28px; right:28px; height:3px; background:linear-gradient(90deg, transparent, #913d36 25%, #913d36 75%, transparent); }
+.ledger-tour-dialog h2 { font:700 clamp(27px, 5vw, 34px)/1.25 var(--font-ledger-heading), Georgia, serif; margin:12px 0 20px; overflow-wrap:anywhere; }
+.ledger-tour-dialog h2:focus { outline:none; }
+.ledger-tour-dialog p { line-height:1.65; }
+.ledger-tour-dialog #quick-tour-description { color:#4d3b2c; font-size:16px; }
+.ledger-tour-preview { display:flex; align-items:center; gap:18px; padding:14px; margin-bottom:18px; border:1px solid #b89b6d70; border-radius:8px; background:#f5e5c755; box-shadow:inset 0 1px 4px #80603c0c; }
+.ledger-tour-illustration { width:48%; flex:0 0 48%; height:auto; }
+.ledger-tour-location { margin:0; min-width:0; font-size:14px; }
+.ledger-tour-location span { display:block; color:#75614c; font-size:12px; margin-bottom:4px; }
+.ledger-tour-location strong { display:block; overflow-wrap:anywhere; color:#214c3b; }
+.ledger-tour-welcome-mark { display:grid; place-items:center; width:64px; height:64px; margin:0 0 18px; border-radius:50%; background:#842d29; color:#fff1cf; box-shadow:inset 0 0 0 4px #ffffff18, 0 3px 7px #583b231a; }
+.ledger-tour-welcome-mark svg { width:44px; height:44px; }
+.ledger-tour-progress { display:flex; gap:7px; padding:0; margin:0 0 20px; list-style:none; }
+.ledger-tour-progress li { height:4px; flex:1; border-radius:3px; background:#d9c39e; }
+.ledger-tour-progress li[data-complete="true"] { background:#739078; }
+.ledger-tour-progress li[aria-current="step"] { background:#214c3b; }
+.ledger-tour-actions { margin-top:24px; padding-top:20px; border-top:1px solid #b89b6d66; }
+.ledger-tour-actions button { min-height:44px; }
+@media(max-width:480px) {
+ .ledger-tour-backdrop { padding:12px; }
+ .ledger-tour-dialog { padding:24px 20px; max-height:calc(100dvh - 24px); }
+ .ledger-tour-preview { gap:12px; padding:10px; }
+ .ledger-tour-illustration { width:43%; flex-basis:43%; }
+ .ledger-tour-location { font-size:13px; }
+ .ledger-tour-actions { gap:8px 14px; }
+}
+
+/* Shared festive loading indicator; only mounted while work is pending. */
+.ledger-wreath-spinner { display:block; flex-shrink:0; animation:ledger-wreath-spin 1.8s linear infinite; transform-origin:center; }
+.ledger-wreath-status { display:flex; gap:12px; align-items:center; justify-content:center; color:#5f4837; }
+.ledger-purchase-wreath { width:30px; height:30px; }
+.ledger-purchase-control[aria-busy="true"] { background:#fff8e8; }
+.ledger-purchase-control:active:not(:disabled) { transform:scale(.96); }
+.ledger-purchase-check-pop { animation:ledger-check-pop 220ms ease-out both; }
+@keyframes ledger-wreath-spin { to { transform:rotate(360deg); } }
+@keyframes ledger-check-pop { 0% { transform:scale(.65); } 65% { transform:scale(1.15); } 100% { transform:scale(1); } }
+@media(prefers-reduced-motion:reduce) {
+ .ledger-wreath-spinner, .ledger-purchase-check-pop { animation:none; }
+ .ledger-purchase-control:active:not(:disabled) { transform:none; }
+}
+
+/* Arrival effects run on mount, not on background data refreshes. */
+.ledger-page-arrival { animation:ledger-page-arrive 180ms ease-out; }
+.ledger-content-arrival { animation:ledger-content-arrive 180ms ease-out; }
+.ledger-list-loading-status { margin-bottom:24px; }
+@keyframes ledger-page-arrive { from { opacity:.35; } to { opacity:1; } }
+@keyframes ledger-content-arrive { from { opacity:.5; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
+@media(prefers-reduced-motion:reduce) {
+ .ledger-page-arrival, .ledger-content-arrival { animation:none; }
+}

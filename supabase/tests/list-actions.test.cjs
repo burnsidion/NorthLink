@@ -7,7 +7,7 @@ function load(path, modules) {
   const exports={};
   vm.runInNewContext(ts.transpileModule(fs.readFileSync(path,'utf8'), {
     compilerOptions:{ module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020,jsx:ts.JsxEmit.ReactJSX },
-  }).outputText,{ exports,URL,require:name => { if (!(name in modules)) throw new Error('Unexpected dependency: '+name); return modules[name]; } });
+  }).outputText,{ exports,URL,require:name => { if(name === '@/components/ui/wreath-loader') return {WreathLoader:'WreathLoader'}; if (!(name in modules)) throw new Error('Unexpected dependency: '+name); return modules[name]; } });
   return exports;
 }
 const deferred=() => { let resolve,reject;const promise=new Promise((a,b) => { resolve=a;reject=b; });return { promise,resolve,reject }; };
