@@ -11,15 +11,30 @@ export default function FamilyScroll({ list }: { list: ListWithProgress }) {
 	return (
 		<Link href={`/lists/${list.id}`} className="ledger-theme family-scroll"
 			aria-label={`Open ${list.title} by ${owner}`}>
-			<span className="family-scroll-edge" aria-hidden="true" />
+			<span className="family-scroll-paper" aria-hidden="true" />
 			<svg className="family-scroll-cord" viewBox="0 0 44 180" preserveAspectRatio="none" fill="none" aria-hidden="true">
-				<path d="M22 0C14 35 27 68 20 100S26 150 21 180" stroke="#61452e" strokeWidth="3" />
-				<path d="M25 0C18 36 30 69 23 100S29 151 24 180" stroke="#b38b59" strokeWidth="1.5" />
-				<g stroke="#785235" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-					<path d="M22 105C-1 82 1 119 22 105C45 82 45 119 22 105Z" fill="#dcc49b" />
-					<path d="M22 105C17 120 8 128 7 140M23 105C29 116 34 122 36 134" />
+				<g stroke="#6d3028" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round">
+					<path d="M22 0C18 35 26 75 22 110S20 150 23 180M22 135C4 113 1 145 22 135C42 113 44 145 22 135M22 136L10 165M23 136L35 163" />
 				</g>
-				<ellipse cx="22" cy="105" rx="4" ry="3" fill="#795637" />
+				<g stroke="#fff5df" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+					<path d="M22 0C18 35 26 75 22 110S20 150 23 180M22 135C4 113 1 145 22 135C42 113 44 145 22 135M22 136L10 165M23 136L35 163" />
+				</g>
+				<g stroke="#b32e38" strokeWidth="4" strokeDasharray="4 6" strokeLinecap="butt" strokeLinejoin="round">
+					<path d="M22 0C18 35 26 75 22 110S20 150 23 180M22 135C4 113 1 145 22 135C42 113 44 145 22 135M22 136L10 165M23 136L35 163" />
+				</g>
+				<ellipse cx="22" cy="135" rx="5" ry="4" fill="#28533b" stroke="#153a29" strokeWidth="1.5" />
+			</svg>
+			<svg className="family-scroll-top-bow" viewBox="0 0 44 44" fill="none" aria-hidden="true">
+				<g stroke="#6d3028" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round">
+					<path d="M22 16C4 -6 1 27 22 16C42 -6 44 27 22 16M22 17L10 37M23 17L35 35" />
+				</g>
+				<g stroke="#fff5df" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+					<path d="M22 16C4 -6 1 27 22 16C42 -6 44 27 22 16M22 17L10 37M23 17L35 35" />
+				</g>
+				<g stroke="#b32e38" strokeWidth="4" strokeDasharray="4 6" strokeLinejoin="round">
+					<path d="M22 16C4 -6 1 27 22 16C42 -6 44 27 22 16M22 17L10 37M23 17L35 35" />
+				</g>
+				<ellipse cx="22" cy="16" rx="5" ry="4" fill="#28533b" stroke="#153a29" strokeWidth="1.5" />
 			</svg>
 			<ProfileAvatar src={list.owner_avatar_url} name={owner} size={40} />
 			<div className="family-scroll-label">
