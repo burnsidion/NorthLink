@@ -71,7 +71,7 @@ export default function ListsPage() {
 	}, [router, sb]);
 
  return <main className="ledger-theme ledger-paper ledger-page ledger-home">
-  <header className="ledger-page-heading"><div><p className="ledger-eyebrow">The Christmas ledger</p><h1 className="ledger-title">Welcome, {displayName ?? "shopper"}!</h1><p>Christmas wishes, thoughtful gifts, and well-kept secrets.</p></div><CountdownBanner initialNow={initialNow} appearance="ledger" /></header>
+  <header className="ledger-page-heading"><div><p className="ledger-eyebrow">The Christmas ledger</p><h1 className="ledger-title">Welcome, {displayName ?? "shopper"}!</h1><p>Spread Christmas joy, one gift at a time.</p></div><CountdownBanner initialNow={initialNow} appearance="ledger" /></header>
   <div className="ledger-home-flourish" aria-hidden="true"><span>✦</span></div>
   <Link href="/onboarding" className="ledger-secondary">Edit profile</Link>
   <div className="ledger-home-family"><FamilyGroupPanel /></div>

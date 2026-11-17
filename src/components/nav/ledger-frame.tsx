@@ -46,7 +46,7 @@ export default function LedgerFrame({ children }: { children: ReactNode }) {
 			<div id="page-content" tabIndex={-1} className="ledger-content">{children}</div>
 			<footer className="ledger-footer ledger-theme ledger-paper">
 				<CyberSantaBrand compact />
-				<span className="ledger-footer-note">Keep the surprises secret.</span>
+				<span className="ledger-footer-note">Surpise the ones you love with the gifts they want most</span>
 				<Link href="/onboarding">Your profile</Link>
 			</footer>
 		</div>

@@ -48,6 +48,22 @@ export async function getUserGroupMembership(
 	return null;
 }
 
+/** Read every membership for page context, without requesting invitation details. */
+export async function getUserGroupNames(userId: string): Promise<string[]> {
+	const { data, error } = await supabase.from("group_members")
+		.select("groups(name)").eq("user_id", userId);
+	if (error) throw error;
+	if (!Array.isArray(data)) throw new Error("Could not read your family groups.");
+	return data.map(row => {
+		const group: unknown = row?.groups;
+		if (!group || typeof group !== "object" || !("name" in group) ||
+			typeof group.name !== "string" || !group.name.trim()) {
+			throw new Error("Could not read your family groups.");
+		}
+		return group.name.trim();
+	});
+}
+
 /**
  * Create a new family group with invite code
  */

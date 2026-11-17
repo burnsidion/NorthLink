@@ -85,3 +85,30 @@ test("membership lookup failures do not masquerade as having no family", async (
   const helpers = loadHelpers(membershipClient({ data: null, error: new Error("Permission denied") }));
   await assert.rejects(helpers.getUserGroupMembership("test-user"), /Permission denied/);
 });
+
+function groupNamesClient(result, expectedUser = "test-user") {
+  return { from(table) {
+    assert.equal(table, "group_members");
+    return { select(columns) {
+      assert.equal(columns, "groups(name)");
+      return { async eq(column, user) {
+        assert.equal(column, "user_id"); assert.equal(user, expectedUser);
+        return result;
+      } };
+    } };
+  } };
+}
+
+test("family page context reads all of the signed-in user's group names, including matching names", async () => {
+  for (const names of [[], ["Burnside Family"], ["Burnside Family", "Friends"], ["Family", "Family"]]) {
+    const helpers = loadHelpers(groupNamesClient({ data: names.map(name => ({ groups: { name } })), error: null }));
+    assert.deepEqual(Array.from(await helpers.getUserGroupNames("test-user")), names);
+  }
+});
+
+test("unreadable group names and failed reads do not masquerade as a single membership", async () => {
+  for (const data of [null, [{}], [{ groups: null }], [{ groups: { name: " " } }], [{ groups: { name: 12 } }]]) {
+    await assert.rejects(loadHelpers(groupNamesClient({ data, error: null })).getUserGroupNames("test-user"), /Could not read/);
+  }
+  await assert.rejects(loadHelpers(groupNamesClient({ data: null, error: new Error("Offline") })).getUserGroupNames("test-user"), /Offline/);
+});

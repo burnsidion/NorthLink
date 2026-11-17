@@ -19,21 +19,24 @@ function avatar() {
 }
 test('broken saved avatars show an accessible fallback; selecting a new image can load without changing saved data', () => {
  const render = avatar();
- const props = { src: 'https://example.com/old.gif', name: 'Holly', size: 40 };
+ const props = { src: 'https://uvbutyqndjjrtvvmifoi.supabase.co/storage/v1/object/public/animated-avatars/kirby-run.gif', name: 'Holly', size: 40 };
  const before = render(props);
  assert.equal(before.props.children.type, 'img');
+ assert.equal(before.props.style.backgroundColor, '#486870');
  before.props.children.props.onError();
  const fallback = render(props);
  assert.equal(fallback.props.role, 'img');
+ assert.equal(fallback.props.style.backgroundColor, undefined);
  assert.equal(fallback.props['aria-label'], 'Holly avatar unavailable');
  assert.equal(fallback.props.children.props.children, 'H');
- assert.equal(props.src, 'https://example.com/old.gif');
+ assert.equal(props.src, 'https://uvbutyqndjjrtvvmifoi.supabase.co/storage/v1/object/public/animated-avatars/kirby-run.gif');
  assert.equal(render({ ...props, src: 'https://example.com/new.png' }).props.children.type, 'img');
 });
 test('missing or unsafe avatar sources use a deliberate fallback without sending image requests', () => {
  for (const src of [null, '', 'http://example.com/a.png', 'javascript:alert(1)']) {
   const view = avatar()({ src, name: '   ' });
   assert.equal(view.props.children.type, 'span');
+  assert.equal(view.props.style.backgroundColor, undefined);
   assert.equal(view.props.children.props.children, '?');
  }
 });
