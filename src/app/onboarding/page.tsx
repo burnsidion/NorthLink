@@ -1,4 +1,5 @@
 "use client";
+import { WreathLoader } from "@/components/ui/wreath-loader";
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -81,7 +82,7 @@ export default function OnboardingPage() {
 					<p role="alert">We couldn’t load your profile. Please try again before making changes.</p>
 					<button onClick={() => setAttempt(value => value + 1)} className="ledger-button">Try again</button>
 				</div>
-			) : <p role="status" className="ledger-paper ledger-auth-card">Loading your profile…</p>}
+			) : <div className="ledger-paper ledger-auth-card"><WreathLoader label="Loading your profile…" /></div>}
 		</main>
 	);
 

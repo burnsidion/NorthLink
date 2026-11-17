@@ -9,7 +9,7 @@ export function triggerPurchaseConfetti() {
 		particleCount: 100,
 		spread: 70,
 		origin: { y: 0.6 },
-		colors: ["#26ccff", "#a25afd", "#ff5e7e", "#88ff5a", "#fcff42", "#ffa62d"],
+		colors: ["#dc2626", "#16a34a", "#ffffff"],
 	});
 }
 

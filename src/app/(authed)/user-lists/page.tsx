@@ -1,4 +1,5 @@
 "use client";
+import { WreathLoader } from "@/components/ui/wreath-loader";
 //Deps
 import { useState, useEffect, useRef } from "react";
 import { getListsWithProgress } from "@/lib/list-progress";
@@ -86,7 +87,7 @@ export default function UserListsPage() {
 	const rows = lists ?? [];
 
 	return (
-		<main className="ledger-theme ledger-paper ledger-page">
+		<main className="ledger-theme ledger-paper ledger-page ledger-page-arrival">
 			<header className="ledger-page-heading">
 				<div>
 					<p className="ledger-eyebrow">A little Christmas magic</p>
@@ -101,8 +102,9 @@ export default function UserListsPage() {
 			<div className="ledger-rule" aria-hidden="true">✦</div>
 			{error && <RefreshNotice message={error} onRetry={retry} />}
 			{loading ? (
-				<section className="grid gap-6 sm:grid-cols-2" aria-label="Loading lists" aria-busy="true">
-					{[0, 1, 2, 3].map(index => <div key={index} className="ledger-loading-card"><div className="ledger-loading-line"/><div className="ledger-loading-line" style={{ width: "40%" }}/></div>)}
+				<section aria-label="Loading lists" aria-busy="true">
+                    <WreathLoader label="Loading your lists…" className="ledger-list-loading-status" />
+                    <div className="grid gap-6 sm:grid-cols-2" aria-hidden="true">{[0, 1, 2, 3].map(index => <div key={index} className="ledger-loading-card"><div className="ledger-loading-line"/><div className="ledger-loading-line" style={{ width: "40%" }}/></div>)}</div>
 				</section>
 			) : lists === null ? null : rows.length === 0 ? (
 				<section className="ledger-empty">
@@ -110,7 +112,7 @@ export default function UserListsPage() {
 					<p>Create your first list, then fill it with a few things you’d love.</p>
 				</section>
 			) : (
-				<section className="ledger-scroll-stack" aria-label="Your wish lists">
+				<section className="ledger-scroll-stack ledger-content-arrival" aria-label="Your wish lists">
 					{rows.map((list, index) => <ListCard key={list.id} list={list} index={index} onManage={(id, title) => {
 						if (actionPending.current) return;
 						setActionError(null);

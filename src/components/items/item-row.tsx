@@ -97,7 +97,7 @@ export default function ItemRow({
 		<li className="ledger-gift-row" data-purchased={item.purchased}>
 			<StatefulCheckbox className="ledger-purchase" checked={item.purchased ?? false}
 				onChange={() => onToggle(item.id, !item.purchased)}
-				ariaLabel={item.purchased ? "Mark unpurchased" : "Mark purchased"} showMultiStepLoader={!isOwner} />
+				ariaLabel={item.purchased ? "Mark unpurchased" : "Mark purchased"} />
 			<div className="ledger-gift-content">
 				{editError && <p role="alert" className="ledger-error">{editError}</p>}
 				{editing ? (
