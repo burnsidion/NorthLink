@@ -20,6 +20,7 @@ type Props = {
 		>
 	) => Promise<boolean>;
 	isOwner?: boolean;
+	buyerName?: string | null;
 };
 
 export default function ItemRow({
@@ -28,6 +29,7 @@ export default function ItemRow({
 	onDelete,
 	onUpdate,
 	isOwner = true,
+	buyerName,
 }: Props) {
 	const giftLink = safeWebUrl(item.link);
 	const [editing, setEditing] = useState(false);
@@ -119,6 +121,7 @@ export default function ItemRow({
 						<div className="ledger-gift-heading"><div className="ledger-gift-identity"><ItemThumbnail src={item.image_url} /><h2>{item.title}</h2></div>
 							{typeof item.price_cents === "number" && <span className="ledger-gift-price">{usd.format(item.price_cents / 100)}</span>}
 						</div>
+						{isOwner && item.purchased && buyerName && <p className="ledger-buyer-label">Purchased by <strong>{buyerName}</strong></p>}
 						<div className="ledger-gift-badges">
 							{item.most_wanted && <span className="ledger-badge" aria-label="Most Wanted">✦ Most Wanted</span>}
 							{item.on_sale && <span className="ledger-badge ledger-badge-sale" aria-label="On Sale">On Sale</span>}

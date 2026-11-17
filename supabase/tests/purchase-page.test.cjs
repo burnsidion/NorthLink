@@ -17,12 +17,12 @@ const flush = async () => { for (let n = 0; n < 8; n++) await new Promise(setImm
 
 // Exercise the actual page handlers and JSX with deterministic hooks/transport.
 // A route key creates a fresh harness, just as React remounts keyed content.
-function page(id, { save, refresh, update, remove, add, share, group, shared, newPurchases = 0 } = {}) {
+function page(id, { save, refresh, update, remove, add, share, group, shared, newPurchases = 0, viewerId = "owner", listOwnerId = "owner", initialPurchased = false, buyerNames = new Map() } = {}) {
   let index = 0;
   const slots = [], effects = [], cleanups = [], writes = [], messages = [];
-  let realtime, refreshes = 0;
+  let realtime, refreshes = 0, buyerRequest;
   const router = { push() {} };
-  const gift = { id: "gift-" + id, list_id: id, title: "Gift", purchased: false };
+  const gift = { id: "gift-" + id, list_id: id, title: "Gift", purchased: initialPurchased, purchased_at: initialPurchased ? "2026-11-17T12:00:00Z" : null };
   const hooks = {
     useState(initial) {
       const key = index++;
@@ -37,6 +37,7 @@ function page(id, { save, refresh, update, remove, add, share, group, shared, ne
       if (!(key in slots)) slots[key] = { current: initial };
       return slots[key];
     },
+    useCallback(callback) { index++; return callback; },
     useEffect(effect) {
       const key = index++;
       if (!(key in slots)) { slots[key] = true; effects.push(effect); }
@@ -55,24 +56,26 @@ function page(id, { save, refresh, update, remove, add, share, group, shared, ne
     "next/navigation": { useParams: () => ({ id }), useRouter: () => router },
     "motion/react": { motion: new Proxy({}, { get: (_, key) => "motion." + key }) },
     "@/lib/supabase": { supabase: { channel: () => channel, removeChannel() {}, from: () => query } },
-    "@/lib/auth-helpers": { getCurrentUser: async () => ({ id: "owner" }) },
+    "@/lib/auth-helpers": { getCurrentUser: async () => ({ id: viewerId }) },
     "@/lib/list-helpers": {
       getUserFamilyGroup: async () => group ?? null,
       isListShared: async () => shared ?? false,
-      getListWithItems: async () => ({ list: { id, title: "List", owner_user_id: "owner", last_viewed_at: null },
+      getListWithItems: async () => ({ list: { id, title: "List", owner_user_id: listOwnerId, last_viewed_at: null },
         items: [gift], listError: null, itemsError: null }),
       calculateNewPurchases: () => newPurchases, updateListLastViewed: async () => {},
       filterItems: items => items, sortItems: items => items,
     },
     "@/lib/items-api": { addItem: add ?? (async () => ({ ...gift, id: "added" })), updateItem: update ?? (async () => {}), deleteItem: remove ?? (async () => {}), togglePurchased: save ?? (async () => ({ purchased: true, purchased_at: "2026-11-15T01:00:00Z" })) },
     "sonner": { toast: { success: message => messages.push(["success", message]), error: message => messages.push(["error", message]) } },
+    "@/lib/use-list-buyer-reveal": { useListBuyerReveal: props => { buyerRequest=props; return {names:buyerNames,nextRevealAt:null,loading:false,error:false,retry(){}}; } },
+    "@/components/items/buyer-reveal-notice": {default:"BuyerRevealNotice"},
     "@/lib/lists-api": { setListShared: share ?? (async () => {}) },
     "@/components/items/item-row": { default: "ItemRowCard" },
     "@/components/lists/list-scroll-reveal": { default: "ListScrollReveal" },
   };
   const exports = {};
   vm.runInNewContext(source, {
-    exports, console, require: name => modules[name] ?? new Proxy({ default: "component" }, { get: (obj, key) => obj[key] ?? (() => null) }),
+    exports, console, window:{addEventListener(){},removeEventListener(){}}, document:{visibilityState:"visible",addEventListener(){},removeEventListener(){}}, require: name => modules[name] ?? new Proxy({ default: "component" }, { get: (obj, key) => obj[key] ?? (() => null) }),
   });
   const route = exports.default();
   function render() {
@@ -88,7 +91,7 @@ function page(id, { save, refresh, update, remove, add, share, group, shared, ne
   const all = () => [...nodes(render())];
   render();
   return {
-    key: route.key, gift, writes, messages, all,
+    key: route.key, gift, writes, messages, all, buyerRequest:()=>buyerRequest,
     shareButton: () => all().find(node => node.type === "button" && ["Share to Family", "Unshare from Family", "Saving…"].includes(node.props.children)),
     openAdd: () => all().find(node => node.type === "button" && node.props.children === "Add item").props.onClick(),
     form: () => all().find(node => typeof node.props.onSubmit === "function")?.props,
@@ -266,4 +269,14 @@ test("list entrance starts after loading and purchase notices wait outside the p
   const next = page("B"); await flush();
   assert.notEqual(view.key, next.key);
   assert.ok(next.all().some(node => node.type === "ListScrollReveal"));
+});
+
+test("buyer lookup and names are wired only for the list owner",async()=>{
+ for(const viewerId of ['owner','shopper']){
+  const screen=page('A',{viewerId,initialPurchased:true,buyerNames:new Map([['gift-A','Alex']])});await flush();screen.all();
+  assert.equal(screen.buyerRequest().userId,viewerId==='owner'?'owner':null);
+  const card=screen.all().find(node=>node.type==='ItemRowCard');
+  assert.equal(card.props.buyerName,viewerId==='owner'?'Alex':null);
+  assert.equal(screen.all().some(node=>node.type==='BuyerRevealNotice'),viewerId==='owner');screen.unmount();
+ }
 });

@@ -1,4 +1,4 @@
-export type ListRow = { id: string; title: string; created_at: string };
+export type ListRow = { id: string; title: string; created_at: string; owner_user_id?: string };
 export type ItemRow = {
 	id: string;
 	list_id: string;

@@ -2,12 +2,14 @@
 import { WreathLoader } from "@/components/ui/wreath-loader";
 
 //React
-import { useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { useListBuyerReveal } from "@/lib/use-list-buyer-reveal";
+import BuyerRevealNotice from "@/components/items/buyer-reveal-notice";
 import { setListShared } from "@/lib/lists-api";
 
 //Ui components
@@ -50,6 +52,7 @@ function ListDetailContent({ id }: { id: string }) {
 	const router = useRouter();
 	const mounted = useRef(false);
 	const refreshVersion = useRef(0);
+	const initialItemsLoaded = useRef(false);
 	const addPending = useRef(false);
 	const sharePending = useRef(false);
 	useEffect(() => {
@@ -84,6 +87,29 @@ function ListDetailContent({ id }: { id: string }) {
 	const [newImageUrl, setNewImageUrl] = useState<string | null>(null);
 	const [newNotes, setNewNotes] = useState("");
 	const [formOpen, setFormOpen] = useState(false);
+
+	const isOwner = Boolean(userId && list && userId === list.owner_user_id);
+	const buyerReveal = useListBuyerReveal({ listId: id, userId: isOwner ? userId : null, items });
+
+	const refreshItems = useCallback(async () => {
+		if (!mounted.current || !initialItemsLoaded.current) return false;
+		const version = ++refreshVersion.current;
+		try {
+			const { data, error } = await supabase
+				.from("items")
+				.select(
+					"id,list_id,title,purchased,purchased_at,created_at,price_cents,link,image_url,notes,most_wanted,on_sale"
+				)
+				.eq("list_id", id)
+				.order("created_at", { ascending: true });
+
+			if (!mounted.current || version !== refreshVersion.current || error) return false;
+			setItems(data ?? []);
+			return true;
+		} catch {
+			return false;
+		}
+	}, [id]);
 
 	useEffect(() => {
 		let alive = true;
@@ -125,6 +151,7 @@ function ListDetailContent({ id }: { id: string }) {
 
 			setList(theList);
 			setItems(theItems);
+			initialItemsLoaded.current = true;
 
 			// Compute new purchases since last_viewed_at (owner-only banner)
 			const newPurchases = calculateNewPurchases(
@@ -173,31 +200,18 @@ function ListDetailContent({ id }: { id: string }) {
 			)
 			.subscribe();
 
+		const visibleRefresh = () => { if (document.visibilityState !== "hidden") void refreshItems(); };
+		window.addEventListener("focus", visibleRefresh);
+		window.addEventListener("online", visibleRefresh);
+		document.addEventListener("visibilitychange", visibleRefresh);
 		return () => {
-			// cleanup channel on route change/unmount
 			supabase.removeChannel(channel);
+			window.removeEventListener("focus", visibleRefresh);
+			window.removeEventListener("online", visibleRefresh);
+			document.removeEventListener("visibilitychange", visibleRefresh);
 		};
-	}, [id]);
+	}, [id, refreshItems]);
 
-	async function refreshItems() {
-		if (!mounted.current) return false;
-		const version = ++refreshVersion.current;
-		try {
-			const { data, error } = await supabase
-				.from("items")
-				.select(
-					"id,list_id,title,purchased,purchased_at,created_at,price_cents,link,image_url,notes,most_wanted,on_sale"
-				)
-				.eq("list_id", id)
-				.order("created_at", { ascending: true });
-
-			if (!mounted.current || version !== refreshVersion.current || error) return false;
-			setItems(data ?? []);
-			return true;
-		} catch {
-			return false;
-		}
-	}
 
 	async function handleAdd(e: React.FormEvent) {
 		e.preventDefault();
@@ -316,7 +330,6 @@ function ListDetailContent({ id }: { id: string }) {
 		}
 	}
 
-	const isOwner = userId && list && userId === (list as any).owner_user_id;
 
 	const displayedItems = sortItems(filterItems(items, showOnSaleOnly, showMostWantedOnly), sortBy);
 	const purchasedCount = items.filter(item => item.purchased).length;
@@ -338,7 +351,6 @@ function ListDetailContent({ id }: { id: string }) {
 			<Link href={isOwner ? "/user-lists" : "/family-lists"} className="ledger-back-link">← {isOwner ? "My Lists" : "Family Lists"}</Link>
 			<header className="ledger-page-heading">
 				<div>
-					<p className="ledger-eyebrow">The Christmas ledger</p>
 					<h1 className="ledger-title">{list.title}</h1>
 					<p className="ledger-muted">Created {new Date(list.created_at).toLocaleDateString()}</p>
 					{isShared && <span className="ledger-badge">Shared with family</span>}
@@ -346,6 +358,8 @@ function ListDetailContent({ id }: { id: string }) {
 				<CountdownBanner appearance="ledger" initialNow={now0} />
 			</header>
 			<div className="ledger-rule" aria-hidden="true">✦</div>
+			{isOwner && <BuyerRevealNotice hasPurchases={purchasedCount > 0} revealedCount={buyerReveal.names.size}
+			 nextRevealAt={buyerReveal.nextRevealAt} loading={buyerReveal.loading} error={buyerReveal.error} onRetry={buyerReveal.retry} />}
 			<div className="ledger-detail-toolbar">
 				<p className="ledger-muted">{purchasedCount} of {items.length} gifts purchased</p>
 				<div className="ledger-inline-actions">
@@ -367,7 +381,7 @@ function ListDetailContent({ id }: { id: string }) {
 				</select></label>
 			</div>}
 			<ul className="ledger-gift-list">
-				{displayedItems.map(item => <ItemRowCard key={item.id} item={item} onToggle={handleToggle} onDelete={handleDelete} onUpdate={handleUpdate} isOwner={Boolean(isOwner)} />)}
+				{displayedItems.map(item => <ItemRowCard key={item.id} item={item} onToggle={handleToggle} onDelete={handleDelete} onUpdate={handleUpdate} isOwner={isOwner} buyerName={isOwner ? buyerReveal.names.get(item.id) : null} />)}
 			</ul>
 			{displayedItems.length === 0 && <div className="ledger-empty"><h2>{items.length ? "No gifts match these filters" : "A little room for wishes"}</h2><p>{items.length ? "Try turning off a filter to see more gifts." : isOwner ? "Add your first gift to get started." : "No gifts have been added to this list yet."}</p></div>}
 		</main>
