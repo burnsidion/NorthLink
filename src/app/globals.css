@@ -498,6 +498,26 @@ body { isolation: isolate; background: #102c22; }
 .ledger-theme [role="alert"] button { min-height: 44px; padding: 8px 4px; }
 .ledger-family-box button[title="Copy invite code"] { min-width: 44px; }
 
+/* A centered, decorated heading belongs only to the family browsing page. */
+.ledger-family-heading { flex-direction: column; align-items: center; text-align: center; gap: 18px; }
+.ledger-family-heading > div { max-width: 100%; }
+.ledger-family-title { display: flex; align-items: center; justify-content: center; gap: clamp(8px, 2vw, 24px); }
+.ledger-family-title::before, .ledger-family-title::after {
+	content: ""; flex: 0 0 clamp(24px, 6vw, 86px); height: clamp(26px, 4vw, 42px);
+	background: url("/brand/evergreen-sprig.svg") center / contain no-repeat;
+}
+.ledger-family-title::after { transform: scaleX(-1); }
+.ledger-family-heading .ledger-countdown { justify-content: center; }
+@media (max-width: 600px) {
+	.ledger-family-heading > div { width: 100%; }
+	.ledger-family-title { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 12px; }
+	.ledger-family-title > span { grid-column: 1 / -1; grid-row: 1; }
+	.ledger-family-title::before, .ledger-family-title::after { grid-row: 2; width: 84px; height: 32px; }
+	.ledger-family-title::before { grid-column: 1; justify-self: end; }
+	.ledger-family-title::after { grid-column: 2; justify-self: start; }
+}
+
+
 /* Closed family scrolls link directly to their open list page. */
 .family-scroll-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 34px 28px; padding: 10px 6px; }
 .family-scroll {

@@ -97,12 +97,15 @@ test('all three screens retain successful content beside a retry notice after re
   const jsx=(type,props)=>({type,props:props??{}});
   const modules={'react/jsx-runtime':{jsx,jsxs:jsx},react:{useState:value=>[value,()=>{}],useRef:value=>({current:value}),useEffect(){}},
     '@/lib/use-refreshing-data':{useRefreshingData:()=>({data:[{id:'list',title:'Still here',created_at:'2026-11-14',list_title:'List',list_owner_name:'Name',price_cents:null}],error:'Refresh failed',loading:false,retry(){},updateData(){}})},
-    '@/lib/list-progress':{getListsWithProgress(){}},'@/lib/purchases-api':{getMyPurchases(){}},'@/lib/lists-api':{},sonner:{toast:{}},
+    '@/lib/auth-helpers':{},'@/lib/family-group-helpers':{},'@/lib/list-progress':{getListsWithProgress(){}},'@/lib/purchases-api':{getMyPurchases(){}},'@/lib/lists-api':{},sonner:{toast:{}},
     '@/components/ui/refresh-notice':{RefreshNotice:'RefreshNotice'},'@/components/lists/list-card':{default:'ListCard'},'@/components/lists/family-scroll':{default:'ListCard'},'motion/react':{motion:new Proxy({},{get:(_,key)=>'motion.'+key})},
     '@/lib/format':{safeWebUrl:value=>value,usd:new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'})}};
   for(const name of ['next/link','@/components/ui/create-list-button','@/components/ui/manage-list-modal','@/components/ui/glare-card','@/components/ui/festive-glow','@/components/ui/snowfall','@/components/ui/stars-background','@/components/ui/countdown-banner','@/components/ui/skeleton-card','@/components/ui/page-fade','@/components/ui/hero-highlight','@/components/ui/colourful-text','@/components/ui/text-animate'])modules[name]=new Proxy({default:'component'},{get:(obj,key)=>obj[key]??'component'});
   function nodes(node){if(Array.isArray(node))return node.flatMap(nodes);return node&&typeof node==='object'?[node,...nodes(node.props?.children)]:[];}
   for(const path of ['user-lists','family-lists','purchased-items']){
+    const retainedLists=[{id:'list',title:'Still here',created_at:'2026-11-14',list_title:'List',list_owner_name:'Name',price_cents:null}];
+    modules['@/lib/use-refreshing-data'].useRefreshingData=()=>({data:path==='family-lists'?{lists:retainedLists,groupNames:['Test family']}:retainedLists,error:'Refresh failed',loading:false,retry(){},updateData(){}});
+
     const component=load('src/app/(authed)/'+path+'/page.tsx',modules).default;
     const all=nodes(component());assert.ok(all.some(node=>node.type==='RefreshNotice'));
     assert.ok(path==='purchased-items'?all.some(node=>node.type==='h2'&&node.props.children==='Still here'):all.some(node=>node.type==='ListCard'&&node.props.list.title==='Still here'));
