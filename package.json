@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "test": "node --test supabase/tests/*.test.cjs",
     "test:db": "bash supabase/tests/run-owl-58-privacy.sh",
+    "test:db:reveal": "bash supabase/tests/run-owl-80-reveal.sh",
     "typecheck": "tsc --noEmit",
     "check": "npm run typecheck && npm test"
   },

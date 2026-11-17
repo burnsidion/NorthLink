@@ -765,3 +765,12 @@ body { isolation: isolate; background: #102c22; }
 @media(prefers-reduced-motion:reduce) {
  .ledger-page-arrival, .ledger-content-arrival { animation:none; }
 }
+
+.ledger-buyer-label { color:#214c3b; font-size:14px; line-height:1.6; margin:8px 0; overflow-wrap:anywhere; }
+.ledger-buyer-label strong { font-weight:650; }
+.ledger-buyer-notice { display:flex; align-items:flex-start; gap:14px; padding:18px 20px; margin:0 0 24px; border:1px solid #a6ad88; border-radius:8px; background:#e4e7cd66; color:#214c3b; }
+.ledger-buyer-notice > svg { flex:0 0 24px; margin-top:2px; }
+.ledger-buyer-notice h2 { font:600 16px/1.5 var(--font-ledger-sans), Arial, sans-serif; margin:0 0 4px; }
+.ledger-buyer-notice p { font-size:14px; line-height:1.65; margin:0; overflow-wrap:anywhere; }
+.ledger-buyer-notice-error { flex-wrap:wrap; color:#842d29; border-color:#bd9788; background:#f0dfd555; }
+@media(max-width:480px) { .ledger-buyer-notice { padding:14px; gap:10px; } }
