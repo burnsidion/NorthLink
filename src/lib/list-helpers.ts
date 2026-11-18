@@ -62,13 +62,16 @@ export async function isListShared(listId: string, groupId: string) {
  */
 export async function updateListLastViewed(
 	listId: string,
-	ownerUserId: string
+	ownerUserId: string,
+	viewedThrough?: string | null
 ) {
+	if (!viewedThrough || !Number.isFinite(Date.parse(viewedThrough))) return;
 	const { error } = await supabase
 		.from("lists")
-		.update({ last_viewed_at: new Date().toISOString() })
+		.update({ last_viewed_at: viewedThrough })
 		.eq("id", listId)
-		.eq("owner_user_id", ownerUserId);
+		.eq("owner_user_id", ownerUserId)
+		.or(`last_viewed_at.is.null,last_viewed_at.lt.${viewedThrough}`);
 
 	if (error) {
 		console.warn("Failed to update last_viewed_at:", error.message);
@@ -82,13 +85,15 @@ export function calculateNewPurchases(
 	items: Pick<ItemRow, "purchased" | "purchased_at">[],
 	lastViewedAt: string | null
 ): number {
-	if (!lastViewedAt || !Array.isArray(items)) return 0;
+	if (!Array.isArray(items)) return 0;
+	const seen = lastViewedAt ? Date.parse(lastViewedAt) : -Infinity;
+	if (Number.isNaN(seen)) return 0;
 
 	return items.filter(
 		(item) =>
 			item.purchased === true &&
 			item.purchased_at &&
-			new Date(item.purchased_at) > new Date(lastViewedAt)
+			Number.isFinite(Date.parse(item.purchased_at)) && Date.parse(item.purchased_at) > seen
 	).length;
 }
 
@@ -147,4 +152,10 @@ export function sortItems(
 	if (sortBy === "price-asc") return sortItemsByPrice(items, "asc");
 	if (sortBy === "price-desc") return sortItemsByPrice(items, "desc");
 	return items;
+}
+
+/** Acknowledge only purchases included in the successful list snapshot. */
+export function latestObservedPurchase(items: Pick<ItemRow, "purchased" | "purchased_at">[]): string | null {
+ return items.reduce<string | null>((latest,item) => item.purchased && item.purchased_at && Number.isFinite(Date.parse(item.purchased_at)) &&
+  (!latest || Date.parse(item.purchased_at)>Date.parse(latest)) ? item.purchased_at : latest,null);
 }

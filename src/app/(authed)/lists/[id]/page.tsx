@@ -3,7 +3,6 @@ import { WreathLoader } from "@/components/ui/wreath-loader";
 
 //React
 import { useCallback, useEffect, useState, useRef } from "react";
-import { motion } from "motion/react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
@@ -26,13 +25,11 @@ import {
 	getUserFamilyGroup,
 	isListShared,
 	updateListLastViewed,
-	calculateNewPurchases,
+	latestObservedPurchase,
 	filterItems,
 	sortItems,
 } from "@/lib/list-helpers";
-import {
-	triggerNotificationConfetti,
-} from "@/lib/confetti-helpers";
+
 
 // API
 import {
@@ -64,15 +61,12 @@ function ListDetailContent({ id }: { id: string }) {
 	const [list, setList] = useState<ListRow | null>(null);
 	const [items, setItems] = useState<ItemRowType[]>([]);
 	const [loading, setLoading] = useState(true);
-	const [revealComplete, setRevealComplete] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [now0] = useState(() => Date.now());
 	const [userId, setUserId] = useState<string | null>(null);
 	const [familyGroupId, setFamilyGroupId] = useState<string | null>(null);
 	const [isShared, setIsShared] = useState(false);
 	const [shareLoading, setShareLoading] = useState(false);
-	const [newPurchaseCount, setNewPurchaseCount] = useState<number>(0);
-	const [showPurchaseModal, setShowPurchaseModal] = useState(false);
 	const [sortBy, setSortBy] = useState<"default" | "price-asc" | "price-desc">(
 		"default"
 	);
@@ -153,18 +147,10 @@ function ListDetailContent({ id }: { id: string }) {
 			setItems(theItems);
 			initialItemsLoaded.current = true;
 
-			// Compute new purchases since last_viewed_at (owner-only banner)
-			const newPurchases = calculateNewPurchases(
-				theItems,
-				theList.last_viewed_at
-			);
-			setNewPurchaseCount(newPurchases);
-			if (newPurchases > 0) {
-				setShowPurchaseModal(true);
+			// Only acknowledge the successfully loaded snapshot, not later purchases.
+			if (!itemsError && theList.owner_user_id === user.id) {
+				await updateListLastViewed(id, user.id, latestObservedPurchase(theItems));
 			}
-
-			// Update last_viewed_at for the list when the owner views it (best-effort)
-			await updateListLastViewed(id, user.id);
 			if (!alive) return;
 
 			// Check if this list is shared to the user's family group
@@ -346,7 +332,7 @@ function ListDetailContent({ id }: { id: string }) {
 
 	return (
 		<>
-		<ListScrollReveal onComplete={() => setRevealComplete(true)}>
+		<ListScrollReveal>
 		<main className="ledger-theme ledger-paper ledger-page ledger-detail">
 			<Link href={isOwner ? "/user-lists" : "/family-lists"} className="ledger-back-link">← {isOwner ? "My Lists" : "Family Lists"}</Link>
 			<header className="ledger-page-heading">
@@ -386,51 +372,6 @@ function ListDetailContent({ id }: { id: string }) {
 			{displayedItems.length === 0 && <div className="ledger-empty"><h2>{items.length ? "No gifts match these filters" : "A little room for wishes"}</h2><p>{items.length ? "Try turning off a filter to see more gifts." : isOwner ? "Add your first gift to get started." : "No gifts have been added to this list yet."}</p></div>}
 		</main>
 		</ListScrollReveal>
-				{/* Purchase Notification Modal */}
-				{isOwner && revealComplete && showPurchaseModal && newPurchaseCount > 0 && (
-					<>
-						{/* Backdrop */}
-						<motion.div
-							initial={{ opacity: 0 }}
-							animate={{ opacity: 1 }}
-							exit={{ opacity: 0 }}
-							className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
-							onClick={() => setShowPurchaseModal(false)}
-						/>
-						{/* Modal */}
-						<motion.div
-							initial={{ opacity: 0, scale: 0.8, y: 20 }}
-							animate={{ opacity: 1, scale: 1, y: 0 }}
-							exit={{ opacity: 0, scale: 0.8, y: 20 }}
-							transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-							className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md"
-							onAnimationComplete={() => {
-								// Trigger confetti after modal appears
-								triggerNotificationConfetti();
-								// Auto-dismiss after 3 seconds
-								setTimeout(() => {
-									setShowPurchaseModal(false);
-								}, 3000);
-							}}
-						>
-							<div className="ledger-theme ledger-paper ledger-dialog mx-4">
-								<div className="text-center space-y-4">
-									<div className="text-6xl">🎁</div>
-									<h2 className="ledger-notification-title">Good News!</h2>
-									<p className="ledger-muted">
-										<span className="font-bold text-2xl">
-											{newPurchaseCount}
-										</span>{" "}
-										gift{newPurchaseCount > 1 ? "s were" : " was"} purchased
-										<br />
-										since your last visit!
-									</p>
-								</div>
-							</div>
-						</motion.div>
-					</>
-				)}
-
 		</>
 	);
 }
