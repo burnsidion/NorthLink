@@ -774,3 +774,12 @@ body { isolation: isolate; background: #102c22; }
 .ledger-buyer-notice p { font-size:14px; line-height:1.65; margin:0; overflow-wrap:anywhere; }
 .ledger-buyer-notice-error { flex-wrap:wrap; color:#842d29; border-color:#bd9788; background:#f0dfd555; }
 @media(max-width:480px) { .ledger-buyer-notice { padding:14px; gap:10px; } }
+
+.ledger-purchase-notification { max-width:520px; box-shadow:0 20px 65px #061b1680; }
+.ledger-purchase-notification h2 { font:700 clamp(26px,5vw,34px)/1.25 var(--font-ledger-heading), Georgia, serif; margin:12px 0 16px; }
+.ledger-purchase-notification > p { line-height:1.65; }
+.ledger-purchase-notification-lists { list-style:none; padding:6px; margin:20px 0; max-height:40dvh; overflow-y:auto; }
+.ledger-purchase-notification-lists li + li { border-top:1px solid #c7ad8670; }
+.ledger-purchase-notification-lists a { display:flex; flex-direction:column; gap:4px; padding:14px 4px; border-radius:4px; color:#214c3b; overflow-wrap:anywhere; }
+.ledger-purchase-notification-lists a:hover { text-decoration:underline; }
+.ledger-purchase-notification-lists span { font-size:14px; color:#6c5542; }

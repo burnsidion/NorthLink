@@ -17,9 +17,9 @@ const flush = async () => { for (let n = 0; n < 8; n++) await new Promise(setImm
 
 // Exercise the actual page handlers and JSX with deterministic hooks/transport.
 // A route key creates a fresh harness, just as React remounts keyed content.
-function page(id, { save, refresh, update, remove, add, share, group, shared, newPurchases = 0, viewerId = "owner", listOwnerId = "owner", initialPurchased = false, buyerNames = new Map() } = {}) {
+function page(id, { save, refresh, update, remove, add, share, group, shared, newPurchases = 0, viewerId = "owner", listOwnerId = "owner", initialPurchased = false, buyerNames = new Map(), initialItemsError = null } = {}) {
   let index = 0;
-  const slots = [], effects = [], cleanups = [], writes = [], messages = [];
+  const slots = [], effects = [], cleanups = [], writes = [], messages = [], acknowledgements = [];
   let realtime, refreshes = 0, buyerRequest;
   const router = { push() {} };
   const gift = { id: "gift-" + id, list_id: id, title: "Gift", purchased: initialPurchased, purchased_at: initialPurchased ? "2026-11-17T12:00:00Z" : null };
@@ -61,8 +61,8 @@ function page(id, { save, refresh, update, remove, add, share, group, shared, ne
       getUserFamilyGroup: async () => group ?? null,
       isListShared: async () => shared ?? false,
       getListWithItems: async () => ({ list: { id, title: "List", owner_user_id: listOwnerId, last_viewed_at: null },
-        items: [gift], listError: null, itemsError: null }),
-      calculateNewPurchases: () => newPurchases, updateListLastViewed: async () => {},
+        items: [gift], listError: null, itemsError: initialItemsError }),
+      calculateNewPurchases: () => newPurchases, latestObservedPurchase: items => items.find(item => item.purchased)?.purchased_at ?? null, updateListLastViewed: async (...args) => { acknowledgements.push(args); },
       filterItems: items => items, sortItems: items => items,
     },
     "@/lib/items-api": { addItem: add ?? (async () => ({ ...gift, id: "added" })), updateItem: update ?? (async () => {}), deleteItem: remove ?? (async () => {}), togglePurchased: save ?? (async () => ({ purchased: true, purchased_at: "2026-11-15T01:00:00Z" })) },
@@ -91,7 +91,7 @@ function page(id, { save, refresh, update, remove, add, share, group, shared, ne
   const all = () => [...nodes(render())];
   render();
   return {
-    key: route.key, gift, writes, messages, all, buyerRequest:()=>buyerRequest,
+    key: route.key, gift, writes, messages, all, acknowledgements, buyerRequest:()=>buyerRequest,
     shareButton: () => all().find(node => node.type === "button" && ["Share to Family", "Unshare from Family", "Saving…"].includes(node.props.children)),
     openAdd: () => all().find(node => node.type === "button" && node.props.children === "Add item").props.onClick(),
     form: () => all().find(node => typeof node.props.onSubmit === "function")?.props,
@@ -256,15 +256,15 @@ test("late sharing completions after leaving cannot change state or display mess
 });
 
 
-test("list entrance starts after loading and purchase notices wait outside the paper until it opens", async () => {
+test("list entrance starts after loading without duplicating dashboard purchase notices", async () => {
   const view = page("A", { newPurchases: 2 });
   assert.equal(view.all().some(node => node.type === "ListScrollReveal"), false);
   await flush();
   const reveal = view.all().find(node => node.type === "ListScrollReveal");
   assert.ok(reveal);
   assert.equal(view.all().some(node => node.props.className === "ledger-notification-title"), false);
-  reveal.props.onComplete();
-  assert.equal(view.all().some(node => node.props.className === "ledger-notification-title"), true);
+  assert.equal(reveal.props.onComplete, undefined);
+  assert.equal(view.all().some(node => node.props.className === "ledger-notification-title"), false);
   assert.equal(JSON.stringify(reveal.props.children).includes("Good News!"), false);
   const next = page("B"); await flush();
   assert.notEqual(view.key, next.key);
@@ -278,5 +278,13 @@ test("buyer lookup and names are wired only for the list owner",async()=>{
   const card=screen.all().find(node=>node.type==='ItemRowCard');
   assert.equal(card.props.buyerName,viewerId==='owner'?'Alex':null);
   assert.equal(screen.all().some(node=>node.type==='BuyerRevealNotice'),viewerId==='owner');screen.unmount();
+ }
+});
+
+test("only a successful owner list read acknowledges the observed purchase timestamp",async()=>{
+ for(const config of [{},{initialItemsError:new Error('offline')},{viewerId:'shopper'}]){
+  const screen=page('A',{initialPurchased:true,...config});await flush();screen.all();
+  assert.equal(screen.acknowledgements.length,config.initialItemsError||config.viewerId?0:1);
+  if(screen.acknowledgements.length)assert.equal(screen.acknowledgements[0][2],'2026-11-17T12:00:00Z');screen.unmount();
  }
 });

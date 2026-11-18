@@ -28,7 +28,7 @@ function TourIllustration({ step }: { step: number }) {
 }
 
 /** Mounted only after the dashboard has loaded a signed-in, complete profile. */
-export default function QuickTour({ userId }: { userId: string }) {
+export default function QuickTour({ userId, onOpenChange }: { userId: string; onOpenChange?: (open: boolean) => void }) {
  const [open, setOpen] = useState(() => !tourWasDismissed(userId));
  const [step, setStep] = useState(0);
  const dialog = useRef<HTMLDivElement>(null);
@@ -36,6 +36,7 @@ export default function QuickTour({ userId }: { userId: string }) {
  const title = useRef<HTMLHeadingElement>(null);
  const wasOpen = useRef(open);
  useDialogFocus(open, dialog);
+ useEffect(() => { onOpenChange?.(open); }, [open, onOpenChange]);
  useEffect(() => {
   if (wasOpen.current && !open) replay.current?.focus();
   wasOpen.current = open;
@@ -57,7 +58,7 @@ export default function QuickTour({ userId }: { userId: string }) {
  };
  const current = step ? quickTourSteps[step - 1] : null;
  return <>
-  <button type="button" ref={replay} className="ledger-secondary" onClick={() => { setStep(0); setOpen(true); }}>Quick tour</button>
+  <button type="button" ref={replay} className="ledger-secondary" onClick={() => { onOpenChange?.(true); setStep(0); setOpen(true); }}>Quick tour</button>
   {open && <div className="ledger-theme ledger-dialog-backdrop ledger-tour-backdrop" role="dialog" aria-modal="true"
    aria-labelledby="quick-tour-title" aria-describedby="quick-tour-description" ref={dialog} tabIndex={-1}
    onKeyDown={event => { if (event.key === "Escape") { event.stopPropagation(); close(); } }}>

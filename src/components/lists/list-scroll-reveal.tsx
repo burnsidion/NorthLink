@@ -7,7 +7,7 @@ const duration = 620;
 /** Visual entrance only: children keep their size and their existing data lifecycle. */
 export default function ListScrollReveal({ children, onComplete }: {
 	children: ReactNode;
-	onComplete: () => void;
+	onComplete?: () => void;
 }) {
 	const paper = useRef<HTMLDivElement>(null);
 	const roller = useRef<HTMLDivElement>(null);
@@ -37,7 +37,7 @@ export default function ListScrollReveal({ children, onComplete }: {
 			preference?.removeEventListener("change", onPreference);
 			document.removeEventListener("visibilitychange", onVisibility);
 			setOpened(true);
-			complete.current();
+			complete.current?.();
 		};
 		const onPreference = () => { if (preference?.matches) finish(); };
 		const onVisibility = () => { if (document.hidden) finish(); };

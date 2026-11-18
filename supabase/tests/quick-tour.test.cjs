@@ -2,7 +2,7 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { load } = require('./helpers/load-product-lookup.cjs');
 function storage() { const saved=new Map(); return { saved, getItem:k=>saved.get(k)??null, setItem:(k,v)=>saved.set(k,v) }; }
-function page(userId='owner', localStorage=storage()) {
+function page(userId='owner', localStorage=storage(), onOpenChange) {
  let cursor=0; const slots=[], effects=[];
  const react={
   useState(initial) { const i=cursor++; if(!(i in slots)) slots[i]=typeof initial==='function'?initial():initial; return [slots[i],next=>{slots[i]=typeof next==='function'?next(slots[i]):next;}]; },
@@ -15,7 +15,7 @@ function page(userId='owner', localStorage=storage()) {
   react,'react/jsx-runtime':{jsx,jsxs:jsx},'@/components/ui/use-dialog-focus':{useDialogFocus:()=>{}},
  },{window:{localStorage},document:{body}});
  const nodes=node=>Array.isArray(node)?node.flatMap(nodes):node&&typeof node==='object'?[node,...nodes(node.props?.children)]:[];
- function all(){cursor=0; const result=nodes(Tour({userId}));while(effects.length)effects.shift()();return result;}
+ function all(){cursor=0; const result=nodes(Tour({userId,onOpenChange}));while(effects.length)effects.shift()();return result;}
  const button=label=>all().find(n=>n.type==='button'&&n.props.children===label);
  return {all,body,button,click:label=>{const b=button(label);assert.ok(b,label);b.props.onClick();all();},unmount:()=>{for(const slot of slots)slot?.cleanup?.();}};
 }
@@ -45,4 +45,10 @@ test('blocked storage does not break skip or replay, and remembers dismissal in 
  const api=load('src/lib/quick-tour.ts',{}, {window:{localStorage:{getItem(){throw Error('blocked');},setItem(){throw Error('blocked');}}}});
  assert.equal(api.tourWasDismissed('owner'),false);assert.doesNotThrow(()=>api.dismissTour('owner'));
  assert.equal(api.tourWasDismissed('owner'),true); assert.equal(api.tourWasDismissed('other'),false);
+});
+
+test('tour reports its open state so other dashboard dialogs can wait',()=>{
+ const changes=[];const tour=page('notification-owner',storage(),open=>changes.push(open));
+ tour.all();assert.equal(changes.at(-1),true);tour.click('Skip for now');assert.equal(changes.at(-1),false);
+ tour.click('Quick tour');assert.equal(changes.at(-1),true);tour.unmount();
 });
