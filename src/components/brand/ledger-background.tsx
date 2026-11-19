@@ -10,6 +10,7 @@ const flakes = Array.from({ length: 24 }, (_, index) => ({
 
 export function LedgerBackground() {
 	return (
+		<>
 		<div className="ledger-background" aria-hidden="true">
 			<div className="ledger-background-greenery">
 				<i className="ledger-corner ledger-corner-top-left" />
@@ -17,7 +18,10 @@ export function LedgerBackground() {
 				<i className="ledger-corner ledger-corner-bottom-left" />
 				<i className="ledger-corner ledger-corner-bottom-right" />
 			</div>
+		</div>
+		<div className="ledger-snowfall" aria-hidden="true">
 			{flakes.map((style, index) => <span key={index} style={style} />)}
 		</div>
+		</>
 	);
 }

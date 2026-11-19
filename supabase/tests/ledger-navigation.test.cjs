@@ -17,6 +17,7 @@ function frame(pathname) {
     'next/link': { default: 'Link' },
     'next/navigation': { usePathname: () => pathname },
     '@/components/brand/cybersanta-brand': { CyberSantaBrand: 'Brand' },
+    '@/components/brand/santa-flyby': { SantaFlyby: 'SantaFlyby' },
   };
   const exports = {};
   vm.runInNewContext(ts.transpileModule(fs.readFileSync('src/components/nav/ledger-frame.tsx', 'utf8'), {

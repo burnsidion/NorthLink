@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useRef, type ReactNode } from "react";
 import { CyberSantaBrand } from "@/components/brand/cybersanta-brand";
+import { SantaFlyby } from "@/components/brand/santa-flyby";
 
 const destinations = [
 	{ href: "/user-lists", label: "My Lists" },
@@ -20,6 +21,7 @@ export default function LedgerFrame({ children }: { children: ReactNode }) {
 	));
 	return (
 		<div className="ledger-frame">
+			<SantaFlyby />
 			<a href="#page-content" className="ledger-skip">Skip to content</a>
 			<header className="ledger-header ledger-theme ledger-paper">
 				<div className="ledger-header-row">

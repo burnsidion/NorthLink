@@ -475,10 +475,15 @@
 .ledger-auth-card .supabase-auth-ui_ui-message { color: var(--ledger-red); padding: 12px; border: 1px solid var(--ledger-line); margin-top: 14px; border-radius: 6px; }
 .ledger-auth-card button:disabled { opacity: .55; cursor: wait; }
 
-/* One viewport-sized backdrop, always behind opaque reading surfaces. */
+/* Greenery stays behind the paper; snow floats above it without catching input. */
 body { isolation: isolate; background: #102c22; }
 .ledger-background { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; background: radial-gradient(ellipse at top, #244d38, transparent 70%), #102c22; }
-.ledger-background span { position: absolute; top: -8px; left: 0; width: var(--snow-size); height: var(--snow-size); border-radius: 50%; background: #fff4d5; opacity: .5; animation: ledger-snow var(--snow-duration) linear var(--snow-delay) infinite; }
+.ledger-snowfall { position: fixed; inset: 0; z-index: 4; pointer-events: none; overflow: hidden; }
+.ledger-snowfall span { position: absolute; top: -8px; left: 0; width: var(--snow-size); height: var(--snow-size); border-radius: 50%; background: #fffdf4; opacity: .36; box-shadow: 0 0 2px #fff9e555; animation: ledger-snow var(--snow-duration) linear var(--snow-delay) infinite; }
+@media (max-width: 600px) {
+	.ledger-snowfall span { opacity: .3; }
+	.ledger-snowfall span:nth-child(n + 13) { display: none; }
+}
 @keyframes ledger-snow { from { transform: translate(0, -12px); } to { transform: translate(24px, calc(100dvh + 16px)); } }
 .ledger-frame { background: transparent; }
 .ledger-theme :where(h1,h2,h3,p,code) { overflow-wrap: anywhere; }
@@ -498,7 +503,7 @@ body { isolation: isolate; background: #102c22; }
 	.ledger-brand span { font-size: 25px; }
 }
 @media (prefers-reduced-motion: reduce) {
-	.ledger-background span { animation: none; display: none; }
+	.ledger-snowfall { display: none; }
 	.ledger-theme *, .ledger-theme *::before, .ledger-theme *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: 0s !important; scroll-behavior: auto !important; }
 }
 .ledger-input, .ledger-select, .ledger-secondary, .ledger-filter, .ledger-avatar-option,
@@ -652,6 +657,9 @@ body { isolation: isolate; background: #102c22; }
 }
 
 /* Quiet greenery frames the viewport behind the snow and reading surfaces. */
+.ledger-sleigh-sky { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 3; }
+.ledger-sleigh { position: absolute; left: 0; top: clamp(90px, 15vh, 150px); width: clamp(220px, 26vw, 340px); aspect-ratio: 480 / 110; background: url("/brand/santa-sleigh.svg") center / contain no-repeat; opacity: 0; transform: translateX(-100%); }
+@media (prefers-reduced-motion: reduce) { .ledger-sleigh-sky { display: none; } }
 .ledger-background-greenery { position: absolute; inset: 0; pointer-events: none; }
 .ledger-corner { position: absolute; width: clamp(180px, 21vw, 320px); aspect-ratio: 1; background: url("/brand/evergreen-corner.svg") top left / contain no-repeat; opacity: .8; }
 .ledger-corner-top-left { top: 0; left: 0; }
