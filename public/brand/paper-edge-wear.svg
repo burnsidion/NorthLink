@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="180" viewBox="0 0 24 180" fill="none">
+ <!-- Sparse pale fibers and warm creases suggest small tears without clipping controls. -->
+ <path d="M0 47L5 49L2 52L7 54L0 56Z M0 139L3 141L1 144L5 145L0 148Z" fill="#fff8e6"/>
+ <path d="M0 47L5 49L2 52L7 54 M0 139L3 141L1 144L5 145" stroke="#9b794b" stroke-opacity=".55" stroke-width=".7"/>
+ <path d="M1 55L8 57M1 147L5 149" stroke="#fffbed" stroke-opacity=".8" stroke-width=".8"/>
+</svg>

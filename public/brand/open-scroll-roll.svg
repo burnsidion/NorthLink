@@ -3,10 +3,10 @@
   <linearGradient id="roll" x1="0" y1="0" x2="0" y2="60" gradientUnits="userSpaceOnUse"><stop stop-color="#b99a68"/><stop offset=".25" stop-color="#eddbb7"/><stop offset=".48" stop-color="#fff2d4"/><stop offset=".7" stop-color="#e7cda2"/><stop offset="1" stop-color="#aa8755"/></linearGradient>
   <path id="paper" d="M12 4Q600 22 1188 4L1188 44Q600 62 12 44Z"/>
   <clipPath id="clip"><use href="#paper"/></clipPath>
-  <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency=".5" numOctaves="3" stitchTiles="stitch" seed="8"/><feColorMatrix type="saturate" values="0"/></filter>
+  <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency=".5" numOctaves="3" stitchTiles="stitch" seed="8"/><feColorMatrix type="matrix" values="0 0 0 0 .42 0 0 0 0 .29 0 0 0 0 .14 0 0 0 1 0"/></filter>
  </defs>
  <use href="#paper" fill="url(#roll)" stroke="#b39568" stroke-width="1"/>
  <path d="M14 7Q600 25 1186 7" stroke="#fff8e5" stroke-width="2" stroke-opacity=".7"/>
  <path d="M14 41Q600 59 1186 41" stroke="#977344" stroke-width="1.5" stroke-opacity=".35"/>
- <g clip-path="url(#clip)"><path d="M0 0h1200v60H0z" filter="url(#grain)" opacity=".09"/></g>
+ <g clip-path="url(#clip)"><path d="M0 0h1200v60H0z" filter="url(#grain)" opacity=".16"/></g>
 </svg>

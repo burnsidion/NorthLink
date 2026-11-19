@@ -1,6 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="220" height="220" viewBox="0 0 220 220">
- <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency=".62" numOctaves="3" stitchTiles="stitch" seed="8"/><feColorMatrix type="saturate" values="0"/></filter>
- <filter id="fiber"><feTurbulence type="fractalNoise" baseFrequency=".035 .28" numOctaves="2" stitchTiles="stitch" seed="12"/><feColorMatrix type="saturate" values="0"/></filter>
- <path fill="#876139" opacity=".15" filter="url(#grain)" d="M0 0h220v220H0z"/>
- <path fill="#8d7045" opacity=".025" filter="url(#fiber)" d="M0 0h220v220H0z"/>
+ <!-- Warm, transparent ink preserves the color of each paper surface. -->
+ <filter id="grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".48" numOctaves="3" stitchTiles="stitch" seed="8"/><feColorMatrix type="matrix" values="0 0 0 0 .42 0 0 0 0 .29 0 0 0 0 .14 0 0 0 1 0"/></filter>
+ <filter id="fiber" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".025 .24" numOctaves="2" stitchTiles="stitch" seed="12"/><feColorMatrix type="matrix" values="0 0 0 0 .42 0 0 0 0 .29 0 0 0 0 .14 0 0 0 1 0"/></filter>
+ <path opacity=".15" filter="url(#grain)" d="M0 0h220v220H0z"/>
+ <path opacity=".065" filter="url(#fiber)" d="M0 0h220v220H0z"/>
 </svg>
