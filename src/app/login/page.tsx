@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
-import { supabase } from "@/lib/supabase";
+import { supabase, initialAuthUrl } from "@/lib/supabase";
+import { finishAuthCallback, isPasswordRecoveryUrl } from "@/lib/auth-flow";
 import { getProfileUser } from "@/lib/auth-helpers";
 import { CyberSantaBrand } from "@/components/brand/cybersanta-brand";
 
@@ -11,6 +12,7 @@ export default function LoginPage() {
   const sb = supabase;
 
   const generation = useRef(0);
+  const completedSignIn = useRef(false);
   const [attempt, setAttempt] = useState(0);
   const [failedAttempt, setFailedAttempt] = useState<number | null>(null);
 
@@ -18,12 +20,15 @@ export default function LoginPage() {
     const {
       data: { subscription },
     } = sb.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_IN") completedSignIn.current = true;
+      if (event === "SIGNED_OUT") completedSignIn.current = false;
       if (
         [
           "INITIAL_SESSION",
           "SIGNED_IN",
           "SIGNED_OUT",
           "TOKEN_REFRESHED",
+          "PASSWORD_RECOVERY",
         ].includes(event)
       ) {
         generation.current++;
@@ -36,6 +41,16 @@ export default function LoginPage() {
   useEffect(() => {
     let active = true;
     const request = ++generation.current;
+    // Let a signed-in user request a fresh link after a failed recovery attempt.
+    if (new URL(window.location.href).searchParams.has("reset") && !completedSignIn.current) return () => { active = false; };
+    if (isPasswordRecoveryUrl(initialAuthUrl)) {
+      finishAuthCallback(initialAuthUrl!).then(destination => {
+        if (active && generation.current === request) window.location.replace(destination);
+      }).catch(() => {
+        if (active && generation.current === request) window.location.replace('/reset-password?error=link');
+      });
+      return () => { active = false; };
+    }
     // Validate stored sessions before redirecting. An expired/revoked session
     // must leave the sign-in form available rather than bouncing to the gate.
     getProfileUser()

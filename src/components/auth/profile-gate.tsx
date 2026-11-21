@@ -3,7 +3,8 @@
 import { WreathLoader } from "@/components/ui/wreath-loader";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { supabase, initialAuthUrl } from "@/lib/supabase";
+import { finishAuthCallback, isPasswordRecoveryUrl } from "@/lib/auth-flow";
 import { getProfileAccess } from "@/lib/auth-helpers";
 
 // This controls navigation only. Database policies still enforce data access.
@@ -24,7 +25,7 @@ export default function ProfileGate({ children, redirectReadyTo }: {
 	useEffect(() => {
 		const { data: { subscription } } = supabase.auth.onAuthStateChange(event => {
 			// Schedule checks outside the auth callback; Supabase holds its auth lock here.
-			if (["INITIAL_SESSION", "SIGNED_IN", "SIGNED_OUT", "USER_UPDATED"].includes(event)) {
+			if (["INITIAL_SESSION", "SIGNED_IN", "SIGNED_OUT", "USER_UPDATED", "PASSWORD_RECOVERY"].includes(event)) {
 				generation.current++;
 				setAttempt(value => value + 1);
 			}
@@ -36,6 +37,13 @@ export default function ProfileGate({ children, redirectReadyTo }: {
 		const request = ++generation.current;
 		const invalidate = () => { generation.current++; };
 		(async () => {
+			if (isPasswordRecoveryUrl(initialAuthUrl)) {
+				let destination: string;
+				try { destination = await finishAuthCallback(initialAuthUrl!); }
+				catch { destination = "/reset-password?error=link"; }
+				if (generation.current === request) window.location.replace(destination);
+				return;
+			}
 			try {
 				const access = await getProfileAccess();
 				if (generation.current !== request) return;

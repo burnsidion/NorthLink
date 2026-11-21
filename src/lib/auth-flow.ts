@@ -1,5 +1,11 @@
 import { supabase } from "@/lib/supabase";
-import { getProfileAccess } from "@/lib/auth-helpers";
+import { getProfileAccess, getProfileUser } from "@/lib/auth-helpers";
+
+export function isPasswordRecoveryUrl(value: string | null): boolean {
+	if (!value) return false;
+	const url = new URL(value);
+	return url.searchParams.get("type") === "recovery" || new URLSearchParams(url.hash.slice(1)).get("type") === "recovery";
+}
 
 /** Accept only existing signed-in destinations. Drop query strings and fragments. */
 export function safeAuthDestination(value: string | null): string {
@@ -23,6 +29,11 @@ export async function finishAuthCallback(callbackUrl: string): Promise<string> {
 	// This app issues implicit-flow links, not server/code-exchange links.
 	// Never mistake an unusable code link for a successful sign-in via an old session.
 	if (url.searchParams.has("code")) throw new Error("Unsupported sign-in link");
+	if (isPasswordRecoveryUrl(callbackUrl)) {
+		if (!fragment.get("access_token") || !fragment.get("refresh_token")) throw new Error("Incomplete recovery link");
+		if (!await getProfileUser()) throw new Error("No recovery session");
+		return "/reset-password";
+	}
 	const access = await getProfileAccess();
 	if (access === "signed-out") throw new Error("No sign-in session");
 	return access === "incomplete" ? "/onboarding" : safeAuthDestination(url.searchParams.get("next"));
