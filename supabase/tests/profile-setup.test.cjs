@@ -87,6 +87,7 @@ function screen(path, helpers, props = {}) {
     'next/navigation': { useRouter: () => router },
     '@/lib/supabase': { supabase: { auth: { onAuthStateChange(fn) { callback = fn; return { data: { subscription: { unsubscribe() {} } } }; } } } },
     '@/lib/auth-helpers': helpers,
+    '@/lib/auth-flow': { isPasswordRecoveryUrl: () => false },
     '@/lib/avatars': { AVATARS: ['https://example.com/default.png', 'https://example.com/other.png'] },
     '@/lib/utils': { cn: (...values) => values.filter(Boolean).join(' ') },
     '@/components/ui/stars-background': { StarsBackground: 'Stars' }, '@/components/ui/snowfall': { default: 'Snow' },

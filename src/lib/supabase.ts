@@ -2,6 +2,9 @@
 
 import { createClient } from "@supabase/supabase-js";
 
+// Capture the link before the SDK consumes and removes its URL fragment.
+export const initialAuthUrl = typeof window === "undefined" ? null : window.location.href;
+
 export const supabase = createClient(
 	process.env.NEXT_PUBLIC_SUPABASE_URL!,
 	process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,

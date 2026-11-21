@@ -474,6 +474,9 @@
 .ledger-auth-card .supabase-auth-ui_ui-anchor { display: block; color: var(--ledger-green); margin: 12px 0; text-decoration: underline; text-underline-offset: 3px; font-size: 14px; }
 .ledger-auth-card .supabase-auth-ui_ui-message { color: var(--ledger-red); padding: 12px; border: 1px solid var(--ledger-line); margin-top: 14px; border-radius: 6px; }
 .ledger-auth-card button:disabled { opacity: .55; cursor: wait; }
+.ledger-reset-form label { display: block; margin-top: 18px; font-size: 14px; font-weight: 600; }
+.ledger-reset-form > p { margin-block: 12px; }
+.ledger-reset-form > a { display: inline-block; color: var(--ledger-green); text-decoration: underline; }
 
 /* Greenery stays behind the paper; snow floats above it without catching input. */
 body { isolation: isolate; background: #102c22; }

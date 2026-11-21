@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { finishAuthCallback } from "@/lib/auth-flow";
+import { finishAuthCallback, isPasswordRecoveryUrl } from "@/lib/auth-flow";
+import { initialAuthUrl } from "@/lib/supabase";
 
 export default function AuthCallbackPage() {
 	const router = useRouter();
@@ -13,13 +14,14 @@ export default function AuthCallbackPage() {
 
 	useEffect(() => {
 		let active = true;
-		callbackUrl.current ??= window.location.href;
+		callbackUrl.current ??= initialAuthUrl ?? window.location.href;
 		(async () => {
 			let destination: string | undefined;
 			try {
 				destination = await finishAuthCallback(callbackUrl.current!);
 			} catch {
-				if (active) setFailedAttempt(attempt);
+				if (isPasswordRecoveryUrl(callbackUrl.current!)) destination = "/reset-password?error=link";
+				else if (active) setFailedAttempt(attempt);
 			} finally {
 				// Clear callback parameters from the address bar before navigating.
 				// Provider error details must not be displayed or forwarded.

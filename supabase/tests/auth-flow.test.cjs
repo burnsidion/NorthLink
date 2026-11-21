@@ -16,10 +16,10 @@ function load(path, modules, globals = {}) {
 }
 const deferred = () => { let resolve, reject; const promise = new Promise((a,b) => { resolve=a; reject=b; }); return { promise, resolve, reject }; };
 const flush = async () => { for (let n=0; n<6; n++) await new Promise(setImmediate); };
-function flow({ initialize = async () => ({ error: null }), access = async () => 'ready', signOut = async () => ({ error: null }) } = {}) {
+function flow({ initialize = async () => ({ error: null }), access = async () => 'ready', user = async () => ({id:'recovery-user'}), signOut = async () => ({ error: null }) } = {}) {
   return load('src/lib/auth-flow.ts', {
     '@/lib/supabase': { supabase: { auth: { initialize, signOut } } },
-    '@/lib/auth-helpers': { getProfileAccess: access },
+    '@/lib/auth-helpers': { getProfileAccess: access, getProfileUser: user },
   });
 }
 const callback = 'https://app.example/api/auth/callback';
@@ -84,7 +84,7 @@ test('invalid sessions are signed out; temporary auth failures still propagate f
 });
 
 // Deterministic hook harness exercises actual page effects and request completion.
-function screen(path, { finish = async () => '/landing', logout = async () => {}, user = async () => null } = {}) {
+function screen(path, { finish = async () => '/landing', logout = async () => {}, user = async () => null, initialUrl, href, access = async () => 'ready', initialize = async () => ({error:null}), update = async () => ({data:{user:{id:'A'}},error:null}) } = {}) {
   let cursor=0, authCallback;
   const slots=[], pending=[], effects=[], cleanups=[], redirects=[], history=[], stateWrites=[];
   const hooks = {
@@ -99,18 +99,19 @@ function screen(path, { finish = async () => '/landing', logout = async () => {}
   };
   const router={ replace: url => redirects.push(url) };
   const jsx=(type, props) => ({ type, props: props ?? {} });
-  const window={ location: { href: callback + '?next=/user-lists#error_description=private', replace: router.replace },
+  const window={ location: { href: href ?? callback + '?next=/user-lists#error_description=private', replace: router.replace },
     history: { state: null, replaceState: (_state,_title,url) => history.push(url) } };
   const component=load(path, {
     react: hooks, 'react/jsx-runtime': { jsx, jsxs: jsx },
     '@/components/brand/cybersanta-brand': { CyberSantaBrand: 'Brand' },
     '@/components/brand/profile-avatar': { ProfileAvatar: 'Avatar' }, 'next/navigation': { useRouter: () => router }, 'next/link': { default: 'Link' },
-    '@/lib/auth-flow': { finishAuthCallback: finish, signOutBrowser: logout }, '@/lib/auth-helpers': { getProfileUser: user },
-    '@/lib/supabase': { supabase: { auth: { onAuthStateChange(fn) { authCallback=fn; return { data: { subscription: { unsubscribe() {} } } }; } } } },
+    '@/lib/auth-flow': { finishAuthCallback: finish, signOutBrowser: logout, isPasswordRecoveryUrl: flow().isPasswordRecoveryUrl }, '@/lib/auth-helpers': { getProfileUser: user, getProfileAccess: access },
+    '@/lib/supabase': { initialAuthUrl: initialUrl, supabase: { auth: { initialize, updateUser: update, onAuthStateChange(fn) { authCallback=fn; return { data: { subscription: { unsubscribe() {} } } }; } } } },
+    '@/components/ui/wreath-loader': {WreathLoader:'Loader'},
     '@supabase/auth-ui-react': { Auth: 'Auth' }, '@supabase/auth-ui-shared': { ThemeSupa: {} }, 'motion/react': { motion: { div: 'motion.div' } },
     '@/components/ui/stars-background': { StarsBackground: 'Stars' }, '@/components/ui/snowfall': { default: 'Snow' }, '@/components/ui/border-beam': { BorderBeam: 'Beam' },
-  }, { window }).default;
-  function render() { cursor=0; const tree=component(); while (pending.length) pending.shift()(); return tree; }
+  }, { window, URL }).default;
+  function render() { cursor=0; const tree=component({}); while (pending.length) pending.shift()(); return tree; }
   function nodes(node) { if (Array.isArray(node)) return node.flatMap(nodes); return node && typeof node==='object' ? [node,...nodes(node.props?.children)] : []; }
   const all=() => nodes(render()); render();
   return { render, all, redirects, history, stateWrites,
@@ -165,4 +166,62 @@ test('login auth request failure shows retry instead of redirecting on an unchec
   const page=screen('src/app/login/page.tsx', { user: async () => { if (++calls===1) throw new Error('offline'); return { id:'A' }; } });
   await flush(); assert.ok(page.all().some(node => node.props.role==='alert')); assert.deepEqual(page.redirects, []);
   page.retry(); page.render(); await flush(); assert.deepEqual(page.redirects, ['/']); page.unmount();
+});
+
+const recoveryLink = callback + '#type=recovery&access_token=synthetic&refresh_token=synthetic';
+test('recovery callbacks verify the user and bypass profile routing and next destinations', async () => {
+ let verified=0;
+ const helpers=flow({user:async()=>{verified++;return {id:'A'}},access:async()=>{throw Error('must not check profile')}});
+ assert.equal(await helpers.finishAuthCallback(recoveryLink),'/reset-password');assert.equal(verified,1);
+ assert.equal(helpers.isPasswordRecoveryUrl(recoveryLink),true);assert.equal(helpers.isPasswordRecoveryUrl(callback),false);
+ await assert.rejects(flow({user:async()=>null}).finishAuthCallback(recoveryLink),/No recovery/);
+ for(const suffix of ['#type=recovery','#type=recovery&access_token=synthetic','#type=recovery&error_code=otp_expired']) await assert.rejects(flow().finishAuthCallback(callback+suffix));
+});
+test('callback retains recovery intent captured before the SDK scrubs the address bar', async () => {
+ const page=screen(callbackPage,{initialUrl:recoveryLink,href:callback,finish:async url=>{assert.equal(url,recoveryLink);return '/reset-password'}});
+ await flush();assert.deepEqual(page.redirects,['/reset-password']);assert.deepEqual(page.history,['/api/auth/callback']);page.unmount();
+ const expired=screen(callbackPage,{initialUrl:recoveryLink,finish:async()=>{throw Error('expired')}});
+ await flush();assert.deepEqual(expired.redirects,['/reset-password?error=link']);expired.unmount();
+});
+test('login and profile gate prioritize recovery over existing sessions and dashboard redirects', async () => {
+ for(const path of ['src/app/login/page.tsx','src/components/auth/profile-gate.tsx']) {
+  const page=screen(path,{initialUrl:recoveryLink,user:async()=>{throw Error('normal login path must not run')},access:async()=>{throw Error('normal gate must not run')},finish:async()=>'/reset-password'});
+  await flush();assert.deepEqual(page.redirects,['/reset-password']);page.unmount();
+ }
+ const fresh=screen('src/app/login/page.tsx',{href:'https://app.example/login?reset=1',user:async()=>({id:'A'})});
+ await flush();assert.deepEqual(fresh.redirects,[]);fresh.event('SIGNED_IN');fresh.render();await flush();assert.deepEqual(fresh.redirects,['/']);fresh.unmount();
+});
+function fields(page,password,confirm){
+ const inputs=page.all().filter(node=>node.type==='input');
+ inputs[0].props.onChange({target:{value:password}});inputs[1].props.onChange({target:{value:confirm}});page.render();
+}
+const resetPage='src/app/reset-password/page.tsx';
+const submit=page=>page.all().find(node=>node.type==='form').props.onSubmit({preventDefault(){}});
+test('password form validates, waits for actual save success, prevents double submits and clears fields', async () => {
+ const pending=deferred();let calls=0;
+ const page=screen(resetPage,{href:'https://app.example/reset-password',user:async()=>({id:'A'}),update:async payload=>{calls++;assert.equal(payload.password,'new-password');return pending.promise}});
+ await flush();fields(page,'short','short');await submit(page);assert.equal(calls,0);
+ fields(page,'new-password','different');await submit(page);assert.equal(calls,0);
+ fields(page,'new-password','new-password');const saving=submit(page);await submit(page);assert.equal(calls,1);
+ assert.ok(page.all().some(node=>node.type==='button'&&node.props.disabled));assert.deepEqual(page.redirects,[]);
+ pending.resolve({data:{user:{id:'A'}},error:null});await saving;
+ assert.ok(page.all().some(node=>node.props.role==='status'&&node.props.children==='Your password has been updated.'));
+ assert.equal(page.all().filter(node=>node.type==='input').length,0);page.unmount();
+});
+test('failed saves stay on the form; missing sessions and rejected links never show password fields', async () => {
+ const page=screen(resetPage,{href:'https://app.example/reset-password',user:async()=>({id:'A'}),update:async()=>({data:{user:null},error:{status:500}})});
+ await flush();fields(page,'new-password','new-password');await submit(page);assert.ok(page.all().some(node=>node.props.role==='alert'));assert.ok(page.all().some(node=>node.type==='form'));page.unmount();
+ for(const options of [{user:async()=>null},{href:'https://app.example/reset-password?error=link',user:async()=>({id:'A'})}]) {
+  const invalid=screen(resetPage,{href:'https://app.example/reset-password',...options});await flush();
+  assert.equal(invalid.all().filter(node=>node.type==='input').length,0);assert.ok(invalid.all().some(node=>node.props.role==='alert'));
+  invalid.replay();await flush();assert.equal(invalid.all().filter(node=>node.type==='input').length,0);invalid.unmount();
+ }
+});
+
+test('session expiry during save invalidates the form and late saves cannot update an unmounted page', async () => {
+ const expired=screen(resetPage,{href:'https://app.example/reset-password',user:async()=>({id:'A'}),update:async()=>({data:{user:null},error:{status:401}})});
+ await flush();fields(expired,'new-password','new-password');await submit(expired);assert.equal(expired.all().filter(node=>node.type==='input').length,0);expired.unmount();
+ const pending=deferred();const page=screen(resetPage,{href:'https://app.example/reset-password',user:async()=>({id:'A'}),update:()=>pending.promise});
+ await flush();fields(page,'new-password','new-password');const saving=submit(page);page.unmount();const count=page.stateWrites.length;
+ pending.resolve({data:{user:{id:'A'}},error:null});await saving;assert.equal(page.stateWrites.length,count);assert.deepEqual(page.redirects,[]);
 });
